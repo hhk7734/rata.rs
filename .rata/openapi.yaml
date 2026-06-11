@@ -1,0 +1,22 @@
+openapi: 3.2.0
+info:
+  title: LLM inference API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8000
+  - url: http://localhost:8001
+paths:
+  /v1/models:
+    description: "a"
+    get:
+      summary: Anthropic or OpenAI models API
+      description: "b"
+      responses:
+        "200":
+          description: "c"
+          content:
+            application/json:
+              schema:
+                type: object
+components: {}
+tags: []

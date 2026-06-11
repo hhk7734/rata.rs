@@ -1,0 +1,50 @@
+use std::io::Read;
+
+use rata::{Command, RataProject, parse_from};
+
+fn main() -> anyhow::Result<()> {
+    match parse_from(std::env::args_os())? {
+        Command::Tui => {
+            let cwd = std::env::current_dir()?;
+            let project = RataProject::discover(cwd)?;
+            rata::tui::run(project.as_ref())
+        }
+        Command::Request { method, url } => {
+            run_request(method, &url)?;
+            Ok(())
+        }
+    }
+}
+
+fn run_request(method: rata::HttpMethod, url: &str) -> anyhow::Result<()> {
+    let project = RataProject::discover(std::env::current_dir()?)?;
+    if let Some(project) = &project {
+        match project.match_url(method, url)? {
+            Some(matched) => eprintln!(
+                "Matched OpenAPI: {} {} - {}",
+                method.label(),
+                matched.operation.path,
+                matched.operation.summary
+            ),
+            None => eprintln!(
+                "No matching OpenAPI operation found for {} {}",
+                method.label(),
+                url
+            ),
+        }
+    }
+
+    let client = reqwest::blocking::Client::new();
+    let mut response = client.request(method.reqwest(), url).send()?;
+    println!("HTTP {}", response.status());
+    for (name, value) in response.headers() {
+        println!("{}: {}", name, value.to_str().unwrap_or("<binary>"));
+    }
+    println!();
+
+    let mut body = String::new();
+    response.read_to_string(&mut body)?;
+    print!("{body}");
+
+    Ok(())
+}
