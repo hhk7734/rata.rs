@@ -14,7 +14,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::Rect,
     style::{Color, Modifier, Style},
-    text::{Line, Span},
+    text::{Line, Span, Text},
     widgets::{Block, Borders, List, ListItem, Paragraph, Row, Table},
 };
 
@@ -99,6 +99,7 @@ pub struct TuiApp {
     pub collapsed_tags: std::collections::HashSet<String>,
     pub active_block: ActiveBlock,
     pub selected_operation: Option<(HttpMethod, String)>,
+    pub response_scroll: u16,
 }
 
 impl TuiApp {
@@ -137,7 +138,27 @@ impl TuiApp {
             collapsed_tags: std::collections::HashSet::new(),
             active_block: ActiveBlock::None,
             selected_operation,
+            response_scroll: 0,
         }
+    }
+
+    pub fn scroll_response_up(&mut self, amount: u16) {
+        self.response_scroll = self.response_scroll.saturating_sub(amount);
+    }
+
+    pub fn scroll_response_down(&mut self, amount: u16) {
+        let lines = if let Some(error) = &self.response.error {
+            error.lines().count() as u16
+        } else {
+            match self.active_response_tab {
+                ResponseTab::Body => pretty_body(&self.response.body).lines().count() as u16,
+                ResponseTab::Headers => self.response.headers.len().max(1) as u16,
+                ResponseTab::Cookies => self.response.cookies.len().max(1) as u16,
+            }
+        };
+        let view_height = self.response_area.height.saturating_sub(2);
+        let max_scroll = lines.saturating_sub(view_height);
+        self.response_scroll = std::cmp::min(self.response_scroll.saturating_add(amount), max_scroll);
     }
 
     pub fn edit_url(&mut self, url: impl Into<String>) {
@@ -145,6 +166,7 @@ impl TuiApp {
     }
 
     pub fn send(&mut self) -> anyhow::Result<()> {
+        self.response_scroll = 0;
         self.response = ResponseView {
             status: None,
             body: String::new(),
@@ -178,14 +200,29 @@ impl TuiApp {
                 }
                 KeyCode::Char('1') => {
                     self.active_response_tab = ResponseTab::Body;
+                    self.response_scroll = 0;
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Char('2') => {
                     self.active_response_tab = ResponseTab::Headers;
+                    self.response_scroll = 0;
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Char('3') => {
                     self.active_response_tab = ResponseTab::Cookies;
+                    self.response_scroll = 0;
+                    Ok(AppAction::Continue)
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if self.active_block == ActiveBlock::Response {
+                        self.scroll_response_up(1);
+                    }
+                    Ok(AppAction::Continue)
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if self.active_block == ActiveBlock::Response {
+                        self.scroll_response_down(1);
+                    }
                     Ok(AppAction::Continue)
                 }
                 _ => Ok(AppAction::Continue),
@@ -214,6 +251,26 @@ impl TuiApp {
     }
 
     pub fn handle_mouse(&mut self, mouse: MouseEvent, project: Option<&RataProject>) {
+        let contains = |rect: Rect, x, y| {
+            x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
+        };
+
+        if matches!(mouse.kind, MouseEventKind::ScrollUp) {
+            if contains(self.response_area, mouse.column, mouse.row) {
+                self.active_block = ActiveBlock::Response;
+                self.scroll_response_up(3);
+            }
+            return;
+        }
+
+        if matches!(mouse.kind, MouseEventKind::ScrollDown) {
+            if contains(self.response_area, mouse.column, mouse.row) {
+                self.active_block = ActiveBlock::Response;
+                self.scroll_response_down(3);
+            }
+            return;
+        }
+
         if !matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
             return;
         }
@@ -222,13 +279,10 @@ impl TuiApp {
 
         if let Some(tab) = response_tab_at(mouse.column, mouse.row, self.response_tab_origin) {
             self.active_response_tab = tab;
+            self.response_scroll = 0;
             self.active_block = ActiveBlock::Response;
             return;
         }
-
-        let contains = |rect: Rect, x, y| {
-            x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
-        };
 
         if contains(self.collections_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Collections;
@@ -284,19 +338,24 @@ impl TuiApp {
         ["Body", "Headers", "Cookies"]
     }
 
-    pub fn active_response_text(&self) -> String {
+    pub fn active_response_text(&self) -> Text<'static> {
         if let Some(error) = &self.response.error {
-            return error.clone();
+            return Text::raw(error.clone());
         }
 
         match self.active_response_tab {
-            ResponseTab::Body => pretty_body(&self.response.body),
-            ResponseTab::Headers => format_pairs(&self.response.headers, "No headers"),
+            ResponseTab::Body => {
+                let body = pretty_body(&self.response.body);
+                highlight_json(&body)
+            }
+            ResponseTab::Headers => {
+                Text::raw(format_pairs(&self.response.headers, "No headers"))
+            }
             ResponseTab::Cookies => {
                 if self.response.cookies.is_empty() {
-                    "No cookies".to_string()
+                    Text::raw("No cookies".to_string())
                 } else {
-                    self.response.cookies.join("\n")
+                    Text::raw(self.response.cookies.join("\n"))
                 }
             }
         }
@@ -683,7 +742,27 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
     frame.render_widget(block, area);
 
     app.set_response_tabs_area(Rect { x: area.x, y: area.y, width: area.width, height: 1 });
-    frame.render_widget(response_body(app), inner);
+    
+    let text = app.active_response_text();
+    let lines = text.lines.len();
+    let view_height = inner.height as usize;
+
+    frame.render_widget(response_body(app, text), inner);
+
+    if lines > view_height {
+        let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
+            .content_length(lines.saturating_sub(view_height))
+            .position(app.response_scroll as usize);
+        let scrollbar = ratatui::widgets::Scrollbar::default()
+            .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+            .begin_symbol(Some("▲"))
+            .end_symbol(Some("▼"));
+        frame.render_stateful_widget(
+            scrollbar,
+            area.inner(ratatui::layout::Margin { vertical: 1, horizontal: 0 }),
+            &mut scrollbar_state,
+        );
+    }
 }
 
 fn response_tabs_title(app: &TuiApp) -> Line<'static> {
@@ -718,8 +797,10 @@ fn response_status_title(app: &TuiApp) -> Line<'static> {
     ]).right_aligned()
 }
 
-fn response_body(app: &TuiApp) -> Paragraph<'static> {
-    Paragraph::new(app.active_response_text()).style(Style::default().bg(PANEL).fg(TEXT))
+fn response_body(app: &TuiApp, text: Text<'static>) -> Paragraph<'static> {
+    Paragraph::new(text)
+        .style(Style::default().bg(PANEL).fg(TEXT))
+        .scroll((app.response_scroll, 0))
 }
 
 fn response_block(app: &TuiApp) -> Block<'static> {
@@ -761,6 +842,94 @@ fn method_style(method: HttpMethod) -> Style {
     };
 
     Style::default().fg(color).add_modifier(Modifier::BOLD)
+}
+
+fn highlight_json(json: &str) -> Text<'static> {
+    let mut lines = Vec::new();
+    for line in json.lines() {
+        let mut spans = Vec::new();
+        let mut current_span = String::new();
+        let mut in_string = false;
+        let mut escaped = false;
+
+        let mut iter = line.chars().peekable();
+        while let Some(c) = iter.next() {
+            if in_string {
+                current_span.push(c);
+                if c == '\\' && !escaped {
+                    escaped = true;
+                } else if c == '"' && !escaped {
+                    in_string = false;
+                    let mut is_key_local = false;
+                    let mut lookahead = iter.clone();
+                    while let Some(lc) = lookahead.next() {
+                        if lc == ' ' { continue; }
+                        if lc == ':' { is_key_local = true; }
+                        break;
+                    }
+                    if is_key_local {
+                        spans.push(Span::styled(current_span.clone(), Style::default().fg(Color::LightBlue)));
+                    } else {
+                        spans.push(Span::styled(current_span.clone(), Style::default().fg(Color::Green)));
+                    }
+                    current_span.clear();
+                } else {
+                    escaped = false;
+                }
+            } else {
+                if c == '"' {
+                    if !current_span.is_empty() {
+                        spans.extend(highlight_non_string(&current_span));
+                        current_span.clear();
+                    }
+                    in_string = true;
+                    current_span.push(c);
+                } else {
+                    current_span.push(c);
+                }
+            }
+        }
+        if !current_span.is_empty() {
+            if in_string {
+                spans.push(Span::styled(current_span, Style::default().fg(Color::Green)));
+            } else {
+                spans.extend(highlight_non_string(&current_span));
+            }
+        }
+        lines.push(Line::from(spans));
+    }
+    Text::from(lines)
+}
+
+fn highlight_non_string(text: &str) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let mut current = String::new();
+    for c in text.chars() {
+        if " \t\r\n{}[],:".contains(c) {
+            if !current.is_empty() {
+                spans.push(highlight_value(&current));
+                current.clear();
+            }
+            spans.push(Span::raw(c.to_string()));
+        } else {
+            current.push(c);
+        }
+    }
+    if !current.is_empty() {
+        spans.push(highlight_value(&current));
+    }
+    spans
+}
+
+fn highlight_value(text: &str) -> Span<'static> {
+    match text {
+        "true" | "false" => Span::styled(text.to_string(), Style::default().fg(Color::Yellow)),
+        "null" => Span::styled(text.to_string(), Style::default().fg(Color::DarkGray)),
+        _ if text.chars().all(|c| c.is_ascii_digit() || c == '.' || c == '-' || c == 'e' || c == 'E' || c == '+') => {
+            Span::styled(text.to_string(), Style::default().fg(Color::Magenta))
+        }
+        _ => Span::raw(text.to_string()),
+    }
 }
 
 #[cfg(test)]
