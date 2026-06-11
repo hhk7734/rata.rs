@@ -36,7 +36,6 @@ const BLUE: Color = Color::Rgb(96, 165, 250);
 pub struct TuiModel {
     pub theme: Theme,
     pub collections_title: String,
-    pub request_tabs: Vec<String>,
     pub selected_request_url: String,
     pub examples: Vec<String>,
 }
@@ -83,6 +82,8 @@ pub struct TuiApp {
     pub input_mode: InputMode,
     pub active_response_tab: ResponseTab,
     response_tab_origin: (u16, u16),
+    pub collections_area: Rect,
+    pub collapsed_tags: std::collections::HashSet<String>,
 }
 
 impl TuiApp {
@@ -109,6 +110,8 @@ impl TuiApp {
             input_mode: InputMode::Normal,
             active_response_tab: ResponseTab::Body,
             response_tab_origin: (0, RESPONSE_TAB_ROW),
+            collections_area: Rect::default(),
+            collapsed_tags: std::collections::HashSet::new(),
         }
     }
 
@@ -185,13 +188,40 @@ impl TuiApp {
         }
     }
 
-    pub fn handle_mouse(&mut self, mouse: MouseEvent) {
+    pub fn handle_mouse(&mut self, mouse: MouseEvent, project: Option<&RataProject>) {
         if !matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
             return;
         }
 
         if let Some(tab) = response_tab_at(mouse.column, mouse.row, self.response_tab_origin) {
             self.active_response_tab = tab;
+            return;
+        }
+
+        let Rect { x, y, width, height } = self.collections_area;
+        if mouse.column >= x && mouse.column < x + width && mouse.row >= y && mouse.row < y + height {
+            let list_y = y + 1;
+            if mouse.row >= list_y {
+                let clicked_row = (mouse.row - list_y) as usize;
+                if let Some(project) = project {
+                    let mut current_row = 0;
+                    for collection in project.collections() {
+                        if current_row == clicked_row {
+                            let name = collection.name.clone();
+                            if self.collapsed_tags.contains(&name) {
+                                self.collapsed_tags.remove(&name);
+                            } else {
+                                self.collapsed_tags.insert(name);
+                            }
+                            return;
+                        }
+                        current_row += 1;
+                        if !self.collapsed_tags.contains(&collection.name) {
+                            current_row += collection.operations.len();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -320,7 +350,6 @@ pub fn build_model(project: Option<&RataProject>) -> TuiModel {
         return TuiModel {
             theme: Theme::Dark,
             collections_title: "Collections".to_string(),
-            request_tabs: Vec::new(),
             selected_request_url: String::new(),
             examples: Vec::new(),
         };
@@ -331,10 +360,6 @@ pub fn build_model(project: Option<&RataProject>) -> TuiModel {
         .iter()
         .flat_map(|collection| &collection.operations)
         .collect::<Vec<_>>();
-    let request_tabs = operations
-        .iter()
-        .map(|operation| format!("{} {}", operation.method.label(), operation.summary))
-        .collect();
     let selected = operations.first().copied();
     let selected_request_url = selected
         .map(|operation| {
@@ -355,7 +380,6 @@ pub fn build_model(project: Option<&RataProject>) -> TuiModel {
     TuiModel {
         theme: Theme::Dark,
         collections_title: "Collections".to_string(),
-        request_tabs,
         selected_request_url,
         examples,
     }
@@ -390,18 +414,14 @@ fn run_loop(
     loop {
         terminal.draw(|frame| {
             let area = frame.area();
-            let vertical = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Length(3), Constraint::Min(0)])
-                .split(area);
             let body = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Length(34), Constraint::Min(0)])
-                .split(vertical[1]);
+                .split(area);
+            app.collections_area = body[0];
             let main = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Length(3),
                     Constraint::Length(6),
                     Constraint::Min(8),
                     Constraint::Length(10),
@@ -410,62 +430,51 @@ fn run_loop(
             let request_body = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Min(0), Constraint::Length(34)])
-                .split(main[2]);
+                .split(main[1]);
 
-            frame.render_widget(top_bar(), vertical[0]);
-            frame.render_widget(collections(project), body[0]);
-            frame.render_widget(request_tabs(project), main[0]);
-            frame.render_widget(request_line(app), main[1]);
+            frame.render_widget(collections(project, &app.collapsed_tags), body[0]);
+            frame.render_widget(request_line(app), main[0]);
             frame.render_widget(params_table(), request_body[0]);
             frame.render_widget(examples(project), request_body[1]);
-            render_response(frame, app, main[3]);
+            render_response(frame, app, main[2]);
         })?;
 
         if event::poll(std::time::Duration::from_millis(250))? {
             match event::read()? {
                 Event::Key(key) if app.handle_key(key)? == AppAction::Quit => return Ok(()),
-                Event::Mouse(mouse) => app.handle_mouse(mouse),
+                Event::Mouse(mouse) => app.handle_mouse(mouse, project),
                 _ => {}
             }
         }
     }
 }
 
-fn top_bar() -> Paragraph<'static> {
-    Paragraph::new(Line::from(vec![
-        Span::styled(
-            " rata ",
-            Style::default()
-                .fg(Color::White)
-                .bg(Color::Rgb(255, 108, 55)),
-        ),
-        Span::styled("  Example API  ", Style::default().fg(TEXT)),
-        Span::styled("  .rata/openapi.yaml  ", muted_style()),
-        Span::styled("Search operations, examples, paths", muted_style()),
-    ]))
-    .block(dark_block())
-}
 
-fn collections(project: Option<&RataProject>) -> List<'static> {
+
+fn collections(project: Option<&RataProject>, collapsed: &std::collections::HashSet<String>) -> List<'static> {
     let mut items = Vec::new();
     if let Some(project) = project {
         for collection in project.collections() {
+            let is_collapsed = collapsed.contains(&collection.name);
+            let icon = if is_collapsed { "▸ " } else { "▾ " };
             items.push(ListItem::new(Line::from(vec![
-                Span::styled("▾ ", muted_style()),
+                Span::styled(icon, muted_style()),
                 Span::styled(
                     format!("{}/", collection.name),
                     accent_style().add_modifier(Modifier::BOLD),
                 ),
             ])));
-            for operation in &collection.operations {
-                items.push(ListItem::new(Line::from(vec![
-                    Span::raw("  "),
-                    Span::styled(
-                        format!("{:<5}", operation.method.label()),
-                        method_style(operation.method),
-                    ),
-                    Span::styled(operation.summary.clone(), Style::default().fg(TEXT)),
-                ])));
+            if !is_collapsed {
+                for operation in &collection.operations {
+                    items.push(ListItem::new(Line::from(vec![
+                        Span::raw("  "),
+                        Span::styled(
+                            format!("{:<5}", operation.method.label()),
+                            method_style(operation.method),
+                        ),
+                        Span::styled(operation.summary.clone(), Style::default().fg(TEXT)),
+                    ])));
+                }
             }
         }
     } else {
@@ -481,20 +490,7 @@ fn collections(project: Option<&RataProject>) -> List<'static> {
         .highlight_style(Style::default().bg(PANEL_SOFT))
 }
 
-fn request_tabs(project: Option<&RataProject>) -> Tabs<'static> {
-    let model = build_model(project);
-    let titles = if model.request_tabs.is_empty() {
-        vec![Line::from("Request")]
-    } else {
-        model.request_tabs.into_iter().map(Line::from).collect()
-    };
 
-    Tabs::new(titles)
-        .select(0)
-        .block(dark_block())
-        .style(muted_style())
-        .highlight_style(accent_style().add_modifier(Modifier::BOLD))
-}
 
 fn request_line(app: &TuiApp) -> Paragraph<'static> {
     let url = if app.draft.url.is_empty() {
