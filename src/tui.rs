@@ -14,9 +14,8 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::Rect,
     style::{Color, Modifier, Style},
-    symbols,
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Row, Table, Tabs},
+    widgets::{Block, Borders, List, ListItem, Paragraph, Row, Table},
 };
 
 use crate::project::{HttpMethod, RataProject};
@@ -337,12 +336,12 @@ fn response_tab_at(column: u16, row: u16, origin: (u16, u16)) -> Option<Response
 }
 
 const RESPONSE_TAB_ROW: u16 = 3;
-const BODY_TAB_START: u16 = 1;
-const BODY_TAB_END: u16 = 4;
-const HEADERS_TAB_START: u16 = 8;
-const HEADERS_TAB_END: u16 = 14;
-const COOKIES_TAB_START: u16 = 18;
-const COOKIES_TAB_END: u16 = 24;
+const BODY_TAB_START: u16 = 2;
+const BODY_TAB_END: u16 = 5;
+const HEADERS_TAB_START: u16 = 9;
+const HEADERS_TAB_END: u16 = 15;
+const COOKIES_TAB_START: u16 = 19;
+const COOKIES_TAB_END: u16 = 25;
 
 fn pretty_body(body: &str) -> String {
     if body.is_empty() {
@@ -534,7 +533,7 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     List::new(items)
         .block(
             Block::default()
-                .title("Collections")
+                .title(" Collections ")
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
                 .border_style(border_style)
@@ -574,7 +573,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     ])
     .block(
         Block::default()
-            .title("Request")
+            .title(" Request ")
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
             .border_style(border_style)
@@ -611,7 +610,7 @@ fn params_table(app: &TuiApp) -> Table<'static> {
     )
     .block(
         Block::default()
-            .title("Params")
+            .title(" Params ")
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
             .border_style(border_style)
@@ -648,7 +647,7 @@ fn examples(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     List::new(items)
         .block(
             Block::default()
-                .title("Examples")
+                .title(" Examples ")
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
                 .border_style(border_style)
@@ -661,40 +660,40 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
-    let tabs_area = response_tabs_area(area);
-    let body_area = Rect {
-        x: inner.x,
-        y: inner.y.saturating_add(tabs_area.height),
-        width: inner.width,
-        height: inner.height.saturating_sub(tabs_area.height),
-    };
-    app.set_response_tabs_area(tabs_area);
-    frame.render_widget(response_tabs_widget(app), tabs_area);
-    frame.render_widget(response_body(app), body_area);
+    app.set_response_tabs_area(Rect { x: area.x, y: area.y, width: area.width, height: 1 });
+    frame.render_widget(response_body(app), inner);
 }
 
-fn response_tabs_area(area: Rect) -> Rect {
-    Rect {
-        x: area.x.saturating_add(1),
-        y: area.y.saturating_add(1),
-        width: area.width.saturating_sub(2),
-        height: 1,
-    }
-}
-
-fn response_tabs_widget(app: &TuiApp) -> Tabs<'static> {
+fn response_tabs_title(app: &TuiApp) -> Line<'static> {
+    let mut spans = Vec::new();
+    spans.push(Span::raw(" "));
+    let tabs = app.response_tabs();
     let selected = match app.active_response_tab {
         ResponseTab::Body => 0,
         ResponseTab::Headers => 1,
         ResponseTab::Cookies => 2,
     };
+    for (i, tab) in tabs.iter().enumerate() {
+        if i > 0 {
+            spans.push(Span::styled(" · ", muted_style()));
+        }
+        if i == selected {
+            spans.push(Span::styled(*tab, accent_style().add_modifier(Modifier::BOLD)));
+        } else {
+            spans.push(Span::styled(*tab, muted_style()));
+        }
+    }
+    spans.push(Span::raw(" "));
+    Line::from(spans).left_aligned()
+}
 
-    Tabs::new(app.response_tabs())
-        .select(selected)
-        .divider(symbols::DOT)
-        .padding(" ", " ")
-        .style(muted_style())
-        .highlight_style(accent_style().add_modifier(Modifier::BOLD))
+fn response_status_title(app: &TuiApp) -> Line<'static> {
+    Line::from(vec![
+        Span::raw(" "),
+        Span::styled("Response", Style::default().fg(TEXT)),
+        Span::styled(response_status_label(app), muted_style()),
+        Span::raw(" "),
+    ]).right_aligned()
 }
 
 fn response_body(app: &TuiApp) -> Paragraph<'static> {
@@ -711,10 +710,8 @@ fn response_block(app: &TuiApp) -> Block<'static> {
     Block::default()
         .style(Style::default().bg(PANEL_SOFT).fg(TEXT))
         .border_style(border_style)
-        .title(Line::from(vec![
-            Span::styled("Response", Style::default().fg(TEXT)),
-            Span::styled(response_status_label(app), muted_style()),
-        ]))
+        .title_top(response_tabs_title(app))
+        .title_top(response_status_title(app))
         .borders(Borders::ALL)
 }
 
