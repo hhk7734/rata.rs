@@ -98,6 +98,7 @@ pub struct TuiApp {
     pub response_area: Rect,
     pub collapsed_tags: std::collections::HashSet<String>,
     pub active_block: ActiveBlock,
+    pub selected_operation: Option<(HttpMethod, String)>,
 }
 
 impl TuiApp {
@@ -107,6 +108,10 @@ impl TuiApp {
             .and_then(first_operation)
             .map(|operation| operation.method)
             .unwrap_or(HttpMethod::Get);
+        let selected_operation = project
+            .and_then(first_operation)
+            .map(|op| (op.method, op.path.clone()));
+
         Self {
             draft: RequestDraft {
                 method,
@@ -131,6 +136,7 @@ impl TuiApp {
             response_area: Rect::default(),
             collapsed_tags: std::collections::HashSet::new(),
             active_block: ActiveBlock::None,
+            selected_operation,
         }
     }
 
@@ -243,7 +249,18 @@ impl TuiApp {
                         }
                         current_row += 1;
                         if !self.collapsed_tags.contains(&collection.name) {
-                            current_row += collection.operations.len();
+                            let ops_len = collection.operations.len();
+                            if clicked_row >= current_row && clicked_row < current_row + ops_len {
+                                let op_idx = clicked_row - current_row;
+                                let operation = &collection.operations[op_idx];
+                                self.selected_operation = Some((operation.method, operation.path.clone()));
+                                let base = project.server_url().unwrap_or_default().trim_end_matches('/');
+                                self.draft.method = operation.method;
+                                self.draft.url = format!("{base}{}", operation.path);
+                                self.model.examples = project.examples_for(operation).ok().unwrap_or_default().into_iter().map(|e| e.name).collect();
+                                return;
+                            }
+                            current_row += ops_len;
                         }
                     }
                 }
@@ -512,14 +529,19 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
             ])));
             if !is_collapsed {
                 for operation in &collection.operations {
-                    items.push(ListItem::new(Line::from(vec![
+                    let is_selected = app.selected_operation.as_ref() == Some(&(operation.method, operation.path.clone()));
+                    let mut item = ListItem::new(Line::from(vec![
                         Span::raw("  "),
                         Span::styled(
                             format!("{:<5}", operation.method.label()),
                             method_style(operation.method),
                         ),
                         Span::styled(operation.summary.clone(), Style::default().fg(TEXT)),
-                    ])));
+                    ]));
+                    if is_selected {
+                        item = item.style(Style::default().bg(PANEL_SOFT));
+                    }
+                    items.push(item);
                 }
             }
         }
@@ -697,7 +719,7 @@ fn response_status_title(app: &TuiApp) -> Line<'static> {
 }
 
 fn response_body(app: &TuiApp) -> Paragraph<'static> {
-    Paragraph::new(app.active_response_text()).style(Style::default().bg(PANEL_SOFT).fg(TEXT))
+    Paragraph::new(app.active_response_text()).style(Style::default().bg(PANEL).fg(TEXT))
 }
 
 fn response_block(app: &TuiApp) -> Block<'static> {
@@ -708,7 +730,7 @@ fn response_block(app: &TuiApp) -> Block<'static> {
     };
 
     Block::default()
-        .style(Style::default().bg(PANEL_SOFT).fg(TEXT))
+        .style(Style::default().bg(PANEL).fg(TEXT))
         .border_style(border_style)
         .title_top(response_tabs_title(app))
         .title_top(response_status_title(app))
