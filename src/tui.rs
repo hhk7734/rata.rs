@@ -74,6 +74,16 @@ pub enum InputMode {
     EditingUrl,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActiveBlock {
+    None,
+    Collections,
+    Request,
+    Params,
+    Examples,
+    Response,
+}
+
 #[derive(Debug, Clone)]
 pub struct TuiApp {
     pub model: TuiModel,
@@ -83,7 +93,12 @@ pub struct TuiApp {
     pub active_response_tab: ResponseTab,
     response_tab_origin: (u16, u16),
     pub collections_area: Rect,
+    pub request_area: Rect,
+    pub params_area: Rect,
+    pub examples_area: Rect,
+    pub response_area: Rect,
     pub collapsed_tags: std::collections::HashSet<String>,
+    pub active_block: ActiveBlock,
 }
 
 impl TuiApp {
@@ -111,7 +126,12 @@ impl TuiApp {
             active_response_tab: ResponseTab::Body,
             response_tab_origin: (0, RESPONSE_TAB_ROW),
             collections_area: Rect::default(),
+            request_area: Rect::default(),
+            params_area: Rect::default(),
+            examples_area: Rect::default(),
+            response_area: Rect::default(),
             collapsed_tags: std::collections::HashSet::new(),
+            active_block: ActiveBlock::None,
         }
     }
 
@@ -193,14 +213,21 @@ impl TuiApp {
             return;
         }
 
+        self.active_block = ActiveBlock::None;
+
         if let Some(tab) = response_tab_at(mouse.column, mouse.row, self.response_tab_origin) {
             self.active_response_tab = tab;
+            self.active_block = ActiveBlock::Response;
             return;
         }
 
-        let Rect { x, y, width, height } = self.collections_area;
-        if mouse.column >= x && mouse.column < x + width && mouse.row >= y && mouse.row < y + height {
-            let list_y = y + 1;
+        let contains = |rect: Rect, x, y| {
+            x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
+        };
+
+        if contains(self.collections_area, mouse.column, mouse.row) {
+            self.active_block = ActiveBlock::Collections;
+            let list_y = self.collections_area.y + 1;
             if mouse.row >= list_y {
                 let clicked_row = (mouse.row - list_y) as usize;
                 if let Some(project) = project {
@@ -222,6 +249,14 @@ impl TuiApp {
                     }
                 }
             }
+        } else if contains(self.request_area, mouse.column, mouse.row) {
+            self.active_block = ActiveBlock::Request;
+        } else if contains(self.params_area, mouse.column, mouse.row) {
+            self.active_block = ActiveBlock::Params;
+        } else if contains(self.examples_area, mouse.column, mouse.row) {
+            self.active_block = ActiveBlock::Examples;
+        } else if contains(self.response_area, mouse.column, mouse.row) {
+            self.active_block = ActiveBlock::Response;
         }
     }
 
@@ -432,10 +467,15 @@ fn run_loop(
                 .constraints([Constraint::Min(0), Constraint::Length(34)])
                 .split(main[1]);
 
-            frame.render_widget(collections(project, &app.collapsed_tags), body[0]);
+            app.request_area = main[0];
+            app.params_area = request_body[0];
+            app.examples_area = request_body[1];
+            app.response_area = main[2];
+
+            frame.render_widget(collections(project, app), body[0]);
             frame.render_widget(request_line(app), main[0]);
-            frame.render_widget(params_table(), request_body[0]);
-            frame.render_widget(examples(project), request_body[1]);
+            frame.render_widget(params_table(app), request_body[0]);
+            frame.render_widget(examples(project, app), request_body[1]);
             render_response(frame, app, main[2]);
         })?;
 
@@ -451,8 +491,15 @@ fn run_loop(
 
 
 
-fn collections(project: Option<&RataProject>, collapsed: &std::collections::HashSet<String>) -> List<'static> {
+fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     let mut items = Vec::new();
+    let collapsed = &app.collapsed_tags;
+    let border_style = if app.active_block == ActiveBlock::Collections {
+        Style::default().fg(ACCENT)
+    } else {
+        Style::default().fg(BORDER)
+    };
+
     if let Some(project) = project {
         for collection in project.collections() {
             let is_collapsed = collapsed.contains(&collection.name);
@@ -485,7 +532,13 @@ fn collections(project: Option<&RataProject>, collapsed: &std::collections::Hash
     }
 
     List::new(items)
-        .block(dark_block().title("Collections").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title("Collections")
+                .borders(Borders::ALL)
+                .style(Style::default().bg(PANEL).fg(TEXT))
+                .border_style(border_style)
+        )
         .style(Style::default().fg(TEXT))
         .highlight_style(Style::default().bg(PANEL_SOFT))
 }
@@ -505,6 +558,12 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         }
     };
 
+    let border_style = if app.active_block == ActiveBlock::Request {
+        Style::default().fg(ACCENT)
+    } else {
+        Style::default().fg(BORDER)
+    };
+
     Paragraph::new(vec![
         Line::from(Span::styled(
             app.draft.method.label(),
@@ -513,10 +572,22 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         Line::from(Span::styled(url, Style::default().fg(TEXT))),
         Line::from(Span::styled(mode_hint, muted_style())),
     ])
-    .block(dark_block().title("Request").borders(Borders::ALL))
+    .block(
+        Block::default()
+            .title("Request")
+            .borders(Borders::ALL)
+            .style(Style::default().bg(PANEL).fg(TEXT))
+            .border_style(border_style)
+    )
 }
 
-fn params_table() -> Table<'static> {
+fn params_table(app: &TuiApp) -> Table<'static> {
+    let border_style = if app.active_block == ActiveBlock::Params {
+        Style::default().fg(ACCENT)
+    } else {
+        Style::default().fg(BORDER)
+    };
+
     Table::new(
         [
             Row::new(["id", "{id}", "Path", "OpenAPI path parameter"]),
@@ -538,11 +609,23 @@ fn params_table() -> Table<'static> {
         Row::new(["Key", "Value", "Source", "Description"])
             .style(muted_style().add_modifier(Modifier::BOLD)),
     )
-    .block(dark_block().title("Params").borders(Borders::ALL))
+    .block(
+        Block::default()
+            .title("Params")
+            .borders(Borders::ALL)
+            .style(Style::default().bg(PANEL).fg(TEXT))
+            .border_style(border_style)
+    )
     .style(Style::default().fg(TEXT))
 }
 
-fn examples(project: Option<&RataProject>) -> List<'static> {
+fn examples(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
+    let border_style = if app.active_block == ActiveBlock::Examples {
+        Style::default().fg(ACCENT)
+    } else {
+        Style::default().fg(BORDER)
+    };
+
     let model = build_model(project);
     let items = if model.examples.is_empty() {
         vec![ListItem::new(Line::from(Span::styled(
@@ -563,7 +646,13 @@ fn examples(project: Option<&RataProject>) -> List<'static> {
     };
 
     List::new(items)
-        .block(dark_block().title("Examples").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title("Examples")
+                .borders(Borders::ALL)
+                .style(Style::default().bg(PANEL).fg(TEXT))
+                .border_style(border_style)
+        )
         .style(Style::default().fg(TEXT))
 }
 
@@ -613,7 +702,15 @@ fn response_body(app: &TuiApp) -> Paragraph<'static> {
 }
 
 fn response_block(app: &TuiApp) -> Block<'static> {
-    dark_inner_block()
+    let border_style = if app.active_block == ActiveBlock::Response {
+        Style::default().fg(ACCENT)
+    } else {
+        Style::default().fg(BORDER)
+    };
+
+    Block::default()
+        .style(Style::default().bg(PANEL_SOFT).fg(TEXT))
+        .border_style(border_style)
         .title(Line::from(vec![
             Span::styled("Response", Style::default().fg(TEXT)),
             Span::styled(response_status_label(app), muted_style()),
@@ -626,18 +723,6 @@ fn response_status_label(app: &TuiApp) -> String {
         .status
         .map(|status| format!(" · HTTP {status}"))
         .unwrap_or_default()
-}
-
-fn dark_block() -> Block<'static> {
-    Block::default()
-        .style(Style::default().bg(PANEL).fg(TEXT))
-        .border_style(Style::default().fg(BORDER))
-}
-
-fn dark_inner_block() -> Block<'static> {
-    Block::default()
-        .style(Style::default().bg(PANEL_SOFT).fg(TEXT))
-        .border_style(Style::default().fg(BORDER))
 }
 
 fn muted_style() -> Style {
