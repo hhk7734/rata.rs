@@ -1,22 +1,134 @@
-openapi: 3.2.0
+openapi: 3.1.0
 info:
-  title: LLM inference API
+  title: Heimdall AI Gateway API
+  description: API provided by Heimdall AI Gateway, including OpenAI-compatible and Anthropic-compatible endpoints.
   version: 0.1.0
 servers:
   - url: http://localhost:8000
   - url: http://localhost:8001
 paths:
   /v1/models:
-    description: "a"
     get:
-      summary: Anthropic or OpenAI models API
-      description: "b"
+      summary: List models
+      description: Returns a list of available models.
       responses:
         "200":
-          description: "c"
+          description: A list of models
           content:
             application/json:
               schema:
                 type: object
+  /v1/models/{model_id}:
+    get:
+      summary: Retrieve a model
+      description: Retrieves a specific model by ID.
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Model details
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1/chat/completions:
+    post:
+      tags:
+        - OpenAI Chat API
+      summary: OpenAI Chat Completions API
+      description: Creates a model response for the given chat conversation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: A chat completion response
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1/completions:
+    post:
+      tags:
+        - OpenAI Completions API
+      summary: OpenAI Completions API
+      description: Creates a completion for the provided prompt and parameters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: A completion response
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1/messages:
+    post:
+      tags:
+        - Anthropic Messages API
+      summary: Anthropic Messages API
+      description: Creates a message using the Anthropic API format.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: A message response
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1/responses:
+    post:
+      tags:
+        - OpenAI Responses API
+      summary: Responses API
+      description: Responses endpoint for Heimdall Gateway.
+      responses:
+        "200":
+          description: Successful operation
+  /health:
+    get:
+      summary: Health Check
+      description: Returns the health status of the gateway.
+      responses:
+        "200":
+          description: Gateway is healthy
+  /metrics:
+    get:
+      summary: Metrics
+      description: Prometheus metrics endpoint.
+      responses:
+        "200":
+          description: Prometheus metrics payload
+          content:
+            text/plain:
+              schema:
+                type: string
+  /debug/metrics-store:
+    get:
+      summary: Debug Metrics Store
+      description: Returns internal metrics store state for debugging.
+      responses:
+        "200":
+          description: Debug info
 components: {}
-tags: []
+tags:
+  - name: OpenAI Chat API
+  - name: OpenAI Completions API
+  - name: OpenAI Responses API
+  - name: Anthropic Messages API
