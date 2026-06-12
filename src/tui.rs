@@ -138,6 +138,7 @@ pub struct TuiApp {
     pub request_height: u16,
     pub response_height_percent: u16,
     pub examples_dropdown_open: bool,
+    pub wrap_body: bool,
     pub drag_target: DragTarget,
     pub selected_request_row: usize,
     pub editing_param_key: Option<String>,
@@ -148,6 +149,22 @@ pub struct TuiApp {
     pub drag_last_row: Option<u16>,
     pub text_selection: Option<Selection>,
     pub clipboard: Option<arboard::Clipboard>,
+}
+
+fn count_display_lines(text: &str, wrap: bool, width: usize) -> u16 {
+    if !wrap || width == 0 {
+        return text.split('\n').count() as u16;
+    }
+    let mut count = 0;
+    for line in text.split('\n') {
+        let len = line.chars().count();
+        if len == 0 {
+            count += 1;
+        } else {
+            count += (len.saturating_sub(1) / width) as u16 + 1;
+        }
+    }
+    count
 }
 
 impl TuiApp {
@@ -193,6 +210,7 @@ impl TuiApp {
             request_height: 5,
             response_height_percent: 66,
             examples_dropdown_open: false,
+            wrap_body: false,
             drag_target: DragTarget::None,
             selected_request_row: 0,
             editing_param_key: None,
@@ -215,7 +233,10 @@ impl TuiApp {
             error.lines().count() as u16
         } else {
             match self.active_response_tab {
-                ResponseTab::Body => pretty_body(&self.response.body).lines().count() as u16,
+                ResponseTab::Body => {
+                    let width = self.response_area.width.saturating_sub(2) as usize;
+                    count_display_lines(&pretty_body(&self.response.body), self.wrap_body, width)
+                },
                 ResponseTab::Headers => self.response.headers.len().max(1) as u16,
                 ResponseTab::Cookies => self.response.cookies.len().max(1) as u16,
             }
@@ -232,11 +253,28 @@ impl TuiApp {
 
     pub fn scroll_request_down(&mut self, amount: u16) {
         if self.active_request_tab == RequestTab::Body {
-            let lines = self.draft.body.lines().count() as u16;
+            let width = self.params_area.width.saturating_sub(2) as usize;
+            let lines = count_display_lines(&self.draft.body, self.wrap_body, width);
             let view_height = self.params_area.height.saturating_sub(2);
             let max_scroll = lines.saturating_sub(view_height);
             self.request_scroll =
                 std::cmp::min(self.request_scroll.saturating_add(amount), max_scroll);
+        }
+    }
+
+    pub fn ensure_cursor_visible(&mut self) {
+        if self.active_request_tab != RequestTab::Body { return; }
+        
+        let width = self.params_area.width.saturating_sub(2) as usize;
+        let text_before_cursor = self.draft.body.chars().take(self.text_cursor).collect::<String>();
+        let cursor_line = count_display_lines(&text_before_cursor, self.wrap_body, width).saturating_sub(1);
+        let view_height = self.params_area.height.saturating_sub(2);
+        if view_height == 0 { return; }
+        
+        if cursor_line < self.request_scroll {
+            self.request_scroll = cursor_line;
+        } else if cursor_line >= self.request_scroll + view_height {
+            self.request_scroll = cursor_line.saturating_sub(view_height).saturating_add(1);
         }
     }
 
@@ -320,6 +358,14 @@ pub fn handle_key(
             let _ = self.send(project);
             return Ok(AppAction::Continue);
         }
+        if key.code == KeyCode::Char('w')
+            && key
+                .modifiers
+                .contains(crossterm::event::KeyModifiers::CONTROL)
+        {
+            self.wrap_body = !self.wrap_body;
+            return Ok(AppAction::Continue);
+        }
 
         match key.code {
             KeyCode::Esc => {
@@ -350,11 +396,13 @@ pub fn handle_key(
                         KeyCode::Left => {
                 let len = self.get_current_text_len(project);
                 self.text_cursor = self.text_cursor.min(len).saturating_sub(1);
+                self.ensure_cursor_visible();
                 Ok(AppAction::Continue)
             }
             KeyCode::Right => {
                 let len = self.get_current_text_len(project);
                 self.text_cursor = self.text_cursor.min(len).saturating_add(1);
+                self.ensure_cursor_visible();
                 Ok(AppAction::Continue)
             }
             KeyCode::Up => {
@@ -365,6 +413,7 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         self.text_cursor = move_cursor_up(&self.draft.body, self.text_cursor);
+                        self.ensure_cursor_visible();
                     } else if self.param_edit_mode == ParamEditMode::None {
                         self.selected_request_row = self.selected_request_row.saturating_sub(1);
                         self.text_cursor = usize::MAX;
@@ -384,6 +433,7 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         self.text_cursor = move_cursor_down(&self.draft.body, self.text_cursor);
+                        self.ensure_cursor_visible();
                     } else if self.param_edit_mode == ParamEditMode::None {
                         let max = if self.active_request_tab == RequestTab::Query { self.draft.params.len() } else { self.draft.headers.len() };
                         self.selected_request_row = self.selected_request_row.saturating_add(1).min(max);
@@ -402,13 +452,16 @@ pub fn handle_key(
                     let _ = self.send(project);
                 } else if self.active_block == ActiveBlock::Params && self.active_request_tab == RequestTab::Body {
                     insert_char_at(&mut self.draft.body, self.text_cursor, '\n');
-                    self.text_cursor = self.text_cursor.saturating_add(1);
+                    self.text_cursor += 1;
+                    self.ensure_cursor_visible();
                 } else if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode == ParamEditMode::None {
                     let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
                     if self.selected_request_row == map.len() {
                         map.push(ParamState { key: String::new(), value: String::new(), enabled: true, required: false });
                         self.param_edit_mode = ParamEditMode::Key;
                         self.text_cursor = usize::MAX;
+                    } else if let Some(param) = map.get_mut(self.selected_request_row) {
+                        param.enabled = !param.enabled;
                     }
                 } else if self.active_block == ActiveBlock::Examples {
                     if let Some(example_name) = self.model.examples.get(self.selected_example_row) {
@@ -1442,6 +1495,11 @@ fn render_shortcut_bar(_app: &TuiApp) -> Paragraph<'static> {
     if _app.active_block == ActiveBlock::Params && _app.active_request_tab != RequestTab::Body {
         shortcuts.push(("e", "Edit"));
     }
+    if _app.wrap_body {
+        shortcuts.push(("w", "Unwrap"));
+    } else {
+        shortcuts.push(("w", "Wrap"));
+    }
 
     for (i, (key, desc)) in shortcuts.iter().enumerate() {
         let is_last = i == shortcuts.len() - 1;
@@ -1538,11 +1596,39 @@ fn render_request_block(
             if app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
                 highlighted = apply_cursor_to_text(highlighted, app.text_cursor);
             }
-            let p = Paragraph::new(highlighted)
+            let mut p = Paragraph::new(highlighted.clone())
                 .style(Style::default().fg(TEXT))
                 .block(block)
                 .scroll((app.request_scroll, 0));
+            if app.wrap_body {
+                p = p.wrap(ratatui::widgets::Wrap { trim: false });
+            }
             frame.render_widget(p, area);
+            
+            let inner_width = area.width.saturating_sub(2) as usize;
+            let lines = if app.wrap_body && inner_width > 0 {
+                highlighted.lines.iter().map(|l| (l.width().saturating_sub(1) / inner_width) + 1).sum()
+            } else {
+                highlighted.lines.len()
+            };
+            let view_height = area.height.saturating_sub(2) as usize;
+            if lines > view_height {
+                let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
+                    .content_length(lines.saturating_sub(view_height))
+                    .position(app.request_scroll as usize);
+                let scrollbar = ratatui::widgets::Scrollbar::default()
+                    .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+                    .begin_symbol(Some("▲"))
+                    .end_symbol(Some("▼"));
+                frame.render_stateful_widget(
+                    scrollbar,
+                    area.inner(ratatui::layout::Margin {
+                        vertical: 1,
+                        horizontal: 0,
+                    }),
+                    &mut scrollbar_state,
+                );
+            }
         }
         RequestTab::Query => {
             let mut rows = Vec::new();
@@ -1730,7 +1816,12 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
         }
     } else {
         let text = app.active_response_text();
-        let lines = text.lines.len();
+        let inner_width = inner.width as usize;
+        let lines = if app.wrap_body && inner_width > 0 {
+            text.lines.iter().map(|l| (l.width().saturating_sub(1) / inner_width) + 1).sum()
+        } else {
+            text.lines.len()
+        };
 
         frame.render_widget(response_body(app, text), inner);
 
@@ -1806,9 +1897,13 @@ fn response_status_title(app: &TuiApp) -> Line<'static> {
 }
 
 fn response_body(app: &TuiApp, text: Text<'static>) -> Paragraph<'static> {
-    Paragraph::new(text)
+    let mut p = Paragraph::new(text)
         .style(Style::default().bg(PANEL).fg(TEXT))
-        .scroll((app.response_scroll, 0))
+        .scroll((app.response_scroll, 0));
+    if app.wrap_body {
+        p = p.wrap(ratatui::widgets::Wrap { trim: false });
+    }
+    p
 }
 
 fn response_block(app: &TuiApp) -> Block<'static> {
