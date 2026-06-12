@@ -196,7 +196,12 @@ impl TuiApp {
                 url: model.selected_request_url.clone(),
                 body: String::new(),
                 params: Vec::new(),
-                headers: Vec::new(),
+                headers: vec![ParamState {
+                    key: "user-agent".to_string(),
+                    value: format!("rata/{}", env!("CARGO_PKG_VERSION")),
+                    enabled: true,
+                    required: false,
+                }],
             },
             model,
             response: ResponseView {
@@ -664,6 +669,13 @@ pub fn handle_key(
             }
         }
 
+        self.draft.headers.push(ParamState {
+            key: "user-agent".to_string(),
+            value: format!("rata/{}", env!("CARGO_PKG_VERSION")),
+            enabled: true,
+            required: false,
+        });
+
         if let Some(first_example) = examples.first() {
             self.load_example(first_example);
         }
@@ -676,6 +688,13 @@ pub fn handle_key(
         self.model.examples.clear();
         self.selected_operation = None;
         self.examples_dropdown_open = false;
+
+        self.draft.headers.push(ParamState {
+            key: "user-agent".to_string(),
+            value: format!("rata/{}", env!("CARGO_PKG_VERSION")),
+            enabled: true,
+            required: false,
+        });
 
         let Some(project) = project else { return };
 
@@ -1163,7 +1182,10 @@ pub fn handle_key(
     }
 
     fn send_request(&self, project: Option<&RataProject>) -> anyhow::Result<ResponseView> {
-        let client = reqwest::blocking::Client::new();
+        let client = reqwest::blocking::Client::builder()
+            .user_agent("") // Empty default so it can be disabled
+            .build()
+            .unwrap();
 
         let mut variables = std::collections::HashMap::new();
         if let Some(project) = project {
