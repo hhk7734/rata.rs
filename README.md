@@ -37,12 +37,9 @@ Rata supports deep mouse integration and intuitive keyboard shortcuts based on y
 
 * `↑` / `k` : Move parameter/header selection up.
 * `↓` / `j` : Move parameter/header selection down.
-* `Enter` : Edit the currently highlighted parameter or header value.
-* `Space` : Toggle (enable/disable) the highlighted optional parameter (checking/unchecking `[x]`).
 * **Mouse Click (Tabs)** : Switch between `Params`, `Body`, and `Headers` tabs.
 * **Mouse Click (Row)** : Edit the clicked parameter row.
 * **Mouse Drag (Border)** : Drag the top border to resize the Request panel.
-* `Esc` / `Enter` (while editing) : Cancel or save your parameter edits.
 
 ### Response (Bottom Panel)
 

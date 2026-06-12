@@ -1180,17 +1180,10 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
 
     match app.input_mode {
         InputMode::Normal => {
-            if app.active_block == ActiveBlock::Params {
-                add_shortcut("Enter", "Edit");
-            }
             add_shortcut("↑↓", "Navigate");
-            add_shortcut("Space", "Toggle");
         }
         InputMode::EditingUrl => {}
-        InputMode::EditingRequestField => {
-            add_shortcut("Esc", "Cancel");
-            add_shortcut("Enter", "Save");
-        }
+        InputMode::EditingRequestField => {}
     }
 
     Paragraph::new(Line::from(spans)).style(Style::default().bg(bg))
