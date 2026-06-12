@@ -1495,7 +1495,7 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
 
             if span_end <= sel_start_col || span_start > sel_end_col {
                 new_spans.push(span);
-            } else if span_start >= sel_start_col && span_end <= sel_end_col + 1 {
+            } else if span_start >= sel_start_col && span_end <= sel_end_col.saturating_add(1) {
                 new_spans.push(Span::styled(span.content, span.style.add_modifier(Modifier::REVERSED)));
             } else {
                 let mut current_str = String::new();
