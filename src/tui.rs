@@ -1361,7 +1361,12 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     ));
 
     let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
-    if app.input_mode == InputMode::Normal {
+    let show_navigate = app.input_mode == InputMode::Normal && match app.active_block {
+        ActiveBlock::Collections | ActiveBlock::Response => true,
+        ActiveBlock::Params => app.active_request_tab == RequestTab::Query || app.active_request_tab == RequestTab::Headers,
+        _ => false,
+    };
+    if show_navigate {
         shortcuts.push(("↑↓", "Navigate"));
     }
 
