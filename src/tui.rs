@@ -89,7 +89,6 @@ pub enum DragTarget {
     Collections,
     Request,
     Response,
-    Examples,
 }
 
 #[derive(Debug, Clone)]
@@ -112,7 +111,7 @@ pub struct TuiApp {
     pub collections_width: u16,
     pub request_height: u16,
     pub response_height_percent: u16,
-    pub examples_width: u16,
+    pub examples_dropdown_open: bool,
     pub drag_target: DragTarget,
 }
 
@@ -156,7 +155,7 @@ impl TuiApp {
             collections_width: 34,
             request_height: 6,
             response_height_percent: 66,
-            examples_width: 34,
+            examples_dropdown_open: false,
             drag_target: DragTarget::None,
         }
     }
@@ -368,9 +367,6 @@ impl TuiApp {
                             self.response_height_percent = 100u16.saturating_sub(percent).max(10).min(90);
                         }
                     }
-                    DragTarget::Examples => {
-                        self.examples_width = self.examples_area.right().saturating_sub(mouse.column).max(10).min(120);
-                    }
                     DragTarget::None => {}
                 }
                 return;
@@ -399,15 +395,19 @@ impl TuiApp {
                     self.drag_target = DragTarget::Response;
                     return;
                 }
-                if mouse.column == self.examples_area.x.saturating_sub(1) || mouse.column == self.examples_area.x {
-                    self.drag_target = DragTarget::Examples;
-                    return;
-                }
             }
             _ => return,
         }
 
         self.active_block = ActiveBlock::None;
+
+        let dropdown_x = self.request_area.right().saturating_sub(14);
+        let clicked_dropdown_toggle = mouse.row == self.request_area.y && mouse.column >= dropdown_x && mouse.column < self.request_area.right();
+        let clicked_inside_dropdown = self.examples_dropdown_open && contains(self.examples_area, mouse.column, mouse.row);
+
+        if self.examples_dropdown_open && !clicked_dropdown_toggle && !clicked_inside_dropdown {
+            self.examples_dropdown_open = false;
+        }
 
         if contains(self.collections_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Collections;
@@ -442,10 +442,17 @@ impl TuiApp {
             }
         } else if contains(self.request_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Request;
+            if clicked_dropdown_toggle {
+                self.examples_dropdown_open = !self.examples_dropdown_open;
+                if self.examples_dropdown_open {
+                    self.active_block = ActiveBlock::Examples;
+                }
+            }
         } else if contains(self.params_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Params;
-        } else if contains(self.examples_area, mouse.column, mouse.row) {
+        } else if clicked_inside_dropdown {
             self.active_block = ActiveBlock::Examples;
+            self.examples_dropdown_open = false; // Close when clicked inside
         } else if contains(self.response_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Response;
         }
@@ -684,19 +691,33 @@ fn run_loop(
                 .split(main[1]);
             let request_body = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Min(0), Constraint::Length(app.examples_width)])
+                .constraints([Constraint::Min(0)])
                 .split(main_rest[0]);
 
             app.request_area = main[0];
             app.params_area = request_body[0];
-            app.examples_area = request_body[1];
             app.response_area = main_rest[1];
 
             frame.render_widget(collections(project, app), body[0]);
             frame.render_widget(request_line(app), main[0]);
             frame.render_widget(params_table(app), request_body[0]);
-            frame.render_widget(examples(project, app), request_body[1]);
             render_response(frame, app, main_rest[1]);
+
+            if app.examples_dropdown_open {
+                let dropdown_width = 30;
+                let dropdown_height = app.model.examples.len().max(1).min(10) as u16 + 2;
+                let area = Rect {
+                    x: app.request_area.right().saturating_sub(dropdown_width + 1),
+                    y: app.request_area.y + 1,
+                    width: dropdown_width,
+                    height: dropdown_height,
+                };
+                app.examples_area = area;
+                frame.render_widget(ratatui::widgets::Clear, area);
+                frame.render_widget(examples(project, app), area);
+            } else {
+                app.examples_area = Rect::default();
+            }
         })?;
 
         if event::poll(std::time::Duration::from_millis(250))? {
@@ -789,6 +810,12 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         Style::default().fg(BORDER)
     };
 
+    let example_title = if app.examples_dropdown_open {
+        " Examples ▴ "
+    } else {
+        " Examples ▾ "
+    };
+
     Paragraph::new(vec![
         Line::from(Span::styled(
             app.draft.method.label(),
@@ -800,6 +827,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     .block(
         Block::default()
             .title(" Request ")
+            .title_top(Line::from(example_title).right_aligned())
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
             .border_style(border_style)
