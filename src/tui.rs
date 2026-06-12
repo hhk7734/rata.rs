@@ -130,6 +130,7 @@ pub struct TuiApp {
     pub editing_param_key: Option<String>,
     pub request_scroll: u16,
     pub drag_last_row: Option<u16>,
+    pub mouse_capture_enabled: bool,
 }
 
 impl TuiApp {
@@ -181,6 +182,7 @@ impl TuiApp {
             editing_param_key: None,
             request_scroll: 0,
             drag_last_row: None,
+            mouse_capture_enabled: true,
         }
     }
 
@@ -245,6 +247,10 @@ impl TuiApp {
         match self.input_mode {
             InputMode::Normal => match key.code {
                 KeyCode::Char('q') | KeyCode::Esc => Ok(AppAction::Quit),
+                KeyCode::Char('v') => {
+                    self.mouse_capture_enabled = !self.mouse_capture_enabled;
+                    Ok(AppAction::ToggleMouseCapture)
+                }
                 KeyCode::Char('e') | KeyCode::Char('i') => {
                     if self.active_block == ActiveBlock::Params {
                         self.input_mode = InputMode::EditingRequestField;
@@ -792,6 +798,7 @@ fn first_operation(project: &RataProject) -> Option<&crate::project::Operation> 
 pub enum AppAction {
     Continue,
     Quit,
+    ToggleMouseCapture,
 }
 
 pub fn build_model(project: Option<&RataProject>) -> TuiModel {
@@ -915,8 +922,22 @@ fn run_loop(
 
         if event::poll(std::time::Duration::from_millis(250))? {
             match event::read()? {
-                Event::Key(key) if app.handle_key(key, project)? == AppAction::Quit => return Ok(()),
-                Event::Mouse(mouse) => app.handle_mouse(mouse, project),
+                Event::Key(key) => match app.handle_key(key, project)? {
+                    AppAction::Quit => return Ok(()),
+                    AppAction::ToggleMouseCapture => {
+                        if app.mouse_capture_enabled {
+                            crossterm::execute!(terminal.backend_mut(), crossterm::event::EnableMouseCapture)?;
+                        } else {
+                            crossterm::execute!(terminal.backend_mut(), crossterm::event::DisableMouseCapture)?;
+                        }
+                    }
+                    AppAction::Continue => {}
+                },
+                Event::Mouse(mouse) => {
+                    if app.mouse_capture_enabled {
+                        app.handle_mouse(mouse, project);
+                    }
+                }
                 _ => {}
             }
         }
@@ -990,13 +1011,17 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     } else {
         app.draft.url.clone()
     };
-    let mode_hint = match app.input_mode {
-        InputMode::Normal => "e edit · Enter/s send · q quit",
-        InputMode::EditingUrl => {
-            "typing edits URL · Backspace delete · Enter send · Esc cancel edit"
-        }
-        InputMode::EditingRequestField => {
-            "typing edits value · Backspace delete · Enter save · Esc cancel edit"
+    let mode_hint = if !app.mouse_capture_enabled {
+        "VISUAL SELECTION MODE - Use mouse to copy. Press 'v' to exit"
+    } else {
+        match app.input_mode {
+            InputMode::Normal => "e edit · Enter/s send · v select mode · q quit",
+            InputMode::EditingUrl => {
+                "typing edits URL · Backspace delete · Enter send · Esc cancel edit"
+            }
+            InputMode::EditingRequestField => {
+                "typing edits value · Backspace delete · Enter save · Esc cancel edit"
+            }
         }
     };
 
