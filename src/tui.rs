@@ -967,12 +967,25 @@ fn response_tabs_title(app: &TuiApp) -> Line<'static> {
 }
 
 fn response_status_title(app: &TuiApp) -> Line<'static> {
-    Line::from(vec![
+    let mut spans = vec![
         Span::raw(" "),
         Span::styled("Response", Style::default().fg(TEXT)),
-        Span::styled(response_status_label(app), muted_style()),
-        Span::raw(" "),
-    ]).right_aligned()
+    ];
+
+    if let Some(status) = app.response.status {
+        spans.push(Span::styled(" · ", muted_style()));
+        let color = match status {
+            200..=299 => GREEN,
+            300..=399 => BLUE,
+            400..=499 => YELLOW,
+            500..=599 => RED,
+            _ => MUTED,
+        };
+        spans.push(Span::styled(format!("HTTP {status}"), Style::default().fg(color).add_modifier(Modifier::BOLD)));
+    }
+
+    spans.push(Span::raw(" "));
+    Line::from(spans).right_aligned()
 }
 
 fn response_body(app: &TuiApp, text: Text<'static>) -> Paragraph<'static> {
@@ -994,13 +1007,6 @@ fn response_block(app: &TuiApp) -> Block<'static> {
         .title_top(response_tabs_title(app))
         .title_top(response_status_title(app))
         .borders(Borders::ALL)
-}
-
-fn response_status_label(app: &TuiApp) -> String {
-    app.response
-        .status
-        .map(|status| format!(" · HTTP {status}"))
-        .unwrap_or_default()
 }
 
 fn muted_style() -> Style {
