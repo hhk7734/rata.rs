@@ -21,7 +21,6 @@ use ratatui::{
 use crate::project::{HttpMethod, RataProject};
 
 const PANEL: Color = Color::Rgb(24, 27, 34);
-const PANEL_SOFT: Color = Color::Rgb(31, 35, 45);
 const SELECTED_BG: Color = Color::Rgb(55, 60, 75);
 const BORDER: Color = Color::Rgb(62, 68, 82);
 const TEXT: Color = Color::Rgb(242, 244, 247);
@@ -590,8 +589,8 @@ fn run_loop(
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Length(6),
-                    Constraint::Min(8),
-                    Constraint::Length(10),
+                    Constraint::Fill(1),
+                    Constraint::Fill(2),
                 ])
                 .split(body[1]);
             let request_body = Layout::default()
