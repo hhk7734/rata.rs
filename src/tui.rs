@@ -256,9 +256,12 @@ impl TuiApp {
     }
 
     pub fn handle_key(&mut self, key: KeyEvent, project: Option<&RataProject>) -> anyhow::Result<AppAction> {
+        if key.code == KeyCode::Char('q') && key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
+            return Ok(AppAction::Quit);
+        }
+
         match self.input_mode {
             InputMode::Normal => match key.code {
-                KeyCode::Char('q') | KeyCode::Esc => Ok(AppAction::Quit),
                 KeyCode::Enter | KeyCode::Char('s') => {
                     if self.active_block == ActiveBlock::Params {
                         self.input_mode = InputMode::EditingRequestField;
@@ -1187,9 +1190,10 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
         spans.push(Span::raw(" "));
     };
 
+    add_shortcut("^q", "Quit");
+
     match app.input_mode {
         InputMode::Normal => {
-            add_shortcut("q", "Quit");
             add_shortcut("Enter/s", "Send");
             add_shortcut("1-3", "Resp Tabs");
             add_shortcut("↑↓", "Navigate");

@@ -18,7 +18,7 @@ Rata supports deep mouse integration and intuitive keyboard shortcuts based on y
 
 ### Global Shortcuts (Normal Mode)
 
-* `q` / `Esc` : Quit the application.
+* `Ctrl+q` : Quit the application.
 * `s` : Send the API request (from most contexts).
 * `1`, `2`, `3` : Quickly switch between Response tabs (`Body`, `Headers`, `Cookies`).
 * **Mouse** : Click anywhere to focus panels, change tabs, edit fields, or open the Examples dropdown.
