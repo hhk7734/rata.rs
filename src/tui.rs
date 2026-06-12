@@ -1055,18 +1055,17 @@ pub fn handle_key(
     fn send_request(&self, project: Option<&RataProject>) -> anyhow::Result<ResponseView> {
         let client = reqwest::blocking::Client::new();
 
-        let mut final_url = self.draft.url.clone();
+        let mut variables = std::collections::HashMap::new();
         if let Some(project) = project {
-            let mut variables = project.variables();
+            variables = project.variables();
             if !variables.contains_key("baseUrl") {
-                let server = project.server_url().unwrap_or_default().trim_end_matches('/');
-                variables.insert("baseUrl".to_string(), server.to_string());
-            }
-            for (k, v) in variables {
-                let p1 = format!("{{{{{}}}}}", k);
-                final_url = final_url.replace(&p1, &v);
+                if let Some(server) = project.server_url() {
+                    variables.insert("baseUrl".to_string(), server.trim_end_matches('/').to_string());
+                }
             }
         }
+
+        let mut final_url = self.draft.url.clone();
         let mut query_params = Vec::new();
 
         for param in &self.draft.params {
@@ -1081,6 +1080,8 @@ pub fn handle_key(
             }
         }
 
+        final_url = crate::render(&final_url, &variables);
+
         let mut request = client.request(self.draft.method.reqwest(), &final_url);
 
         if !query_params.is_empty() {
@@ -1089,23 +1090,11 @@ pub fn handle_key(
 
         for param in &self.draft.headers {
             if !param.enabled || param.key.is_empty() { continue; }
-            let mut final_value = param.value.clone();
-            if let Some(project) = project {
-                for (k, v) in project.variables() {
-                    let p1 = format!("{{{{{}}}}}", k);
-                    final_value = final_value.replace(&p1, &v);
-                }
-            }
+            let final_value = crate::render(&param.value, &variables);
             request = request.header(&param.key, &final_value);
         }
 
-        let mut final_body = self.draft.body.clone();
-        if let Some(project) = project {
-            for (k, v) in project.variables() {
-                let p1 = format!("{{{{{}}}}}", k);
-                final_body = final_body.replace(&p1, &v);
-            }
-        }
+        let final_body = crate::render(&self.draft.body, &variables);
 
         let mut response = request.body(final_body).send()?;
         let status = response.status().as_u16();

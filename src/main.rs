@@ -34,8 +34,19 @@ fn run_request(method: rata::HttpMethod, url: &str) -> anyhow::Result<()> {
         }
     }
 
+    let mut variables = std::collections::HashMap::new();
+    if let Some(project) = &project {
+        variables = project.variables();
+        if !variables.contains_key("baseUrl") {
+            if let Some(server) = project.server_url() {
+                variables.insert("baseUrl".to_string(), server.trim_end_matches('/').to_string());
+            }
+        }
+    }
+    let final_url = rata::render(url, &variables);
+
     let client = reqwest::blocking::Client::new();
-    let mut response = client.request(method.reqwest(), url).send()?;
+    let mut response = client.request(method.reqwest(), &final_url).send()?;
     println!("HTTP {}", response.status());
     for (name, value) in response.headers() {
         println!("{}: {}", name, value.to_str().unwrap_or("<binary>"));
