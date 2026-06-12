@@ -234,7 +234,7 @@ impl TuiApp {
         self.draft.url = url.into();
     }
 
-    pub fn send(&mut self) -> anyhow::Result<()> {
+    pub fn send(&mut self, project: Option<&RataProject>) -> anyhow::Result<()> {
         self.response_scroll = 0;
         self.response = ResponseView {
             status: None,
@@ -244,7 +244,7 @@ impl TuiApp {
             error: None,
         };
 
-        match self.send_request() {
+        match self.send_request(project) {
             Ok(response) => self.response = response,
             Err(error) => {
                 self.response.error = Some(error.to_string());
@@ -261,7 +261,7 @@ impl TuiApp {
         }
         if key.code == KeyCode::Char('s') && key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
             self.input_mode = InputMode::Normal;
-            let _ = self.send();
+            let _ = self.send(project);
             return Ok(AppAction::Continue);
         }
 
@@ -323,7 +323,7 @@ impl TuiApp {
                 }
                 KeyCode::Enter => {
                     self.input_mode = InputMode::Normal;
-                    let _ = self.send();
+                    let _ = self.send(project);
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Backspace => {
@@ -808,10 +808,16 @@ impl TuiApp {
         }
     }
 
-    fn send_request(&self) -> anyhow::Result<ResponseView> {
+    fn send_request(&self, project: Option<&RataProject>) -> anyhow::Result<ResponseView> {
         let client = reqwest::blocking::Client::new();
         
         let mut final_url = self.draft.url.clone();
+        if let Some(project) = project {
+            for (k, v) in project.variables() {
+                let p1 = format!("{{{{{}}}}}", k);
+                final_url = final_url.replace(&p1, v);
+            }
+        }
         let mut query_params = Vec::new();
 
         for (key, value) in &self.draft.param_values {
@@ -834,11 +840,26 @@ impl TuiApp {
         
         for (key, value) in &self.draft.header_values {
             if !self.draft.enabled_headers.contains(key) { continue; }
-            request = request.header(key, value);
+            let mut final_value = value.clone();
+            if let Some(project) = project {
+                for (k, v) in project.variables() {
+                    let p1 = format!("{{{{{}}}}}", k);
+                    final_value = final_value.replace(&p1, v);
+                }
+            }
+            request = request.header(key, &final_value);
+        }
+
+        let mut final_body = self.draft.body.clone();
+        if let Some(project) = project {
+            for (k, v) in project.variables() {
+                let p1 = format!("{{{{{}}}}}", k);
+                final_body = final_body.replace(&p1, v);
+            }
         }
 
         let mut response = request
-            .body(self.draft.body.clone())
+            .body(final_body)
             .send()?;
         let status = response.status().as_u16();
         let headers = response

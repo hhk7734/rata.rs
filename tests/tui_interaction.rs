@@ -135,7 +135,7 @@ paths:
     let mut app = TuiApp::new(Some(&project));
 
     app.edit_url(format!("http://{address}/v1/models?limit=1"));
-    app.send().unwrap();
+    app.send(Some(&project)).unwrap();
     server.join().unwrap();
 
     assert_eq!(app.draft.url, format!("http://{address}/v1/models?limit=1"));
