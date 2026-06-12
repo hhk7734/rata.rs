@@ -1326,7 +1326,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     )
 }
 
-fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
+fn render_shortcut_bar(_app: &TuiApp) -> Paragraph<'static> {
     let mut spans = Vec::new();
     let base_bg = PANEL;
     let bgs = [SELECTED_BG, BORDER];
@@ -1346,16 +1346,7 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
         Style::default().fg(ACCENT).bg(current_bg),
     ));
 
-    let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
-    let show_navigate = match app.active_block {
-        ActiveBlock::Collections => true,
-        ActiveBlock::Response => app.active_response_tab != ResponseTab::Body,
-        ActiveBlock::Params => app.active_request_tab == RequestTab::Query || app.active_request_tab == RequestTab::Headers,
-        _ => false,
-    };
-    if show_navigate {
-        shortcuts.push(("↑↓", "Navigate"));
-    }
+    let shortcuts = vec![("q", "Quit"), ("s", "Send")];
 
     for (i, (key, desc)) in shortcuts.iter().enumerate() {
         let is_last = i == shortcuts.len() - 1;
