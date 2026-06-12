@@ -1164,29 +1164,35 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
 
 fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     let mut spans = Vec::new();
-    let bg = PANEL;
-    let key_fg = ACCENT;
-    let desc_fg = TEXT;
-    
-    spans.push(Span::styled("| Ctrl + > ", Style::default().fg(TEXT).bg(bg)));
+    let base_bg = PANEL;
+    let bgs = [SELECTED_BG, BORDER];
+    let mut bg_idx = 0;
 
-    let mut add_shortcut = |key: &str, desc: &str| {
-        spans.push(Span::styled(format!("<{}> ", key), Style::default().fg(key_fg).bg(bg).add_modifier(Modifier::BOLD)));
-        spans.push(Span::styled(format!("{} > ", desc.to_uppercase()), Style::default().fg(desc_fg).bg(bg)));
-    };
+    // Start with "Ctrl" block
+    spans.push(Span::styled(" Ctrl ", Style::default().fg(PANEL).bg(ACCENT).add_modifier(Modifier::BOLD)));
+    let mut current_bg = bgs[0];
+    spans.push(Span::styled("\u{E0B0} ", Style::default().fg(ACCENT).bg(current_bg)));
 
-    add_shortcut("q", "Quit");
-    add_shortcut("s", "Send");
-
-    match app.input_mode {
-        InputMode::Normal => {
-            add_shortcut("↑↓", "Navigate");
-        }
-        InputMode::EditingUrl => {}
-        InputMode::EditingRequestField => {}
+    let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
+    if app.input_mode == InputMode::Normal {
+        shortcuts.push(("↑↓", "Navigate"));
     }
 
-    Paragraph::new(Line::from(spans)).style(Style::default().bg(bg))
+    for (i, (key, desc)) in shortcuts.iter().enumerate() {
+        let is_last = i == shortcuts.len() - 1;
+        spans.push(Span::styled(format!("{}", key), Style::default().fg(GREEN).bg(current_bg).add_modifier(Modifier::BOLD)));
+        spans.push(Span::styled(format!(" {} ", desc.to_uppercase()), Style::default().fg(TEXT).bg(current_bg)));
+        
+        let next_bg = if is_last { base_bg } else { bgs[(bg_idx + 1) % bgs.len()] };
+        spans.push(Span::styled("\u{E0B0} ", Style::default().fg(current_bg).bg(next_bg)));
+        
+        if !is_last {
+            bg_idx = (bg_idx + 1) % bgs.len();
+            current_bg = next_bg;
+        }
+    }
+
+    Paragraph::new(Line::from(spans)).style(Style::default().bg(base_bg))
 }
 
 fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Option<&RataProject>, area: Rect) {
