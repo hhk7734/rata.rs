@@ -376,23 +376,52 @@ impl TuiApp {
         }
     }
 
-    fn get_selected_request_key(&self, project: Option<&RataProject>) -> Option<String> {
-        let project = project?;
-        let (method, path) = self.selected_operation.as_ref()?;
-        let mut op_params = Vec::new();
-        for collection in project.collections() {
-            for operation in &collection.operations {
-                if operation.method == *method && operation.path == *path {
-                    for param in &operation.parameters {
-                        if (self.active_request_tab == RequestTab::Params && (param.location == "path" || param.location == "query")) ||
-                           (self.active_request_tab == RequestTab::Headers && param.location == "header") {
-                            op_params.push(param.name.clone());
+    fn get_current_parameters(&self, project: Option<&RataProject>, tab: RequestTab) -> Vec<crate::project::OperationParameter> {
+        let mut params = Vec::new();
+        if let Some(project) = project {
+            if let Some((method, path)) = &self.selected_operation {
+                for collection in project.collections() {
+                    for operation in &collection.operations {
+                        if operation.method == *method && operation.path == *path {
+                            for param in &operation.parameters {
+                                if (tab == RequestTab::Params && (param.location == "path" || param.location == "query")) ||
+                                   (tab == RequestTab::Headers && param.location == "header") {
+                                    params.push(param.clone());
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        op_params.get(self.selected_request_row).cloned()
+        
+        let draft_map = if tab == RequestTab::Headers {
+            &self.draft.header_values
+        } else if tab == RequestTab::Params {
+            &self.draft.param_values
+        } else {
+            return params;
+        };
+
+        let mut custom_keys: Vec<_> = draft_map.keys().collect();
+        custom_keys.sort();
+        for key in custom_keys {
+            if !params.iter().any(|p| p.name == **key) {
+                params.push(crate::project::OperationParameter {
+                    name: key.clone(),
+                    location: if tab == RequestTab::Headers { "header".to_string() } else { "query".to_string() },
+                    description: None,
+                    required: false,
+                });
+            }
+        }
+        
+        params
+    }
+
+    fn get_selected_request_key(&self, project: Option<&RataProject>) -> Option<String> {
+        let params = self.get_current_parameters(project, self.active_request_tab);
+        params.get(self.selected_request_row).map(|p| p.name.clone())
     }
 
     fn load_example(&mut self, example: &crate::project::ExampleFile) {
@@ -1313,44 +1342,33 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
         }
         RequestTab::Params => {
             let mut rows = Vec::new();
-            if let Some(project) = project {
-                if let Some((method, path)) = &app.selected_operation {
-                    for collection in project.collections() {
-                        for operation in &collection.operations {
-                            if operation.method == *method && operation.path == *path {
-                                let mut i = 0;
-                                for param in &operation.parameters {
-                                    if param.location == "path" || param.location == "query" {
-                                        let is_editing_this_row = app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row;
-                                        let value = if is_editing_this_row {
-                                            app.draft.param_values.get(&param.name).cloned().unwrap_or_default()
-                                        } else {
-                                            let default_val = if param.location == "path" { format!("{{{}}}", param.name) } else { "".to_string() };
-                                            app.draft.param_values.get(&param.name).cloned().unwrap_or(default_val)
-                                        };
-                                        let display_value = if is_editing_this_row {
-                                            format!("{}█", value)
-                                        } else {
-                                            value
-                                        };
-                                        let is_enabled = app.draft.enabled_params.contains(&param.name);
-                                        let mut row = Row::new([
-                                            if is_enabled { "[x]" } else { "[ ]" }.to_string(),
-                                            param.name.clone(),
-                                            display_value,
-                                            param.description.clone().unwrap_or_default(),
-                                        ]);
-                                        if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                                            row = row.style(Style::default().bg(SELECTED_BG));
-                                        }
-                                        rows.push(row);
-                                        i += 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
+            let params = app.get_current_parameters(project, RequestTab::Params);
+            let mut i = 0;
+            for param in &params {
+                let is_editing_this_row = app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row;
+                let value = if is_editing_this_row {
+                    app.draft.param_values.get(&param.name).cloned().unwrap_or_default()
+                } else {
+                    let default_val = if param.location == "path" { format!("{{{}}}", param.name) } else { "".to_string() };
+                    app.draft.param_values.get(&param.name).cloned().unwrap_or(default_val)
+                };
+                let display_value = if is_editing_this_row {
+                    format!("{}█", value)
+                } else {
+                    value
+                };
+                let is_enabled = app.draft.enabled_params.contains(&param.name);
+                let mut row = Row::new([
+                    if is_enabled { "[x]" } else { "[ ]" }.to_string(),
+                    param.name.clone(),
+                    display_value,
+                    param.description.clone().unwrap_or_default(),
+                ]);
+                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                    row = row.style(Style::default().bg(SELECTED_BG));
                 }
+                rows.push(row);
+                i += 1;
             }
             if rows.is_empty() {
                 rows.push(Row::new(["", "No query params", "", ""]));
@@ -1375,37 +1393,26 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
         }
         RequestTab::Headers => {
             let mut rows = Vec::new();
-            if let Some(project) = project {
-                if let Some((method, path)) = &app.selected_operation {
-                    for collection in project.collections() {
-                        for operation in &collection.operations {
-                            if operation.method == *method && operation.path == *path {
-                                let mut i = 0;
-                                for param in &operation.parameters {
-                                    if param.location == "header" {
-                                        let value = app.draft.header_values.get(&param.name).cloned().unwrap_or_default();
-                                        let display_value = if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                                            format!("{}█", value)
-                                        } else {
-                                            value
-                                        };
-                                        let is_enabled = app.draft.enabled_headers.contains(&param.name);
-                                        let mut row = Row::new([
-                                            if is_enabled { "[x]" } else { "[ ]" }.to_string(),
-                                            param.name.clone(),
-                                            display_value,
-                                        ]);
-                                        if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                                            row = row.style(Style::default().bg(SELECTED_BG));
-                                        }
-                                        rows.push(row);
-                                        i += 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
+            let params = app.get_current_parameters(project, RequestTab::Headers);
+            let mut i = 0;
+            for param in &params {
+                let value = app.draft.header_values.get(&param.name).cloned().unwrap_or_default();
+                let display_value = if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                    format!("{}█", value)
+                } else {
+                    value
+                };
+                let is_enabled = app.draft.enabled_headers.contains(&param.name);
+                let mut row = Row::new([
+                    if is_enabled { "[x]" } else { "[ ]" }.to_string(),
+                    param.name.clone(),
+                    display_value,
+                ]);
+                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                    row = row.style(Style::default().bg(SELECTED_BG));
                 }
+                rows.push(row);
+                i += 1;
             }
             if rows.is_empty() {
                 rows.push(Row::new(["", "No headers", ""]));
