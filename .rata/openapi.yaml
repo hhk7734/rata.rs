@@ -152,6 +152,14 @@ components:
                 format: float
               stream:
                 type: boolean
+              tools:
+                type: array
+                items:
+                  type: object
+              tool_choice:
+                type:
+                  - string
+                  - object
   responses:
     createChatCompletionResponse:
       description: A chat completion response
