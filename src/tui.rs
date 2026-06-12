@@ -1383,22 +1383,22 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         " Examples ▾ "
     };
 
-    let mut url_text = url.clone();
-    if app.active_block == ActiveBlock::Request {
-        url_text = render_with_cursor(&url_text, app.text_cursor);
-    }
-
-    Paragraph::new(Line::from(vec![
+    let mut spans = vec![
         Span::styled(
             format!(" {} ▾ ", app.draft.method.label()),
             method_style(app.draft.method).bg(SELECTED_BG).add_modifier(Modifier::BOLD),
         ),
         Span::raw(" "),
-        Span::styled(
-            format!(" {} ", url_text),
-            Style::default().fg(TEXT).bg(SELECTED_BG),
-        ),
-    ]))
+        Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)),
+    ];
+    if app.active_block == ActiveBlock::Request {
+        spans.extend(render_with_cursor_spans(&url, app.text_cursor, Style::default().fg(TEXT).bg(SELECTED_BG)));
+    } else {
+        spans.push(Span::styled(url.clone(), Style::default().fg(TEXT).bg(SELECTED_BG)));
+    }
+    spans.push(Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)));
+
+    Paragraph::new(Line::from(spans))
     .block(
         Block::default()
             .title(Span::styled(" URL ", Style::default().fg(Color::White)))
@@ -1528,7 +1528,7 @@ fn render_request_block(
             if app.active_block == ActiveBlock::Params
                 && app.active_request_tab == RequestTab::Body
             {
-                text.push('█');
+                text = render_with_cursor(&text, app.text_cursor);
             }
             let highlighted = highlight_json(&text);
             let p = Paragraph::new(highlighted)
@@ -1621,9 +1621,9 @@ fn render_request_block(
                     && app.param_edit_mode
                     && i == app.selected_request_row
                 {
-                    render_with_cursor(&value, app.text_cursor)
+                    Line::from(render_with_cursor_spans(&value, app.text_cursor, Style::default()))
                 } else {
-                    value
+                    Line::from(value)
                 };
                 let is_enabled = app.draft.enabled_headers.contains(&param.name);
                 let checkbox_text = if is_enabled { "[x]" } else { "[ ]" }.to_string();
@@ -2091,6 +2091,28 @@ fn remove_char_at(s: &mut String, idx: usize) {
     let idx = idx.min(char_len);
     let byte_idx = s.char_indices().nth(idx - 1).unwrap().0;
     s.remove(byte_idx);
+}
+
+
+fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Span<'static>> {
+    let char_len = s.chars().count();
+    let idx = cursor.min(char_len);
+    let mut spans = Vec::new();
+
+    if idx == char_len {
+        spans.push(Span::styled(s.to_string(), base_style));
+        spans.push(Span::styled(" ", base_style.add_modifier(Modifier::REVERSED)));
+    } else {
+        let byte_idx = s.char_indices().nth(idx).unwrap().0;
+        let (left, right) = s.split_at(byte_idx);
+        let first_char = right.chars().next().unwrap();
+        let rest = &right[first_char.len_utf8()..];
+        
+        spans.push(Span::styled(left.to_string(), base_style));
+        spans.push(Span::styled(first_char.to_string(), base_style.add_modifier(Modifier::REVERSED)));
+        spans.push(Span::styled(rest.to_string(), base_style));
+    }
+    spans
 }
 
 fn render_with_cursor(s: &str, cursor: usize) -> String {
