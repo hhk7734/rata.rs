@@ -259,34 +259,19 @@ impl TuiApp {
         if key.code == KeyCode::Char('q') && key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
             return Ok(AppAction::Quit);
         }
+        if key.code == KeyCode::Char('s') && key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
+            self.input_mode = InputMode::Normal;
+            let _ = self.send();
+            return Ok(AppAction::Continue);
+        }
 
         match self.input_mode {
             InputMode::Normal => match key.code {
-                KeyCode::Enter | KeyCode::Char('s') => {
+                KeyCode::Enter => {
                     if self.active_block == ActiveBlock::Params {
                         self.input_mode = InputMode::EditingRequestField;
                         self.editing_param_key = self.get_selected_request_key(project);
-                    } else {
-                        let _ = self.send();
                     }
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Char('1') => {
-                    self.active_response_tab = ResponseTab::Body;
-                    self.response_scroll = 0;
-                    self.text_selection = None;
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Char('2') => {
-                    self.active_response_tab = ResponseTab::Headers;
-                    self.response_scroll = 0;
-                    self.text_selection = None;
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Char('3') => {
-                    self.active_response_tab = ResponseTab::Cookies;
-                    self.response_scroll = 0;
-                    self.text_selection = None;
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Char(' ') => {
@@ -1191,18 +1176,17 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     };
 
     add_shortcut("^q", "Quit");
+    add_shortcut("^s", "Send");
 
     match app.input_mode {
         InputMode::Normal => {
-            add_shortcut("Enter/s", "Send");
-            add_shortcut("1-3", "Resp Tabs");
+            if app.active_block == ActiveBlock::Params {
+                add_shortcut("Enter", "Edit");
+            }
             add_shortcut("↑↓", "Navigate");
             add_shortcut("Space", "Toggle");
         }
-        InputMode::EditingUrl => {
-            add_shortcut("Esc", "Cancel");
-            add_shortcut("Enter", "Send");
-        }
+        InputMode::EditingUrl => {}
         InputMode::EditingRequestField => {
             add_shortcut("Esc", "Cancel");
             add_shortcut("Enter", "Save");

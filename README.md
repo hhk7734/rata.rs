@@ -19,8 +19,7 @@ Rata supports deep mouse integration and intuitive keyboard shortcuts based on y
 ### Global Shortcuts (Normal Mode)
 
 * `Ctrl+q` : Quit the application.
-* `s` : Send the API request (from most contexts).
-* `1`, `2`, `3` : Quickly switch between Response tabs (`Body`, `Headers`, `Cookies`).
+* `Ctrl+s` : Send the API request.
 * **Mouse** : Click anywhere to focus panels, change tabs, edit fields, or open the Examples dropdown.
 
 ### Collections (Left Panel)
@@ -33,9 +32,6 @@ Rata supports deep mouse integration and intuitive keyboard shortcuts based on y
 ### URL (Top Panel)
 
 * **Mouse Click** : Click on the URL text to enter Edit Mode.
-* `Enter` : Send the request (while editing URL).
-* `Esc` : Cancel editing the URL.
-* `Backspace` : Delete character.
 
 ### Request (Middle Panel)
 
