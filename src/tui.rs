@@ -1665,27 +1665,26 @@ fn render_request_block(
     }
 }
 
-fn examples(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
+fn examples(_project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     let border_style = if app.active_block == ActiveBlock::Examples {
         Style::default().fg(ACCENT)
     } else {
         Style::default().fg(BORDER)
     };
 
-    let model = build_model(project);
-    let items = if model.examples.is_empty() {
+    let items = if app.model.examples.is_empty() {
         vec![ListItem::new(Line::from(Span::styled(
             "No examples",
             muted_style(),
         )))]
     } else {
-        model
+        app.model
             .examples
-            .into_iter()
+            .iter()
             .map(|example| {
                 ListItem::new(Line::from(vec![
                     Span::styled("• ", accent_style()),
-                    Span::styled(example, Style::default().fg(TEXT)),
+                    Span::styled(example.clone(), Style::default().fg(TEXT)),
                 ]))
             })
             .collect()
