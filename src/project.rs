@@ -99,6 +99,21 @@ pub struct ExampleFile {
     pub path: PathBuf,
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct ExampleData {
+    pub params: Option<HashMap<String, String>>,
+    pub headers: Option<HashMap<String, String>>,
+    pub body: Option<serde_json::Value>,
+}
+
+impl ExampleFile {
+    pub fn load_data(&self) -> anyhow::Result<ExampleData> {
+        let content = fs::read_to_string(&self.path)?;
+        let data: ExampleData = serde_yaml::from_str(&content)?;
+        Ok(data)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct RataProject {
     root: PathBuf,

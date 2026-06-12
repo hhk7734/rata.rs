@@ -395,14 +395,43 @@ impl TuiApp {
         op_params.get(self.selected_request_row).cloned()
     }
 
+    fn load_example(&mut self, example: &crate::project::ExampleFile) {
+        if let Ok(data) = example.load_data() {
+            if let Some(params) = data.params {
+                for (k, v) in params {
+                    self.draft.param_values.insert(k.clone(), v);
+                    self.draft.enabled_params.insert(k);
+                }
+            }
+            if let Some(headers) = data.headers {
+                for (k, v) in headers {
+                    self.draft.header_values.insert(k.clone(), v);
+                    self.draft.enabled_headers.insert(k);
+                }
+            }
+            if let Some(body) = data.body {
+                self.draft.body = serde_json::to_string_pretty(&body).unwrap_or_default();
+            } else {
+                self.draft.body.clear();
+            }
+        }
+    }
+
     fn select_operation(&mut self, operation: &crate::project::Operation, project: &RataProject) {
         self.selected_operation = Some((operation.method, operation.path.clone()));
         let base = project.server_url().unwrap_or_default().trim_end_matches('/');
         self.draft.method = operation.method;
         self.draft.url = format!("{base}{}", operation.path);
-        self.model.examples = project.examples_for(operation).ok().unwrap_or_default().into_iter().map(|e| e.name).collect();
+        self.draft.body.clear();
+        self.draft.param_values.clear();
+        self.draft.header_values.clear();
         self.draft.enabled_params.clear();
         self.draft.enabled_headers.clear();
+
+        let examples_res = project.examples_for(operation);
+        let examples = examples_res.as_ref().map(|x| x.as_slice()).unwrap_or_default();
+        self.model.examples = examples.iter().map(|e| e.name.clone()).collect();
+        
         for param in &operation.parameters {
             if param.required {
                 if param.location == "header" {
@@ -411,6 +440,10 @@ impl TuiApp {
                     self.draft.enabled_params.insert(param.name.clone());
                 }
             }
+        }
+
+        if let Some(first_example) = examples.first() {
+            self.load_example(first_example);
         }
     }
 
@@ -677,6 +710,18 @@ impl TuiApp {
         } else if clicked_inside_dropdown {
             self.active_block = ActiveBlock::Examples;
             self.examples_dropdown_open = false; // Close when clicked inside
+            let clicked_row = mouse.row.saturating_sub(self.examples_area.y + 1);
+            if let Some(example_name) = self.model.examples.get(clicked_row as usize) {
+                if let Some(project) = project {
+                    if let Some(selected) = &self.selected_operation {
+                        if let Some(op) = project.collections().iter().flat_map(|c| &c.operations).find(|o| o.method == selected.0 && o.path == selected.1) {
+                            if let Some(example_file) = project.examples_for(op).ok().unwrap_or_default().iter().find(|e| &e.name == example_name) {
+                                self.load_example(example_file);
+                            }
+                        }
+                    }
+                }
+            }
         } else if contains(self.response_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Response;
         }
