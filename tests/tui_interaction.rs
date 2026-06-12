@@ -42,7 +42,7 @@ fn response_view_uses_tabs_and_pretty_json_body() {
     assert_eq!(app.active_response_tab, ResponseTab::Body);
     assert_eq!(
         app.active_response_text(),
-        "{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}".into()
+        rata::tui::highlight_json("{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}")
     );
 
     app.active_response_tab = ResponseTab::Headers;

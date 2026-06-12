@@ -65,11 +65,20 @@ impl FromStr for HttpMethod {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OperationParameter {
+    pub name: String,
+    pub location: String,
+    pub description: Option<String>,
+    pub required: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Operation {
     pub method: HttpMethod,
     pub path: String,
     pub summary: String,
     pub tag: String,
+    pub parameters: Vec<OperationParameter>,
 }
 
 #[derive(Debug, Clone)]
@@ -245,11 +254,30 @@ fn collect_operations(document: &OpenAPI) -> Vec<Collection> {
                 .or_else(|| operation.operation_id.clone())
                 .unwrap_or_else(|| path.clone());
 
+            let mut parameters = Vec::new();
+            for param in item.parameters.iter().chain(operation.parameters.iter()) {
+                if let ReferenceOr::Item(param) = param {
+                    let (data, location) = match param {
+                        openapiv3::Parameter::Query { parameter_data, .. } => (parameter_data, "query"),
+                        openapiv3::Parameter::Header { parameter_data, .. } => (parameter_data, "header"),
+                        openapiv3::Parameter::Path { parameter_data, .. } => (parameter_data, "path"),
+                        openapiv3::Parameter::Cookie { parameter_data, .. } => (parameter_data, "cookie"),
+                    };
+                    parameters.push(OperationParameter {
+                        name: data.name.clone(),
+                        location: location.to_string(),
+                        description: data.description.clone(),
+                        required: data.required,
+                    });
+                }
+            }
+
             let operation = Operation {
                 method,
                 path: path.clone(),
                 summary,
                 tag,
+                parameters,
             };
 
             let index = *collection_indexes

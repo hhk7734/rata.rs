@@ -49,6 +49,8 @@ pub struct RequestDraft {
     pub method: HttpMethod,
     pub url: String,
     pub body: String,
+    pub param_values: std::collections::HashMap<String, String>,
+    pub header_values: std::collections::HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,6 +80,7 @@ pub enum ResponseTab {
 pub enum InputMode {
     Normal,
     EditingUrl,
+    EditingRequestField,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,6 +124,8 @@ pub struct TuiApp {
     pub response_height_percent: u16,
     pub examples_dropdown_open: bool,
     pub drag_target: DragTarget,
+    pub selected_request_row: usize,
+    pub editing_param_key: Option<String>,
 }
 
 impl TuiApp {
@@ -139,6 +144,8 @@ impl TuiApp {
                 method,
                 url: model.selected_request_url.clone(),
                 body: String::new(),
+                param_values: std::collections::HashMap::new(),
+                header_values: std::collections::HashMap::new(),
             },
             model,
             response: ResponseView {
@@ -166,6 +173,8 @@ impl TuiApp {
             response_height_percent: 66,
             examples_dropdown_open: false,
             drag_target: DragTarget::None,
+            selected_request_row: 0,
+            editing_param_key: None,
         }
     }
 
@@ -218,11 +227,21 @@ impl TuiApp {
             InputMode::Normal => match key.code {
                 KeyCode::Char('q') | KeyCode::Esc => Ok(AppAction::Quit),
                 KeyCode::Char('e') | KeyCode::Char('i') => {
-                    self.input_mode = InputMode::EditingUrl;
+                    if self.active_block == ActiveBlock::Params {
+                        self.input_mode = InputMode::EditingRequestField;
+                        self.editing_param_key = self.get_selected_request_key(project);
+                    } else {
+                        self.input_mode = InputMode::EditingUrl;
+                    }
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Enter | KeyCode::Char('s') => {
-                    let _ = self.send();
+                    if self.active_block == ActiveBlock::Params {
+                        self.input_mode = InputMode::EditingRequestField;
+                        self.editing_param_key = self.get_selected_request_key(project);
+                    } else {
+                        let _ = self.send();
+                    }
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Char('1') => {
@@ -245,6 +264,8 @@ impl TuiApp {
                         self.scroll_response_up(1);
                     } else if self.active_block == ActiveBlock::Collections {
                         self.select_previous_operation(project);
+                    } else if self.active_block == ActiveBlock::Params {
+                        self.selected_request_row = self.selected_request_row.saturating_sub(1);
                     }
                     Ok(AppAction::Continue)
                 }
@@ -253,6 +274,8 @@ impl TuiApp {
                         self.scroll_response_down(1);
                     } else if self.active_block == ActiveBlock::Collections {
                         self.select_next_operation(project);
+                    } else if self.active_block == ActiveBlock::Params {
+                        self.selected_request_row = self.selected_request_row.saturating_add(1);
                     }
                     Ok(AppAction::Continue)
                 }
@@ -278,7 +301,63 @@ impl TuiApp {
                 }
                 _ => Ok(AppAction::Continue),
             },
+            InputMode::EditingRequestField => match key.code {
+                KeyCode::Esc | KeyCode::Enter => {
+                    self.input_mode = InputMode::Normal;
+                    self.editing_param_key = None;
+                    Ok(AppAction::Continue)
+                }
+                KeyCode::Backspace => {
+                    if self.active_request_tab == RequestTab::Body {
+                        self.draft.body.pop();
+                    } else if let Some(key) = &self.editing_param_key {
+                        let map = if self.active_request_tab == RequestTab::Params {
+                            &mut self.draft.param_values
+                        } else {
+                            &mut self.draft.header_values
+                        };
+                        if let Some(val) = map.get_mut(key) {
+                            val.pop();
+                        }
+                    }
+                    Ok(AppAction::Continue)
+                }
+                KeyCode::Char(value) => {
+                    if self.active_request_tab == RequestTab::Body {
+                        self.draft.body.push(value);
+                    } else if let Some(key) = &self.editing_param_key {
+                        let map = if self.active_request_tab == RequestTab::Params {
+                            &mut self.draft.param_values
+                        } else {
+                            &mut self.draft.header_values
+                        };
+                        let val = map.entry(key.clone()).or_insert_with(String::new);
+                        val.push(value);
+                    }
+                    Ok(AppAction::Continue)
+                }
+                _ => Ok(AppAction::Continue),
+            },
         }
+    }
+
+    fn get_selected_request_key(&self, project: Option<&RataProject>) -> Option<String> {
+        let project = project?;
+        let (method, path) = self.selected_operation.as_ref()?;
+        let mut op_params = Vec::new();
+        for collection in project.collections() {
+            for operation in &collection.operations {
+                if operation.method == *method && operation.path == *path {
+                    for param in &operation.parameters {
+                        if (self.active_request_tab == RequestTab::Params && (param.location == "path" || param.location == "query")) ||
+                           (self.active_request_tab == RequestTab::Headers && param.location == "header") {
+                            op_params.push(param.name.clone());
+                        }
+                    }
+                }
+            }
+        }
+        op_params.get(self.selected_request_row).cloned()
     }
 
     fn select_operation(&mut self, operation: &crate::project::Operation, project: &RataProject) {
@@ -395,6 +474,7 @@ impl TuiApp {
                 if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
                     self.active_request_tab = tab;
                     self.active_block = ActiveBlock::Params;
+                    self.selected_request_row = 0;
                     return;
                 }
 
@@ -523,8 +603,32 @@ impl TuiApp {
 
     fn send_request(&self) -> anyhow::Result<ResponseView> {
         let client = reqwest::blocking::Client::new();
-        let mut response = client
-            .request(self.draft.method.reqwest(), &self.draft.url)
+        
+        let mut final_url = self.draft.url.clone();
+        let mut query_params = Vec::new();
+
+        for (key, value) in &self.draft.param_values {
+            let p1 = format!("{{{{{}}}}}", key);
+            let p2 = format!("{{{}}}", key);
+            if final_url.contains(&p1) || final_url.contains(&p2) {
+                final_url = final_url.replace(&p1, value);
+                final_url = final_url.replace(&p2, value);
+            } else if !value.is_empty() {
+                query_params.push((key, value));
+            }
+        }
+
+        let mut request = client.request(self.draft.method.reqwest(), &final_url);
+        
+        if !query_params.is_empty() {
+            request = request.query(&query_params);
+        }
+        
+        for (key, value) in &self.draft.header_values {
+            request = request.header(key, value);
+        }
+
+        let mut response = request
             .body(self.draft.body.clone())
             .send()?;
         let status = response.status().as_u16();
@@ -736,7 +840,7 @@ fn run_loop(
 
             frame.render_widget(collections(project, app), body[0]);
             frame.render_widget(request_line(app), main[0]);
-            render_request_block(frame, app, request_body[0]);
+            render_request_block(frame, app, project, request_body[0]);
             render_response(frame, app, main_rest[1]);
 
             if app.examples_dropdown_open {
@@ -834,9 +938,12 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         app.draft.url.clone()
     };
     let mode_hint = match app.input_mode {
-        InputMode::Normal => "e edit URL · Enter/s send · q quit",
+        InputMode::Normal => "e edit · Enter/s send · q quit",
         InputMode::EditingUrl => {
             "typing edits URL · Backspace delete · Enter send · Esc cancel edit"
+        }
+        InputMode::EditingRequestField => {
+            "typing edits value · Backspace delete · Enter save · Esc cancel edit"
         }
     };
 
@@ -870,7 +977,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     )
 }
 
-fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, area: Rect) {
+fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Option<&RataProject>, area: Rect) {
     let border_style = if app.active_block == ActiveBlock::Params {
         Style::default().fg(ACCENT)
     } else {
@@ -904,36 +1011,76 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, area: Rect) {
 
     match app.active_request_tab {
         RequestTab::Body => {
-            let text = if app.draft.body.is_empty() {
+            let mut text = if app.draft.body.is_empty() && app.input_mode != InputMode::EditingRequestField {
                 "No request body".to_string()
             } else {
                 app.draft.body.clone()
             };
+            if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
+                text.push('█');
+            }
             let p = Paragraph::new(text)
                 .style(Style::default().fg(TEXT))
                 .block(block);
             frame.render_widget(p, area);
         }
         RequestTab::Params => {
+            let mut rows = Vec::new();
+            if let Some(project) = project {
+                if let Some((method, path)) = &app.selected_operation {
+                    for collection in project.collections() {
+                        for operation in &collection.operations {
+                            if operation.method == *method && operation.path == *path {
+                                let mut i = 0;
+                                for param in &operation.parameters {
+                                    if param.location == "path" || param.location == "query" {
+                                        let is_editing_this_row = app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row;
+                                        let value = if is_editing_this_row {
+                                            app.draft.param_values.get(&param.name).cloned().unwrap_or_default()
+                                        } else {
+                                            let default_val = if param.location == "path" { format!("{{{}}}", param.name) } else { "".to_string() };
+                                            app.draft.param_values.get(&param.name).cloned().unwrap_or(default_val)
+                                        };
+                                        let display_value = if is_editing_this_row {
+                                            format!("{}█", value)
+                                        } else {
+                                            value
+                                        };
+                                        let mut row = Row::new([
+                                            if param.required { "[x]" } else { "[ ]" }.to_string(),
+                                            param.name.clone(),
+                                            display_value,
+                                            param.location.clone(),
+                                            param.description.clone().unwrap_or_default(),
+                                        ]);
+                                        if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                                            row = row.style(Style::default().bg(SELECTED_BG));
+                                        }
+                                        rows.push(row);
+                                        i += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if rows.is_empty() {
+                rows.push(Row::new(["", "No parameters", "", "", ""]));
+            }
+
             let t = Table::new(
+                rows,
                 [
-                    Row::new(["id", "{id}", "Path", "OpenAPI path parameter"]),
-                    Row::new([
-                        "accept",
-                        "application/json",
-                        "Header",
-                        "Default response format",
-                    ]),
-                ],
-                [
+                    Constraint::Length(3),
                     Constraint::Percentage(20),
                     Constraint::Percentage(25),
                     Constraint::Percentage(18),
-                    Constraint::Percentage(37),
+                    Constraint::Percentage(34),
                 ],
             )
             .header(
-                Row::new(["Key", "Value", "Source", "Description"])
+                Row::new(["", "Key", "Value", "Source", "Description"])
                     .style(muted_style().add_modifier(Modifier::BOLD)),
             )
             .block(block)
@@ -941,15 +1088,52 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, area: Rect) {
             frame.render_widget(t, area);
         }
         RequestTab::Headers => {
+            let mut rows = Vec::new();
+            if let Some(project) = project {
+                if let Some((method, path)) = &app.selected_operation {
+                    for collection in project.collections() {
+                        for operation in &collection.operations {
+                            if operation.method == *method && operation.path == *path {
+                                let mut i = 0;
+                                for param in &operation.parameters {
+                                    if param.location == "header" {
+                                        let value = app.draft.header_values.get(&param.name).cloned().unwrap_or_default();
+                                        let display_value = if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                                            format!("{}█", value)
+                                        } else {
+                                            value
+                                        };
+                                        let mut row = Row::new([
+                                            if param.required { "[x]" } else { "[ ]" }.to_string(),
+                                            param.name.clone(),
+                                            display_value,
+                                        ]);
+                                        if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                                            row = row.style(Style::default().bg(SELECTED_BG));
+                                        }
+                                        rows.push(row);
+                                        i += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if rows.is_empty() {
+                rows.push(Row::new(["", "No headers", ""]));
+            }
+
             let t = Table::new(
-                <Vec<Row>>::new(),
+                rows,
                 [
+                    Constraint::Length(3),
                     Constraint::Percentage(30),
-                    Constraint::Percentage(70),
+                    Constraint::Percentage(67),
                 ],
             )
             .header(
-                Row::new(["Key", "Value"])
+                Row::new(["", "Key", "Value"])
                     .style(muted_style().add_modifier(Modifier::BOLD)),
             )
             .block(block)
@@ -1143,7 +1327,7 @@ fn method_style(method: HttpMethod) -> Style {
     Style::default().fg(color).add_modifier(Modifier::BOLD)
 }
 
-fn highlight_json(json: &str) -> Text<'static> {
+pub fn highlight_json(json: &str) -> Text<'static> {
     let mut lines = Vec::new();
     for line in json.lines() {
         let mut spans = Vec::new();
