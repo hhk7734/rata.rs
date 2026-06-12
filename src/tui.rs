@@ -1323,13 +1323,22 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         " Examples ▾ "
     };
 
-    Paragraph::new(vec![
-        Line::from(Span::styled(
-            app.draft.method.label(),
-            method_style(app.draft.method),
-        )),
-        Line::from(Span::styled(url, Style::default().fg(TEXT))),
-    ])
+    let mut url_text = url.clone();
+    if app.input_mode == InputMode::EditingUrl {
+        url_text.push('█');
+    }
+
+    Paragraph::new(Line::from(vec![
+        Span::styled(
+            format!(" {} ▾ ", app.draft.method.label()),
+            method_style(app.draft.method).bg(SELECTED_BG).add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(" "),
+        Span::styled(
+            format!(" {} ", url_text),
+            Style::default().fg(TEXT).bg(SELECTED_BG),
+        ),
+    ]))
     .block(
         Block::default()
             .title(Span::styled(" URL ", Style::default().fg(Color::White)))
