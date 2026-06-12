@@ -363,7 +363,9 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Collections {
                     self.select_previous_operation(project);
                 } else if self.active_block == ActiveBlock::Params {
-                    if self.param_edit_mode == ParamEditMode::None {
+                    if self.active_request_tab == RequestTab::Body {
+                        self.text_cursor = move_cursor_up(&self.draft.body, self.text_cursor);
+                    } else if self.param_edit_mode == ParamEditMode::None {
                         self.selected_request_row = self.selected_request_row.saturating_sub(1);
                         self.text_cursor = usize::MAX;
                     } else {
@@ -380,7 +382,9 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Collections {
                     self.select_next_operation(project);
                 } else if self.active_block == ActiveBlock::Params {
-                    if self.param_edit_mode == ParamEditMode::None {
+                    if self.active_request_tab == RequestTab::Body {
+                        self.text_cursor = move_cursor_down(&self.draft.body, self.text_cursor);
+                    } else if self.param_edit_mode == ParamEditMode::None {
                         let max = if self.active_request_tab == RequestTab::Query { self.draft.params.len() } else { self.draft.headers.len() };
                         self.selected_request_row = self.selected_request_row.saturating_add(1).min(max);
                         self.text_cursor = usize::MAX;
@@ -2128,4 +2132,59 @@ fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Sp
     spans
 }
 
+fn move_cursor_up(s: &str, cursor: usize) -> usize {
+    let char_len = s.chars().count();
+    let cursor = cursor.min(char_len);
+    
+    let mut current_line_start = 0;
+    for (i, c) in s.chars().enumerate() {
+        if i == cursor { break; }
+        if c == '\n' { current_line_start = i + 1; }
+    }
+    
+    if current_line_start == 0 { return 0; }
+    
+    let col = cursor - current_line_start;
+    
+    let mut prev_line_start = 0;
+    for (i, c) in s.chars().enumerate() {
+        if i == current_line_start - 1 { break; }
+        if c == '\n' { prev_line_start = i + 1; }
+    }
+    
+    let prev_line_len = current_line_start - 1 - prev_line_start;
+    prev_line_start + col.min(prev_line_len)
+}
 
+fn move_cursor_down(s: &str, cursor: usize) -> usize {
+    let char_len = s.chars().count();
+    let cursor = cursor.min(char_len);
+    
+    let mut current_line_start = 0;
+    for (i, c) in s.chars().enumerate() {
+        if i == cursor { break; }
+        if c == '\n' { current_line_start = i + 1; }
+    }
+    
+    let col = cursor - current_line_start;
+    
+    let mut next_line_start = char_len;
+    for (i, c) in s.chars().enumerate().skip(cursor) {
+        if c == '\n' {
+            next_line_start = i + 1;
+            break;
+        }
+    }
+    
+    if next_line_start == char_len { return char_len; }
+    
+    let mut next_line_len = char_len - next_line_start;
+    for (i, c) in s.chars().enumerate().skip(next_line_start) {
+        if c == '\n' {
+            next_line_len = i - next_line_start;
+            break;
+        }
+    }
+    
+    next_line_start + col.min(next_line_len)
+}
