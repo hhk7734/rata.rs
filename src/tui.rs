@@ -1283,7 +1283,8 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
             if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
                 text.push('█');
             }
-            let p = Paragraph::new(text)
+            let highlighted = highlight_json(&text);
+            let p = Paragraph::new(highlighted)
                 .style(Style::default().fg(TEXT))
                 .block(block)
                 .scroll((app.request_scroll, 0));
