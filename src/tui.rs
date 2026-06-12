@@ -1165,18 +1165,18 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
 fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     let mut spans = Vec::new();
     let bg = PANEL;
-    let key_fg = PANEL;
-    let key_bg = ACCENT;
+    let key_fg = ACCENT;
     let desc_fg = TEXT;
     
+    spans.push(Span::styled("| Ctrl + > ", Style::default().fg(TEXT).bg(bg)));
+
     let mut add_shortcut = |key: &str, desc: &str| {
-        spans.push(Span::styled(format!(" {} ", key), Style::default().fg(key_fg).bg(key_bg).add_modifier(Modifier::BOLD)));
-        spans.push(Span::styled(format!(" {} ", desc), Style::default().fg(desc_fg).bg(bg)));
-        spans.push(Span::raw(" "));
+        spans.push(Span::styled(format!("<{}> ", key), Style::default().fg(key_fg).bg(bg).add_modifier(Modifier::BOLD)));
+        spans.push(Span::styled(format!("{} > ", desc.to_uppercase()), Style::default().fg(desc_fg).bg(bg)));
     };
 
-    add_shortcut("^q", "Quit");
-    add_shortcut("^s", "Send");
+    add_shortcut("q", "Quit");
+    add_shortcut("s", "Send");
 
     match app.input_mode {
         InputMode::Normal => {
