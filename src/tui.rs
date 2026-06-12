@@ -130,6 +130,7 @@ pub struct TuiApp {
     pub selected_request_row: usize,
     pub editing_param_key: Option<String>,
     pub param_edit_mode: bool,
+    pub text_cursor: usize,
     pub request_scroll: u16,
     pub drag_last_row: Option<u16>,
     pub text_selection: Option<Selection>,
@@ -185,6 +186,7 @@ impl TuiApp {
             selected_request_row: 0,
             editing_param_key: None,
             param_edit_mode: false,
+            text_cursor: 0,
             request_scroll: 0,
             drag_last_row: None,
             text_selection: None,
@@ -251,7 +253,27 @@ impl TuiApp {
         Ok(())
     }
 
-    pub fn handle_key(
+    
+    fn get_current_text_len(&self, project: Option<&RataProject>) -> usize {
+        if self.active_block == ActiveBlock::Request {
+            return self.draft.url.chars().count();
+        } else if self.active_block == ActiveBlock::Params {
+            if self.active_request_tab == RequestTab::Body {
+                return self.draft.body.chars().count();
+            } else if let Some(key) = self.get_selected_request_key(project) {
+                let map = if self.active_request_tab == RequestTab::Query {
+                    &self.draft.param_values
+                } else {
+                    &self.draft.header_values
+                };
+                if let Some(val) = map.get(&key) {
+                    return val.chars().count();
+                }
+            }
+        }
+        0
+    }
+pub fn handle_key(
         &mut self,
         key: KeyEvent,
         project: Option<&RataProject>,
@@ -270,6 +292,9 @@ impl TuiApp {
         {
             if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
                 self.param_edit_mode = !self.param_edit_mode;
+                if self.param_edit_mode {
+                    self.text_cursor = usize::MAX;
+                }
             }
             return Ok(AppAction::Continue);
         }
@@ -289,13 +314,28 @@ impl TuiApp {
                 }
                 Ok(AppAction::Continue)
             }
+                        KeyCode::Left => {
+                let len = self.get_current_text_len(project);
+                self.text_cursor = self.text_cursor.min(len).saturating_sub(1);
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Right => {
+                let len = self.get_current_text_len(project);
+                self.text_cursor = self.text_cursor.min(len).saturating_add(1);
+                Ok(AppAction::Continue)
+            }
             KeyCode::Up => {
                 if self.active_block == ActiveBlock::Response {
                     self.scroll_response_up(1);
                 } else if self.active_block == ActiveBlock::Collections {
                     self.select_previous_operation(project);
                 } else if self.active_block == ActiveBlock::Params {
-                    self.selected_request_row = self.selected_request_row.saturating_sub(1);
+                    if !self.param_edit_mode {
+                        self.selected_request_row = self.selected_request_row.saturating_sub(1);
+                        self.text_cursor = usize::MAX;
+                    } else {
+                        self.text_cursor = 0;
+                    }
                 }
                 Ok(AppAction::Continue)
             }
@@ -305,7 +345,12 @@ impl TuiApp {
                 } else if self.active_block == ActiveBlock::Collections {
                     self.select_next_operation(project);
                 } else if self.active_block == ActiveBlock::Params {
-                    self.selected_request_row = self.selected_request_row.saturating_add(1);
+                    if !self.param_edit_mode {
+                        self.selected_request_row = self.selected_request_row.saturating_add(1);
+                        self.text_cursor = usize::MAX;
+                    } else {
+                        self.text_cursor = usize::MAX;
+                    }
                 }
                 Ok(AppAction::Continue)
             }
@@ -319,10 +364,12 @@ impl TuiApp {
             }
             KeyCode::Backspace => {
                 if self.active_block == ActiveBlock::Request {
-                    self.draft.url.pop();
+                    remove_char_at(&mut self.draft.url, self.text_cursor);
+                    self.text_cursor = self.text_cursor.saturating_sub(1);
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
-                        self.draft.body.pop();
+                        remove_char_at(&mut self.draft.body, self.text_cursor);
+                        self.text_cursor = self.text_cursor.saturating_sub(1);
                     } else if self.param_edit_mode {
                         if let Some(key) = self.get_selected_request_key(project) {
                             let map = if self.active_request_tab == RequestTab::Query {
@@ -331,7 +378,8 @@ impl TuiApp {
                                 &mut self.draft.header_values
                             };
                             if let Some(val) = map.get_mut(&key) {
-                                val.pop();
+                                remove_char_at(val, self.text_cursor);
+                                self.text_cursor = self.text_cursor.saturating_sub(1);
                             }
                         }
                     }
@@ -383,10 +431,12 @@ impl TuiApp {
                 }
 
                 if self.active_block == ActiveBlock::Request {
-                    self.draft.url.push(value);
+                    insert_char_at(&mut self.draft.url, self.text_cursor, value);
+                    self.text_cursor = self.text_cursor.saturating_add(1);
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
-                        self.draft.body.push(value);
+                        insert_char_at(&mut self.draft.body, self.text_cursor, value);
+                        self.text_cursor = self.text_cursor.saturating_add(1);
                     } else if self.param_edit_mode {
                         if let Some(key) = self.get_selected_request_key(project) {
                             let map = if self.active_request_tab == RequestTab::Query {
@@ -395,7 +445,8 @@ impl TuiApp {
                                 &mut self.draft.header_values
                             };
                             let val = map.entry(key.clone()).or_insert_with(String::new);
-                            val.push(value);
+                            insert_char_at(val, self.text_cursor, value);
+                            self.text_cursor = self.text_cursor.saturating_add(1);
                         }
                     }
                 }
@@ -591,6 +642,7 @@ impl TuiApp {
                 self.scroll_response_up(3);
             } else if contains(self.params_area, mouse.column, mouse.row) {
                 self.active_block = ActiveBlock::Params;
+                self.text_cursor = usize::MAX;
                 self.scroll_request_up(3);
             }
             return;
@@ -602,6 +654,7 @@ impl TuiApp {
                 self.scroll_response_down(3);
             } else if contains(self.params_area, mouse.column, mouse.row) {
                 self.active_block = ActiveBlock::Params;
+                self.text_cursor = usize::MAX;
                 self.scroll_request_down(3);
             }
             return;
@@ -705,6 +758,7 @@ impl TuiApp {
                 if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
                     self.active_request_tab = tab;
                     self.active_block = ActiveBlock::Params;
+                self.text_cursor = usize::MAX;
                     self.selected_request_row = 0;
                     return;
                 }
@@ -721,6 +775,7 @@ impl TuiApp {
                         || mouse.row == self.params_area.y
                     {
                         self.active_block = ActiveBlock::Params;
+                self.text_cursor = usize::MAX;
                         self.drag_target = DragTarget::Request;
                         return;
                     }
@@ -803,6 +858,7 @@ impl TuiApp {
             }
         } else if contains(self.request_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Request;
+                self.text_cursor = usize::MAX;
             if clicked_dropdown_toggle {
                 self.examples_dropdown_open = !self.examples_dropdown_open;
                 if self.examples_dropdown_open {
@@ -811,6 +867,7 @@ impl TuiApp {
             }
         } else if contains(self.params_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Params;
+                self.text_cursor = usize::MAX;
         } else if clicked_inside_dropdown {
             self.active_block = ActiveBlock::Examples;
             self.examples_dropdown_open = false; // Close when clicked inside
@@ -1328,7 +1385,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
 
     let mut url_text = url.clone();
     if app.active_block == ActiveBlock::Request {
-        url_text.push('█');
+        url_text = render_with_cursor(&url_text, app.text_cursor);
     }
 
     Paragraph::new(Line::from(vec![
@@ -1564,7 +1621,7 @@ fn render_request_block(
                     && app.param_edit_mode
                     && i == app.selected_request_row
                 {
-                    format!("{}█", value)
+                    render_with_cursor(&value, app.text_cursor)
                 } else {
                     value
                 };
@@ -2015,5 +2072,36 @@ mod tests {
             method_style(HttpMethod::Delete).fg,
             Some(Color::Rgb(255, 123, 114))
         );
+    }
+}
+
+fn insert_char_at(s: &mut String, idx: usize, ch: char) {
+    let char_len = s.chars().count();
+    let idx = idx.min(char_len);
+    if idx == char_len {
+        s.push(ch);
+    } else {
+        let byte_idx = s.char_indices().nth(idx).unwrap().0;
+        s.insert(byte_idx, ch);
+    }
+}
+
+fn remove_char_at(s: &mut String, idx: usize) {
+    let char_len = s.chars().count();
+    if char_len == 0 || idx == 0 { return; }
+    let idx = idx.min(char_len);
+    let byte_idx = s.char_indices().nth(idx - 1).unwrap().0;
+    s.remove(byte_idx);
+}
+
+fn render_with_cursor(s: &str, cursor: usize) -> String {
+    let char_len = s.chars().count();
+    let idx = cursor.min(char_len);
+    if idx == char_len {
+        format!("{}█", s)
+    } else {
+        let byte_idx = s.char_indices().nth(idx).unwrap().0;
+        let (left, right) = s.split_at(byte_idx);
+        format!("{}█{}", left, right)
     }
 }
