@@ -1524,18 +1524,16 @@ fn render_request_block(
 
     match app.active_request_tab {
         RequestTab::Body => {
-            let mut text =
+            let text =
                 if app.draft.body.is_empty() && !(app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body) {
                     "No request body".to_string()
                 } else {
                     app.draft.body.clone()
                 };
-            if app.active_block == ActiveBlock::Params
-                && app.active_request_tab == RequestTab::Body
-            {
-                text = render_with_cursor(&text, app.text_cursor);
+            let mut highlighted = highlight_json(&text);
+            if app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
+                highlighted = apply_cursor_to_text(highlighted, app.text_cursor);
             }
-            let highlighted = highlight_json(&text);
             let p = Paragraph::new(highlighted)
                 .style(Style::default().fg(TEXT))
                 .block(block)
@@ -1891,6 +1889,58 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
     Text::from(new_lines)
 }
 
+fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'static> {
+    let mut char_count = 0;
+    let mut cursor_applied = false;
+
+    for line in &mut text.lines {
+        let mut new_spans = Vec::new();
+        for span in line.spans.drain(..) {
+            if cursor_applied {
+                new_spans.push(span);
+                continue;
+            }
+            let span_chars = span.content.chars().count();
+            if char_count <= cursor && cursor < char_count + span_chars {
+                let local_idx = cursor - char_count;
+                let byte_idx = span.content.char_indices().nth(local_idx).unwrap().0;
+                let (left, right) = span.content.split_at(byte_idx);
+                let cursor_char = right.chars().next().unwrap();
+                let rest = &right[cursor_char.len_utf8()..];
+
+                if !left.is_empty() {
+                    new_spans.push(Span::styled(left.to_string(), span.style));
+                }
+                new_spans.push(Span::styled(cursor_char.to_string(), span.style.add_modifier(Modifier::REVERSED)));
+                if !rest.is_empty() {
+                    new_spans.push(Span::styled(rest.to_string(), span.style));
+                }
+                cursor_applied = true;
+            } else {
+                new_spans.push(span);
+            }
+            char_count += span_chars;
+        }
+        
+        if !cursor_applied && char_count == cursor {
+            new_spans.push(Span::styled(" ", Style::default().add_modifier(Modifier::REVERSED)));
+            cursor_applied = true;
+        }
+        char_count += 1; // for newline
+        line.spans = new_spans;
+    }
+    
+    if !cursor_applied {
+        if let Some(last) = text.lines.last_mut() {
+            last.spans.push(Span::styled(" ", Style::default().add_modifier(Modifier::REVERSED)));
+        } else {
+            text.lines.push(Line::from(Span::styled(" ", Style::default().add_modifier(Modifier::REVERSED))));
+        }
+    }
+    
+    text
+}
+
 fn muted_style() -> Style {
     Style::default().fg(MUTED)
 }
@@ -2078,14 +2128,4 @@ fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Sp
     spans
 }
 
-fn render_with_cursor(s: &str, cursor: usize) -> String {
-    let char_len = s.chars().count();
-    let idx = cursor.min(char_len);
-    if idx == char_len {
-        format!("{}█", s)
-    } else {
-        let byte_idx = s.char_indices().nth(idx).unwrap().0;
-        let (left, right) = s.split_at(byte_idx);
-        format!("{}█{}", left, right)
-    }
-}
+
