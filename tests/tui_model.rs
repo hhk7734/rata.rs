@@ -8,7 +8,7 @@ use tempfile::tempdir;
 fn builds_dark_postman_style_model_from_openapi_project() {
     let tmp = tempdir().unwrap();
     let rata_dir = tmp.path().join(".rata");
-    fs::create_dir_all(rata_dir.join("users/{id}/get")).unwrap();
+    fs::create_dir_all(rata_dir.join("examples/users/{id}/get")).unwrap();
     fs::write(
         rata_dir.join("openapi.yaml"),
         r#"
@@ -39,7 +39,7 @@ paths:
     )
     .unwrap();
     fs::write(
-        rata_dir.join("users/{id}/get/success.yaml"),
+        rata_dir.join("examples/users/{id}/get/success.yaml"),
         "response:\n  status: 200\n",
     )
     .unwrap();

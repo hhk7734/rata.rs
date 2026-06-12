@@ -191,7 +191,7 @@ impl RataProject {
 
     pub fn examples_for(&self, operation: &Operation) -> anyhow::Result<Vec<ExampleFile>> {
         let path = operation.path.trim_start_matches('/');
-        let example_dir = self.root.join(path).join(operation.method.directory());
+        let example_dir = self.root.join("examples").join(path).join(operation.method.directory());
         if !example_dir.is_dir() {
             return Ok(Vec::new());
         }
