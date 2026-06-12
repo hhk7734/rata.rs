@@ -811,6 +811,57 @@ pub fn handle_key(
                 return;
             }
             MouseEventKind::Down(MouseButton::Left) => {
+                let dropdown_x = self.request_area.right().saturating_sub(14);
+                let clicked_dropdown_toggle = mouse.row == self.request_area.y
+                    && mouse.column >= dropdown_x
+                    && mouse.column < self.request_area.right();
+                let clicked_inside_dropdown =
+                    self.examples_dropdown_open && contains(self.examples_area, mouse.column, mouse.row);
+
+                if self.examples_dropdown_open && !clicked_dropdown_toggle && !clicked_inside_dropdown {
+                    self.examples_dropdown_open = false;
+                }
+
+                if clicked_dropdown_toggle {
+                    self.examples_dropdown_open = !self.examples_dropdown_open;
+                    if self.examples_dropdown_open {
+                        self.active_block = ActiveBlock::Examples;
+                    } else {
+                        self.active_block = ActiveBlock::Request;
+                        self.text_cursor = usize::MAX;
+                    }
+                    return;
+                }
+
+                if clicked_inside_dropdown {
+                    self.active_block = ActiveBlock::Examples;
+                    self.examples_dropdown_open = false; // Close when clicked inside
+                    let clicked_row = mouse.row.saturating_sub(self.examples_area.y + 1);
+                    if let Some(example_name) = self.model.examples.get(clicked_row as usize) {
+                        if let Some(project) = project {
+                            if let Some(selected) = &self.selected_operation {
+                                if let Some(op) = project
+                                    .collections()
+                                    .iter()
+                                    .flat_map(|c| &c.operations)
+                                    .find(|o| o.method == selected.0 && o.path == selected.1)
+                                {
+                                    if let Some(example_file) = project
+                                        .examples_for(op)
+                                        .ok()
+                                        .unwrap_or_default()
+                                        .iter()
+                                        .find(|e| &e.name == example_name)
+                                    {
+                                        self.load_example(example_file);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return;
+                }
+
                 if let Some(tab) =
                     response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin)
                 {
@@ -880,17 +931,6 @@ pub fn handle_key(
 
         self.active_block = ActiveBlock::None;
 
-        let dropdown_x = self.request_area.right().saturating_sub(14);
-        let clicked_dropdown_toggle = mouse.row == self.request_area.y
-            && mouse.column >= dropdown_x
-            && mouse.column < self.request_area.right();
-        let clicked_inside_dropdown =
-            self.examples_dropdown_open && contains(self.examples_area, mouse.column, mouse.row);
-
-        if self.examples_dropdown_open && !clicked_dropdown_toggle && !clicked_inside_dropdown {
-            self.examples_dropdown_open = false;
-        }
-
         if contains(self.collections_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Collections;
             let list_y = self.collections_area.y + 1;
@@ -925,41 +965,9 @@ pub fn handle_key(
         } else if contains(self.request_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Request;
                 self.text_cursor = usize::MAX;
-            if clicked_dropdown_toggle {
-                self.examples_dropdown_open = !self.examples_dropdown_open;
-                if self.examples_dropdown_open {
-                    self.active_block = ActiveBlock::Examples;
-                }
-            }
         } else if contains(self.params_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Params;
                 self.text_cursor = usize::MAX;
-        } else if clicked_inside_dropdown {
-            self.active_block = ActiveBlock::Examples;
-            self.examples_dropdown_open = false; // Close when clicked inside
-            let clicked_row = mouse.row.saturating_sub(self.examples_area.y + 1);
-            if let Some(example_name) = self.model.examples.get(clicked_row as usize) {
-                if let Some(project) = project {
-                    if let Some(selected) = &self.selected_operation {
-                        if let Some(op) = project
-                            .collections()
-                            .iter()
-                            .flat_map(|c| &c.operations)
-                            .find(|o| o.method == selected.0 && o.path == selected.1)
-                        {
-                            if let Some(example_file) = project
-                                .examples_for(op)
-                                .ok()
-                                .unwrap_or_default()
-                                .iter()
-                                .find(|e| &e.name == example_name)
-                            {
-                                self.load_example(example_file);
-                            }
-                        }
-                    }
-                }
-            }
         } else if contains(self.response_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Response;
         }
