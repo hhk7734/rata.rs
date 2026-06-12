@@ -520,7 +520,7 @@ impl TuiApp {
                         self.drag_last_row = Some(mouse.row);
                     }
                     DragTarget::ResponseSelection => {
-                        let inner_y = self.response_area.y + 2;
+                        let inner_y = self.response_area.y + 1;
                         let inner_x = self.response_area.x + 1;
                         let inner_bottom = self.response_area.y + self.response_area.height.saturating_sub(1);
                         
@@ -590,7 +590,7 @@ impl TuiApp {
                 if contains(self.response_area, mouse.column, mouse.row) {
                     if self.active_response_tab == ResponseTab::Body {
                         self.drag_target = DragTarget::ResponseSelection;
-                        let inner_y = self.response_area.y + 2;
+                        let inner_y = self.response_area.y + 1;
                         let inner_x = self.response_area.x + 1;
                         let line = mouse.row.saturating_sub(inner_y) as usize + self.response_scroll as usize;
                         let col = mouse.column.saturating_sub(inner_x) as usize;
