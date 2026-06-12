@@ -45,14 +45,26 @@ pub enum Theme {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParamState {
+    pub key: String,
+    pub value: String,
+    pub enabled: bool,
+    pub required: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ParamEditMode {
+    None,
+    Key,
+    Value,
+}
+
 pub struct RequestDraft {
     pub method: HttpMethod,
     pub url: String,
     pub body: String,
-    pub param_values: std::collections::HashMap<String, String>,
-    pub header_values: std::collections::HashMap<String, String>,
-    pub enabled_params: std::collections::HashSet<String>,
-    pub enabled_headers: std::collections::HashSet<String>,
+    pub params: Vec<ParamState>,
+    pub headers: Vec<ParamState>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -129,7 +141,7 @@ pub struct TuiApp {
     pub drag_target: DragTarget,
     pub selected_request_row: usize,
     pub editing_param_key: Option<String>,
-    pub param_edit_mode: bool,
+    pub param_edit_mode: ParamEditMode,
     pub text_cursor: usize,
     pub selected_example_row: usize,
     pub request_scroll: u16,
@@ -154,10 +166,8 @@ impl TuiApp {
                 method,
                 url: model.selected_request_url.clone(),
                 body: String::new(),
-                param_values: std::collections::HashMap::new(),
-                header_values: std::collections::HashMap::new(),
-                enabled_params: std::collections::HashSet::new(),
-                enabled_headers: std::collections::HashSet::new(),
+                params: Vec::new(),
+                headers: Vec::new(),
             },
             model,
             response: ResponseView {
@@ -186,7 +196,7 @@ impl TuiApp {
             drag_target: DragTarget::None,
             selected_request_row: 0,
             editing_param_key: None,
-            param_edit_mode: false,
+            param_edit_mode: ParamEditMode::None,
             text_cursor: 0,
             selected_example_row: 0,
             request_scroll: 0,
@@ -256,20 +266,20 @@ impl TuiApp {
     }
 
     
-    fn get_current_text_len(&self, project: Option<&RataProject>) -> usize {
+    fn get_current_text_len(&self, _project: Option<&RataProject>) -> usize {
         if self.active_block == ActiveBlock::Request {
             return self.draft.url.chars().count();
         } else if self.active_block == ActiveBlock::Params {
             if self.active_request_tab == RequestTab::Body {
                 return self.draft.body.chars().count();
-            } else if let Some(key) = self.get_selected_request_key(project) {
-                let map = if self.active_request_tab == RequestTab::Query {
-                    &self.draft.param_values
-                } else {
-                    &self.draft.header_values
-                };
-                if let Some(val) = map.get(&key) {
-                    return val.chars().count();
+            } else if self.param_edit_mode != ParamEditMode::None {
+                let map = if self.active_request_tab == RequestTab::Query { &self.draft.params } else { &self.draft.headers };
+                if let Some(param) = map.get(self.selected_request_row) {
+                    if self.param_edit_mode == ParamEditMode::Key {
+                        return param.key.chars().count();
+                    } else if self.param_edit_mode == ParamEditMode::Value {
+                        return param.value.chars().count();
+                    }
                 }
             }
         }
@@ -293,9 +303,11 @@ pub fn handle_key(
                 .contains(crossterm::event::KeyModifiers::CONTROL)
         {
             if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
-                self.param_edit_mode = !self.param_edit_mode;
-                if self.param_edit_mode {
+                if self.param_edit_mode == ParamEditMode::None {
+                    self.param_edit_mode = ParamEditMode::Value;
                     self.text_cursor = usize::MAX;
+                } else {
+                    self.param_edit_mode = ParamEditMode::None;
                 }
             }
             return Ok(AppAction::Continue);
@@ -311,12 +323,27 @@ pub fn handle_key(
 
         match key.code {
             KeyCode::Esc => {
-                if self.param_edit_mode {
-                    self.param_edit_mode = false;
+                if self.param_edit_mode != ParamEditMode::None {
+                    self.param_edit_mode = ParamEditMode::None;
                 }
                 if self.examples_dropdown_open {
                     self.examples_dropdown_open = false;
                     self.active_block = ActiveBlock::Request;
+                }
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Tab => {
+                if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode != ParamEditMode::None {
+                    let map = if self.active_request_tab == RequestTab::Query { &self.draft.params } else { &self.draft.headers };
+                    if let Some(param) = map.get(self.selected_request_row) {
+                        if self.param_edit_mode == ParamEditMode::Key {
+                            self.param_edit_mode = ParamEditMode::Value;
+                        } else if !param.required {
+                            self.param_edit_mode = ParamEditMode::Key;
+                        }
+                        self.text_cursor = usize::MAX;
+                    }
+                    return Ok(AppAction::Continue);
                 }
                 Ok(AppAction::Continue)
             }
@@ -336,7 +363,7 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Collections {
                     self.select_previous_operation(project);
                 } else if self.active_block == ActiveBlock::Params {
-                    if !self.param_edit_mode {
+                    if self.param_edit_mode == ParamEditMode::None {
                         self.selected_request_row = self.selected_request_row.saturating_sub(1);
                         self.text_cursor = usize::MAX;
                     } else {
@@ -353,8 +380,9 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Collections {
                     self.select_next_operation(project);
                 } else if self.active_block == ActiveBlock::Params {
-                    if !self.param_edit_mode {
-                        self.selected_request_row = self.selected_request_row.saturating_add(1);
+                    if self.param_edit_mode == ParamEditMode::None {
+                        let max = if self.active_request_tab == RequestTab::Query { self.draft.params.len() } else { self.draft.headers.len() };
+                        self.selected_request_row = self.selected_request_row.saturating_add(1).min(max);
                         self.text_cursor = usize::MAX;
                     } else {
                         self.text_cursor = usize::MAX;
@@ -371,6 +399,13 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Params && self.active_request_tab == RequestTab::Body {
                     insert_char_at(&mut self.draft.body, self.text_cursor, '\n');
                     self.text_cursor = self.text_cursor.saturating_add(1);
+                } else if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode == ParamEditMode::None {
+                    let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                    if self.selected_request_row == map.len() {
+                        map.push(ParamState { key: String::new(), value: String::new(), enabled: true, required: false });
+                        self.param_edit_mode = ParamEditMode::Key;
+                        self.text_cursor = usize::MAX;
+                    }
                 } else if self.active_block == ActiveBlock::Examples {
                     if let Some(example_name) = self.model.examples.get(self.selected_example_row) {
                         let name_clone = example_name.clone();
@@ -408,15 +443,14 @@ pub fn handle_key(
                     if self.active_request_tab == RequestTab::Body {
                         remove_char_at(&mut self.draft.body, self.text_cursor);
                         self.text_cursor = self.text_cursor.saturating_sub(1);
-                    } else if self.param_edit_mode {
-                        if let Some(key) = self.get_selected_request_key(project) {
-                            let map = if self.active_request_tab == RequestTab::Query {
-                                &mut self.draft.param_values
-                            } else {
-                                &mut self.draft.header_values
-                            };
-                            if let Some(val) = map.get_mut(&key) {
-                                remove_char_at(val, self.text_cursor);
+                    } else if self.param_edit_mode != ParamEditMode::None {
+                        let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                        if let Some(param) = map.get_mut(self.selected_request_row) {
+                            if self.param_edit_mode == ParamEditMode::Key && !param.required {
+                                remove_char_at(&mut param.key, self.text_cursor);
+                                self.text_cursor = self.text_cursor.saturating_sub(1);
+                            } else if self.param_edit_mode == ParamEditMode::Value {
+                                remove_char_at(&mut param.value, self.text_cursor);
                                 self.text_cursor = self.text_cursor.saturating_sub(1);
                             }
                         }
@@ -425,7 +459,7 @@ pub fn handle_key(
                 Ok(AppAction::Continue)
             }
             KeyCode::Char(value) => {
-                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
+                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && self.param_edit_mode == ParamEditMode::None && self.active_request_tab != RequestTab::Body)) {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_up(1);
                     } else if self.active_block == ActiveBlock::Collections {
@@ -437,7 +471,7 @@ pub fn handle_key(
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
+                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && self.param_edit_mode == ParamEditMode::None && self.active_request_tab != RequestTab::Body)) {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_down(1);
                     } else if self.active_block == ActiveBlock::Collections {
@@ -450,24 +484,11 @@ pub fn handle_key(
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == ' ' && self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && !self.param_edit_mode {
-                    if let Some(key) = self.get_selected_request_key(project) {
-                        let params = self.get_current_parameters(project, self.active_request_tab);
-                        let is_required = params.iter().find(|p| p.name == key).map(|p| p.required).unwrap_or(false);
-                        if !is_required {
-                            if self.active_request_tab == RequestTab::Query {
-                                if self.draft.enabled_params.contains(&key) {
-                                    self.draft.enabled_params.remove(&key);
-                                } else {
-                                    self.draft.enabled_params.insert(key);
-                                }
-                            } else if self.active_request_tab == RequestTab::Headers {
-                                if self.draft.enabled_headers.contains(&key) {
-                                    self.draft.enabled_headers.remove(&key);
-                                } else {
-                                    self.draft.enabled_headers.insert(key);
-                                }
-                            }
+                if value == ' ' && self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode == ParamEditMode::None {
+                    let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                    if let Some(param) = map.get_mut(self.selected_request_row) {
+                        if !param.required {
+                            param.enabled = !param.enabled;
                         }
                     }
                     return Ok(AppAction::Continue);
@@ -480,16 +501,16 @@ pub fn handle_key(
                     if self.active_request_tab == RequestTab::Body {
                         insert_char_at(&mut self.draft.body, self.text_cursor, value);
                         self.text_cursor = self.text_cursor.saturating_add(1);
-                    } else if self.param_edit_mode {
-                        if let Some(key) = self.get_selected_request_key(project) {
-                            let map = if self.active_request_tab == RequestTab::Query {
-                                &mut self.draft.param_values
-                            } else {
-                                &mut self.draft.header_values
-                            };
-                            let val = map.entry(key.clone()).or_insert_with(String::new);
-                            insert_char_at(val, self.text_cursor, value);
-                            self.text_cursor = self.text_cursor.saturating_add(1);
+                    } else if self.param_edit_mode != ParamEditMode::None {
+                        let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                        if let Some(param) = map.get_mut(self.selected_request_row) {
+                            if self.param_edit_mode == ParamEditMode::Key && !param.required {
+                                insert_char_at(&mut param.key, self.text_cursor, value);
+                                self.text_cursor = self.text_cursor.saturating_add(1);
+                            } else if self.param_edit_mode == ParamEditMode::Value {
+                                insert_char_at(&mut param.value, self.text_cursor, value);
+                                self.text_cursor = self.text_cursor.saturating_add(1);
+                            }
                         }
                     }
                 }
@@ -499,78 +520,26 @@ pub fn handle_key(
         }
     }
 
-    fn get_current_parameters(
-        &self,
-        project: Option<&RataProject>,
-        tab: RequestTab,
-    ) -> Vec<crate::project::OperationParameter> {
-        let mut params = Vec::new();
-        if let Some(project) = project {
-            if let Some((method, path)) = &self.selected_operation {
-                for collection in project.collections() {
-                    for operation in &collection.operations {
-                        if operation.method == *method && operation.path == *path {
-                            for param in &operation.parameters {
-                                if (tab == RequestTab::Query
-                                    && (param.location == "path" || param.location == "query"))
-                                    || (tab == RequestTab::Headers && param.location == "header")
-                                {
-                                    params.push(param.clone());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        let draft_map = if tab == RequestTab::Headers {
-            &self.draft.header_values
-        } else if tab == RequestTab::Query {
-            &self.draft.param_values
-        } else {
-            return params;
-        };
-
-        let mut custom_keys: Vec<_> = draft_map.keys().collect();
-        custom_keys.sort();
-        for key in custom_keys {
-            if !params.iter().any(|p| p.name == **key) {
-                params.push(crate::project::OperationParameter {
-                    name: key.clone(),
-                    location: if tab == RequestTab::Headers {
-                        "header".to_string()
-                    } else {
-                        "query".to_string()
-                    },
-                    description: None,
-                    required: false,
-                });
-            }
-        }
-
-        params
-    }
-
-    fn get_selected_request_key(&self, project: Option<&RataProject>) -> Option<String> {
-        let params = self.get_current_parameters(project, self.active_request_tab);
-        params
-            .get(self.selected_request_row)
-            .map(|p| p.name.clone())
-    }
-
     fn load_example(&mut self, example: &crate::project::ExampleFile) {
         if let Ok(data) = example.load_data() {
             if let Some(params) = data.params {
                 for (k, v) in params {
-                    self.draft.param_values.insert(k.clone(), v);
-                    self.draft.enabled_params.insert(k);
+                    if let Some(p) = self.draft.params.iter_mut().find(|p| p.key == k) {
+                        p.value = v;
+                        p.enabled = true;
+                    } else {
+                        self.draft.params.push(ParamState { key: k, value: v, enabled: true, required: false });
+                    }
                 }
             }
             if let Some(headers) = data.headers {
                 for (k, v) in headers {
-                    self.draft.header_values.insert(k.clone(), v);
-                    self.draft.enabled_headers.insert(k);
+                    if let Some(p) = self.draft.headers.iter_mut().find(|p| p.key == k) {
+                        p.value = v;
+                        p.enabled = true;
+                    } else {
+                        self.draft.headers.push(ParamState { key: k, value: v, enabled: true, required: false });
+                    }
                 }
             }
             if let Some(body) = data.body {
@@ -586,10 +555,8 @@ pub fn handle_key(
         self.draft.method = operation.method;
         self.draft.url = format!("{{{{baseUrl}}}}{}", operation.path);
         self.draft.body.clear();
-        self.draft.param_values.clear();
-        self.draft.header_values.clear();
-        self.draft.enabled_params.clear();
-        self.draft.enabled_headers.clear();
+        self.draft.params.clear();
+        self.draft.headers.clear();
 
         let examples_res = project.examples_for(operation);
         let examples = examples_res
@@ -599,12 +566,11 @@ pub fn handle_key(
         self.model.examples = examples.iter().map(|e| e.name.clone()).collect();
 
         for param in &operation.parameters {
-            if param.required {
-                if param.location == "header" {
-                    self.draft.enabled_headers.insert(param.name.clone());
-                } else {
-                    self.draft.enabled_params.insert(param.name.clone());
-                }
+            let p = ParamState { key: param.name.clone(), value: String::new(), enabled: param.required, required: param.required };
+            if param.location == "header" {
+                self.draft.headers.push(p);
+            } else {
+                self.draft.params.push(p);
             }
         }
 
@@ -956,9 +922,9 @@ pub fn handle_key(
 
     pub fn request_tabs(&self) -> [String; 3] {
         [
-            format!(" Query ({}) ", self.draft.enabled_params.len()),
+            format!(" Query ({}) ", self.draft.params.iter().filter(|p| p.enabled).count()),
             " Body ".to_string(),
-            format!(" Headers ({}) ", self.draft.enabled_headers.len()),
+            format!(" Headers ({}) ", self.draft.headers.iter().filter(|p| p.enabled).count()),
         ]
     }
 
@@ -1038,17 +1004,15 @@ pub fn handle_key(
         }
         let mut query_params = Vec::new();
 
-        for (key, value) in &self.draft.param_values {
-            if !self.draft.enabled_params.contains(key) {
-                continue;
-            }
-            let p1 = format!("{{{{{}}}}}", key);
-            let p2 = format!("{{{}}}", key);
+        for param in &self.draft.params {
+            if !param.enabled || param.key.is_empty() { continue; }
+            let p1 = format!("{{{{{}}}}}", param.key);
+            let p2 = format!("{{{}}}", param.key);
             if final_url.contains(&p1) || final_url.contains(&p2) {
-                final_url = final_url.replace(&p1, value);
-                final_url = final_url.replace(&p2, value);
-            } else if !value.is_empty() {
-                query_params.push((key, value));
+                final_url = final_url.replace(&p1, &param.value);
+                final_url = final_url.replace(&p2, &param.value);
+            } else if !param.value.is_empty() {
+                query_params.push((&param.key, &param.value));
             }
         }
 
@@ -1058,18 +1022,16 @@ pub fn handle_key(
             request = request.query(&query_params);
         }
 
-        for (key, value) in &self.draft.header_values {
-            if !self.draft.enabled_headers.contains(key) {
-                continue;
-            }
-            let mut final_value = value.clone();
+        for param in &self.draft.headers {
+            if !param.enabled || param.key.is_empty() { continue; }
+            let mut final_value = param.value.clone();
             if let Some(project) = project {
                 for (k, v) in project.variables() {
                     let p1 = format!("{{{{{}}}}}", k);
                     final_value = final_value.replace(&p1, &v);
                 }
             }
-            request = request.header(key, &final_value);
+            request = request.header(&param.key, &final_value);
         }
 
         let mut final_body = self.draft.body.clone();
@@ -1513,7 +1475,7 @@ fn render_shortcut_bar(_app: &TuiApp) -> Paragraph<'static> {
 fn render_request_block(
     frame: &mut ratatui::Frame,
     app: &TuiApp,
-    project: Option<&RataProject>,
+    _project: Option<&RataProject>,
     area: Rect,
 ) {
     let border_style = if app.active_block == ActiveBlock::Params {
@@ -1582,55 +1544,26 @@ fn render_request_block(
         }
         RequestTab::Query => {
             let mut rows = Vec::new();
-            let params = app.get_current_parameters(project, RequestTab::Query);
-            let mut i = 0;
-            for param in &params {
-                let is_editing_this_row = app.active_block == ActiveBlock::Params && app.param_edit_mode && i == app.selected_request_row;
-                let value = if is_editing_this_row {
-                    app.draft
-                        .param_values
-                        .get(&param.name)
-                        .cloned()
-                        .unwrap_or_default()
+            let params = &app.draft.params;
+            for (i, param) in params.iter().enumerate() {
+                let display_key = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Key && i == app.selected_request_row {
+                    Line::from(render_with_cursor_spans(&param.key, app.text_cursor, Style::default()))
                 } else {
-                    let default_val = if param.location == "path" {
-                        format!("{{{}}}", param.name)
-                    } else {
-                        "".to_string()
-                    };
-                    app.draft
-                        .param_values
-                        .get(&param.name)
-                        .cloned()
-                        .unwrap_or(default_val)
+                    Line::from(param.key.clone())
                 };
-                let display_value = if is_editing_this_row {
-                    format!("{}█", value)
+                let display_value = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Value && i == app.selected_request_row {
+                    Line::from(render_with_cursor_spans(&param.value, app.text_cursor, Style::default()))
                 } else {
-                    value
+                    Line::from(param.value.clone())
                 };
-                let is_enabled = app.draft.enabled_params.contains(&param.name);
-                let checkbox_text = if is_enabled { "[x]" } else { "[ ]" }.to_string();
-                let checkbox_cell = if param.required {
-                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
-                } else {
-                    ratatui::widgets::Cell::from(checkbox_text)
-                };
-                let mut row = Row::new(vec![
-                    checkbox_cell,
-                    ratatui::widgets::Cell::from(param.name.clone()),
-                    ratatui::widgets::Cell::from(display_value),
-                    ratatui::widgets::Cell::from(param.description.clone().unwrap_or_default()),
-                ]);
-                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                    row = row.style(Style::default().bg(SELECTED_BG));
-                }
+                let checkbox_text = if param.enabled { "[x]" } else { "[ ]" }.to_string();
+                let checkbox_cell = if param.required { ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED)) } else { ratatui::widgets::Cell::from(checkbox_text) };
+                let mut row = Row::new(vec![ checkbox_cell, ratatui::widgets::Cell::from(display_key), ratatui::widgets::Cell::from(display_value), ratatui::widgets::Cell::from("") ]);
+                if app.active_block == ActiveBlock::Params && i == app.selected_request_row { row = row.style(Style::default().bg(SELECTED_BG)); }
                 rows.push(row);
-                i += 1;
             }
-            if rows.is_empty() {
-                rows.push(Row::new(["", "No query params", "", ""]));
-            }
+            let add_style = if app.active_block == ActiveBlock::Params && app.selected_request_row == params.len() { Style::default().bg(SELECTED_BG) } else { Style::default() };
+            rows.push(Row::new(vec![ ratatui::widgets::Cell::from(""), ratatui::widgets::Cell::from("<Add new query...>").style(add_style.fg(MUTED)), ratatui::widgets::Cell::from(""), ratatui::widgets::Cell::from("") ]).style(add_style));
 
             let t = Table::new(
                 rows,
@@ -1651,44 +1584,26 @@ fn render_request_block(
         }
         RequestTab::Headers => {
             let mut rows = Vec::new();
-            let params = app.get_current_parameters(project, RequestTab::Headers);
-            let mut i = 0;
-            for param in &params {
-                let value = app
-                    .draft
-                    .header_values
-                    .get(&param.name)
-                    .cloned()
-                    .unwrap_or_default();
-                let display_value = if app.active_block == ActiveBlock::Params
-                    && app.param_edit_mode
-                    && i == app.selected_request_row
-                {
-                    Line::from(render_with_cursor_spans(&value, app.text_cursor, Style::default()))
+            let params = &app.draft.headers;
+            for (i, param) in params.iter().enumerate() {
+                let display_key = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Key && i == app.selected_request_row {
+                    Line::from(render_with_cursor_spans(&param.key, app.text_cursor, Style::default()))
                 } else {
-                    Line::from(value)
+                    Line::from(param.key.clone())
                 };
-                let is_enabled = app.draft.enabled_headers.contains(&param.name);
-                let checkbox_text = if is_enabled { "[x]" } else { "[ ]" }.to_string();
-                let checkbox_cell = if param.required {
-                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
+                let display_value = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Value && i == app.selected_request_row {
+                    Line::from(render_with_cursor_spans(&param.value, app.text_cursor, Style::default()))
                 } else {
-                    ratatui::widgets::Cell::from(checkbox_text)
+                    Line::from(param.value.clone())
                 };
-                let mut row = Row::new(vec![
-                    checkbox_cell,
-                    ratatui::widgets::Cell::from(param.name.clone()),
-                    ratatui::widgets::Cell::from(display_value),
-                ]);
-                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                    row = row.style(Style::default().bg(SELECTED_BG));
-                }
+                let checkbox_text = if param.enabled { "[x]" } else { "[ ]" }.to_string();
+                let checkbox_cell = if param.required { ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED)) } else { ratatui::widgets::Cell::from(checkbox_text) };
+                let mut row = Row::new(vec![ checkbox_cell, ratatui::widgets::Cell::from(display_key), ratatui::widgets::Cell::from(display_value) ]);
+                if app.active_block == ActiveBlock::Params && i == app.selected_request_row { row = row.style(Style::default().bg(SELECTED_BG)); }
                 rows.push(row);
-                i += 1;
             }
-            if rows.is_empty() {
-                rows.push(Row::new(["", "No headers", ""]));
-            }
+            let add_style = if app.active_block == ActiveBlock::Params && app.selected_request_row == params.len() { Style::default().bg(SELECTED_BG) } else { Style::default() };
+            rows.push(Row::new(vec![ ratatui::widgets::Cell::from(""), ratatui::widgets::Cell::from("<Add new header...>").style(add_style.fg(MUTED)), ratatui::widgets::Cell::from("") ]).style(add_style));
 
             let t = Table::new(
                 rows,
