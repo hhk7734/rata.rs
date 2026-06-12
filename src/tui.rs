@@ -101,6 +101,13 @@ pub enum DragTarget {
     Response,
     ScrollRequest,
     ScrollResponse,
+    ResponseSelection,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Selection {
+    pub start: (usize, usize),
+    pub end: (usize, usize),
 }
 
 #[derive(Debug, Clone)]
@@ -131,6 +138,7 @@ pub struct TuiApp {
     pub request_scroll: u16,
     pub drag_last_row: Option<u16>,
     pub mouse_capture_enabled: bool,
+    pub text_selection: Option<Selection>,
 }
 
 impl TuiApp {
@@ -183,6 +191,7 @@ impl TuiApp {
             request_scroll: 0,
             drag_last_row: None,
             mouse_capture_enabled: true,
+            text_selection: None,
         }
     }
 
@@ -272,16 +281,19 @@ impl TuiApp {
                 KeyCode::Char('1') => {
                     self.active_response_tab = ResponseTab::Body;
                     self.response_scroll = 0;
+                    self.text_selection = None;
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Char('2') => {
                     self.active_response_tab = ResponseTab::Headers;
                     self.response_scroll = 0;
+                    self.text_selection = None;
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Char('3') => {
                     self.active_response_tab = ResponseTab::Cookies;
                     self.response_scroll = 0;
+                    self.text_selection = None;
                     Ok(AppAction::Continue)
                 }
                 KeyCode::Up | KeyCode::Char('k') => {
@@ -506,11 +518,42 @@ impl TuiApp {
                         }
                         self.drag_last_row = Some(mouse.row);
                     }
+                    DragTarget::ResponseSelection => {
+                        let inner_y = self.response_area.y + 2;
+                        let inner_x = self.response_area.x + 1;
+                        let inner_bottom = self.response_area.y + self.response_area.height.saturating_sub(1);
+                        
+                        if mouse.row < inner_y {
+                            self.scroll_response_up(inner_y.saturating_sub(mouse.row));
+                        } else if mouse.row >= inner_bottom {
+                            self.scroll_response_down(mouse.row.saturating_sub(inner_bottom) + 1);
+                        }
+
+                        if let Some(sel) = &mut self.text_selection {
+                            let line = if mouse.row < inner_y {
+                                self.response_scroll as usize
+                            } else {
+                                mouse.row.saturating_sub(inner_y) as usize + self.response_scroll as usize
+                            };
+                            let col = mouse.column.saturating_sub(inner_x) as usize;
+                            sel.end = (line, col);
+                        }
+                    }
                     DragTarget::None => {}
                 }
                 return;
             }
             MouseEventKind::Up(MouseButton::Left) => {
+                if self.drag_target == DragTarget::ResponseSelection {
+                    if let Some(sel) = self.text_selection {
+                        let text = self.extract_selection(sel);
+                        if !text.is_empty() {
+                            if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                                let _ = clipboard.set_text(text);
+                            }
+                        }
+                    }
+                }
                 self.drag_target = DragTarget::None;
                 return;
             }
@@ -519,6 +562,7 @@ impl TuiApp {
                     self.active_response_tab = tab;
                     self.response_scroll = 0;
                     self.active_block = ActiveBlock::Response;
+                    self.text_selection = None;
                     return;
                 }
 
@@ -543,7 +587,19 @@ impl TuiApp {
                 }
 
                 if contains(self.response_area, mouse.column, mouse.row) {
-                    self.drag_target = DragTarget::ScrollResponse;
+                    if self.active_response_tab == ResponseTab::Body {
+                        self.drag_target = DragTarget::ResponseSelection;
+                        let inner_y = self.response_area.y + 2;
+                        let inner_x = self.response_area.x + 1;
+                        let line = mouse.row.saturating_sub(inner_y) as usize + self.response_scroll as usize;
+                        let col = mouse.column.saturating_sub(inner_x) as usize;
+                        self.text_selection = Some(Selection {
+                            start: (line, col),
+                            end: (line, col),
+                        });
+                    } else {
+                        self.drag_target = DragTarget::ScrollResponse;
+                    }
                     self.drag_last_row = Some(mouse.row);
                 } else if contains(self.params_area, mouse.column, mouse.row) {
                     self.drag_target = DragTarget::ScrollRequest;
@@ -637,6 +693,31 @@ impl TuiApp {
         bounds
     }
 
+    pub fn extract_selection(&self, sel: Selection) -> String {
+        let text = pretty_body(&self.response.body);
+        let (mut start, mut end) = (sel.start, sel.end);
+        if start.0 > end.0 || (start.0 == end.0 && start.1 > end.1) {
+            std::mem::swap(&mut start, &mut end);
+        }
+        let mut result = String::new();
+        for (line_idx, line) in text.lines().enumerate() {
+            if line_idx >= start.0 && line_idx <= end.0 {
+                let sel_start_col = if line_idx == start.0 { start.1 } else { 0 };
+                let sel_end_col = if line_idx == end.0 { end.1 } else { usize::MAX };
+                
+                for (col, c) in line.chars().enumerate() {
+                    if col >= sel_start_col && col <= sel_end_col {
+                        result.push(c);
+                    }
+                }
+                if line_idx < end.0 {
+                    result.push('\n');
+                }
+            }
+        }
+        result
+    }
+
     pub fn active_response_text(&self) -> Text<'static> {
         if let Some(error) = &self.response.error {
             return Text::raw(error.clone());
@@ -645,7 +726,7 @@ impl TuiApp {
         match self.active_response_tab {
             ResponseTab::Body => {
                 let body = pretty_body(&self.response.body);
-                highlight_json(&body)
+                apply_selection(highlight_json(&body), self.text_selection)
             }
             ResponseTab::Headers => {
                 Text::raw(format_pairs(&self.response.headers, "No headers"))
@@ -1385,6 +1466,60 @@ fn response_block(app: &TuiApp) -> Block<'static> {
         .title_top(response_tabs_title(app))
         .title_top(response_status_title(app))
         .borders(Borders::ALL)
+}
+
+pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text<'a> {
+    let Some(selection) = selection else { return text; };
+    let (mut start, mut end) = (selection.start, selection.end);
+    if start.0 > end.0 || (start.0 == end.0 && start.1 > end.1) {
+        std::mem::swap(&mut start, &mut end);
+    }
+
+    let mut new_lines = Vec::new();
+    for (line_idx, line) in text.lines.into_iter().enumerate() {
+        if line_idx < start.0 || line_idx > end.0 {
+            new_lines.push(line);
+            continue;
+        }
+
+        let mut new_spans = Vec::new();
+        let mut current_col = 0;
+        for span in line.spans {
+            let span_len = span.content.chars().count();
+            let span_start = current_col;
+            let span_end = current_col + span_len;
+
+            let sel_start_col = if line_idx == start.0 { start.1 } else { 0 };
+            let sel_end_col = if line_idx == end.0 { end.1 } else { usize::MAX };
+
+            if span_end <= sel_start_col || span_start > sel_end_col {
+                new_spans.push(span);
+            } else if span_start >= sel_start_col && span_end <= sel_end_col + 1 {
+                new_spans.push(Span::styled(span.content, span.style.add_modifier(Modifier::REVERSED)));
+            } else {
+                let mut current_str = String::new();
+                let mut is_reversed = false;
+                for (i, c) in span.content.chars().enumerate() {
+                    let col = span_start + i;
+                    let selected = col >= sel_start_col && col <= sel_end_col;
+                    if selected != is_reversed && !current_str.is_empty() {
+                        let style = if is_reversed { span.style.add_modifier(Modifier::REVERSED) } else { span.style };
+                        new_spans.push(Span::styled(current_str.clone(), style));
+                        current_str.clear();
+                    }
+                    is_reversed = selected;
+                    current_str.push(c);
+                }
+                if !current_str.is_empty() {
+                    let style = if is_reversed { span.style.add_modifier(Modifier::REVERSED) } else { span.style };
+                    new_spans.push(Span::styled(current_str, style));
+                }
+            }
+            current_col += span_len;
+        }
+        new_lines.push(Line::from(new_spans));
+    }
+    Text::from(new_lines)
 }
 
 fn muted_style() -> Style {

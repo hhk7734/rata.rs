@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
+arboard = "3.6.1"
 clap = { version = "4", features = ["derive"] }
 crossterm = "0.28"
 openapiv3 = "2"
