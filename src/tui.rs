@@ -131,6 +131,7 @@ pub struct TuiApp {
     pub editing_param_key: Option<String>,
     pub param_edit_mode: bool,
     pub text_cursor: usize,
+    pub selected_example_row: usize,
     pub request_scroll: u16,
     pub drag_last_row: Option<u16>,
     pub text_selection: Option<Selection>,
@@ -187,6 +188,7 @@ impl TuiApp {
             editing_param_key: None,
             param_edit_mode: false,
             text_cursor: 0,
+            selected_example_row: 0,
             request_scroll: 0,
             drag_last_row: None,
             text_selection: None,
@@ -312,6 +314,10 @@ pub fn handle_key(
                 if self.param_edit_mode {
                     self.param_edit_mode = false;
                 }
+                if self.examples_dropdown_open {
+                    self.examples_dropdown_open = false;
+                    self.active_block = ActiveBlock::Request;
+                }
                 Ok(AppAction::Continue)
             }
                         KeyCode::Left => {
@@ -336,6 +342,8 @@ pub fn handle_key(
                     } else {
                         self.text_cursor = 0;
                     }
+                } else if self.active_block == ActiveBlock::Examples {
+                    self.selected_example_row = self.selected_example_row.saturating_sub(1);
                 }
                 Ok(AppAction::Continue)
             }
@@ -351,6 +359,9 @@ pub fn handle_key(
                     } else {
                         self.text_cursor = usize::MAX;
                     }
+                } else if self.active_block == ActiveBlock::Examples {
+                    let max = self.model.examples.len().saturating_sub(1);
+                    self.selected_example_row = self.selected_example_row.saturating_add(1).min(max);
                 }
                 Ok(AppAction::Continue)
             }
@@ -387,23 +398,28 @@ pub fn handle_key(
                 Ok(AppAction::Continue)
             }
             KeyCode::Char(value) => {
-                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
+                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_up(1);
                     } else if self.active_block == ActiveBlock::Collections {
                         self.select_previous_operation(project);
                     } else if self.active_block == ActiveBlock::Params {
                         self.selected_request_row = self.selected_request_row.saturating_sub(1);
+                    } else if self.active_block == ActiveBlock::Examples {
+                        self.selected_example_row = self.selected_example_row.saturating_sub(1);
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
+                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_down(1);
                     } else if self.active_block == ActiveBlock::Collections {
                         self.select_next_operation(project);
                     } else if self.active_block == ActiveBlock::Params {
                         self.selected_request_row = self.selected_request_row.saturating_add(1);
+                    } else if self.active_block == ActiveBlock::Examples {
+                        let max = self.model.examples.len().saturating_sub(1);
+                        self.selected_example_row = self.selected_example_row.saturating_add(1).min(max);
                     }
                     return Ok(AppAction::Continue);
                 }
@@ -1681,11 +1697,16 @@ fn examples(_project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
         app.model
             .examples
             .iter()
-            .map(|example| {
-                ListItem::new(Line::from(vec![
+            .enumerate()
+            .map(|(i, example)| {
+                let mut row = ListItem::new(Line::from(vec![
                     Span::styled("• ", accent_style()),
                     Span::styled(example.clone(), Style::default().fg(TEXT)),
-                ]))
+                ]));
+                if app.active_block == ActiveBlock::Examples && i == app.selected_example_row {
+                    row = row.style(Style::default().bg(SELECTED_BG));
+                }
+                row
             })
             .collect()
     };
