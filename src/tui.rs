@@ -483,12 +483,8 @@ impl TuiApp {
 
     fn select_operation(&mut self, operation: &crate::project::Operation, project: &RataProject) {
         self.selected_operation = Some((operation.method, operation.path.clone()));
-        let base = project
-            .server_url()
-            .unwrap_or_default()
-            .trim_end_matches('/');
         self.draft.method = operation.method;
-        self.draft.url = format!("{base}{}", operation.path);
+        self.draft.url = format!("{{{{baseUrl}}}}{}", operation.path);
         self.draft.body.clear();
         self.draft.param_values.clear();
         self.draft.header_values.clear();
@@ -924,7 +920,12 @@ impl TuiApp {
 
         let mut final_url = self.draft.url.clone();
         if let Some(project) = project {
-            for (k, v) in project.variables() {
+            let mut variables = project.variables();
+            if !variables.contains_key("baseUrl") {
+                let server = project.server_url().unwrap_or_default().trim_end_matches('/');
+                variables.insert("baseUrl".to_string(), server.to_string());
+            }
+            for (k, v) in variables {
                 let p1 = format!("{{{{{}}}}}", k);
                 final_url = final_url.replace(&p1, &v);
             }
@@ -1108,11 +1109,7 @@ pub fn build_model(project: Option<&RataProject>) -> TuiModel {
     let selected = operations.first().copied();
     let selected_request_url = selected
         .map(|operation| {
-            let base = project
-                .server_url()
-                .unwrap_or_default()
-                .trim_end_matches('/');
-            format!("{base}{}", operation.path)
+            format!("{{{{baseUrl}}}}{}", operation.path)
         })
         .unwrap_or_default();
     let examples = selected
