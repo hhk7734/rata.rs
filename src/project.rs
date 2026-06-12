@@ -317,7 +317,7 @@ fn collect_operations(document: &OpenAPI) -> Vec<Collection> {
 
             let operation = Operation {
                 method,
-                path: path.clone(),
+                path: path.replace("{", "{{").replace("}", "}}"),
                 summary,
                 tag,
                 parameters,
@@ -361,8 +361,8 @@ fn match_path_template(template: &str, actual: &str) -> Option<Vec<(String, Stri
     let mut params = Vec::new();
     for (template_segment, actual_segment) in template_segments.iter().zip(actual_segments) {
         if let Some(name) = template_segment
-            .strip_prefix('{')
-            .and_then(|value| value.strip_suffix('}'))
+            .strip_prefix("{{")
+            .and_then(|value| value.strip_suffix("}}"))
         {
             params.push((name.to_string(), actual_segment.to_string()));
             continue;
