@@ -129,6 +129,7 @@ pub struct TuiApp {
     pub drag_target: DragTarget,
     pub selected_request_row: usize,
     pub editing_param_key: Option<String>,
+    pub param_edit_mode: bool,
     pub request_scroll: u16,
     pub drag_last_row: Option<u16>,
     pub text_selection: Option<Selection>,
@@ -183,6 +184,7 @@ impl TuiApp {
             drag_target: DragTarget::None,
             selected_request_row: 0,
             editing_param_key: None,
+            param_edit_mode: false,
             request_scroll: 0,
             drag_last_row: None,
             text_selection: None,
@@ -305,37 +307,43 @@ impl TuiApp {
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         self.draft.body.pop();
-                    } else if let Some(key) = self.get_selected_request_key(project) {
-                        let map = if self.active_request_tab == RequestTab::Query {
-                            &mut self.draft.param_values
-                        } else {
-                            &mut self.draft.header_values
-                        };
-                        if let Some(val) = map.get_mut(&key) {
-                            val.pop();
+                    } else if self.param_edit_mode {
+                        if let Some(key) = self.get_selected_request_key(project) {
+                            let map = if self.active_request_tab == RequestTab::Query {
+                                &mut self.draft.param_values
+                            } else {
+                                &mut self.draft.header_values
+                            };
+                            if let Some(val) = map.get_mut(&key) {
+                                val.pop();
+                            }
                         }
                     }
                 }
                 Ok(AppAction::Continue)
             }
             KeyCode::Char(value) => {
-                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response) {
+                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_up(1);
-                    } else {
+                    } else if self.active_block == ActiveBlock::Collections {
                         self.select_previous_operation(project);
+                    } else if self.active_block == ActiveBlock::Params {
+                        self.selected_request_row = self.selected_request_row.saturating_sub(1);
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response) {
+                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && !self.param_edit_mode && self.active_request_tab != RequestTab::Body)) {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_down(1);
-                    } else {
+                    } else if self.active_block == ActiveBlock::Collections {
                         self.select_next_operation(project);
+                    } else if self.active_block == ActiveBlock::Params {
+                        self.selected_request_row = self.selected_request_row.saturating_add(1);
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == ' ' && self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
+                if value == ' ' && self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && !self.param_edit_mode {
                     if let Some(key) = self.get_selected_request_key(project) {
                         let params = self.get_current_parameters(project, self.active_request_tab);
                         let is_required = params.iter().find(|p| p.name == key).map(|p| p.required).unwrap_or(false);
@@ -363,14 +371,16 @@ impl TuiApp {
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         self.draft.body.push(value);
-                    } else if let Some(key) = self.get_selected_request_key(project) {
-                        let map = if self.active_request_tab == RequestTab::Query {
-                            &mut self.draft.param_values
-                        } else {
-                            &mut self.draft.header_values
-                        };
-                        let val = map.entry(key.clone()).or_insert_with(String::new);
-                        val.push(value);
+                    } else if self.param_edit_mode {
+                        if let Some(key) = self.get_selected_request_key(project) {
+                            let map = if self.active_request_tab == RequestTab::Query {
+                                &mut self.draft.param_values
+                            } else {
+                                &mut self.draft.header_values
+                            };
+                            let val = map.entry(key.clone()).or_insert_with(String::new);
+                            val.push(value);
+                        }
                     }
                 }
                 Ok(AppAction::Continue)
@@ -1346,7 +1356,10 @@ fn render_shortcut_bar(_app: &TuiApp) -> Paragraph<'static> {
         Style::default().fg(ACCENT).bg(current_bg),
     ));
 
-    let shortcuts = vec![("q", "Quit"), ("s", "Send")];
+    let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
+    if _app.active_block == ActiveBlock::Params && _app.active_request_tab != RequestTab::Body {
+        shortcuts.push(("e", "Edit"));
+    }
 
     for (i, (key, desc)) in shortcuts.iter().enumerate() {
         let is_last = i == shortcuts.len() - 1;
@@ -1456,7 +1469,7 @@ fn render_request_block(
             let params = app.get_current_parameters(project, RequestTab::Query);
             let mut i = 0;
             for param in &params {
-                let is_editing_this_row = app.active_block == ActiveBlock::Params && i == app.selected_request_row;
+                let is_editing_this_row = app.active_block == ActiveBlock::Params && app.param_edit_mode && i == app.selected_request_row;
                 let value = if is_editing_this_row {
                     app.draft
                         .param_values
@@ -1532,6 +1545,7 @@ fn render_request_block(
                     .cloned()
                     .unwrap_or_default();
                 let display_value = if app.active_block == ActiveBlock::Params
+                    && app.param_edit_mode
                     && i == app.selected_request_row
                 {
                     format!("{}█", value)
