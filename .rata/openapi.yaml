@@ -46,18 +46,10 @@ paths:
       summary: OpenAI Chat Completions API
       description: Creates a model response for the given chat conversation.
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+        $ref: '#/components/requestBodies/createChatCompletionRequest'
       responses:
         "200":
-          description: A chat completion response
-          content:
-            application/json:
-              schema:
-                type: object
+          $ref: '#/components/responses/createChatCompletionResponse'
   /v1/completions:
     post:
       tags:
@@ -130,7 +122,58 @@ paths:
       responses:
         "200":
           description: Debug info
-components: {}
+components:
+  requestBodies:
+    createChatCompletionRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - model
+              - messages
+            properties:
+              model:
+                type: string
+              messages:
+                type: array
+                items:
+                  type: object
+              temperature:
+                type: number
+                format: float
+              stream:
+                type: boolean
+  responses:
+    createChatCompletionResponse:
+      description: A chat completion response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+              - object
+              - created
+              - model
+              - choices
+              - usage
+            properties:
+              id:
+                type: string
+              object:
+                type: string
+              created:
+                type: integer
+              model:
+                type: string
+              choices:
+                type: array
+                items:
+                  type: object
+              usage:
+                type: object
 tags:
   - name: models
     description: models for OpenAI/Anthropic compatible Models API.
