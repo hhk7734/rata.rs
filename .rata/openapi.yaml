@@ -157,9 +157,9 @@ components:
                 items:
                   type: object
               tool_choice:
-                type:
-                  - string
-                  - object
+                anyOf:
+                  - type: string
+                  - type: object
   responses:
     createChatCompletionResponse:
       description: A chat completion response
