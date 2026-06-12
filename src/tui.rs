@@ -67,7 +67,7 @@ pub struct ResponseView {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestTab {
     Body,
-    Params,
+    Query,
     Headers,
 }
 
@@ -172,7 +172,7 @@ impl TuiApp {
                 error: None,
             },
             input_mode: InputMode::Normal,
-            active_request_tab: RequestTab::Params,
+            active_request_tab: RequestTab::Query,
             active_response_tab: ResponseTab::Body,
             response_tab_origin: (0, RESPONSE_TAB_ROW),
             collections_area: Rect::default(),
@@ -214,7 +214,8 @@ impl TuiApp {
         };
         let view_height = self.response_area.height.saturating_sub(2);
         let max_scroll = lines.saturating_sub(view_height);
-        self.response_scroll = std::cmp::min(self.response_scroll.saturating_add(amount), max_scroll);
+        self.response_scroll =
+            std::cmp::min(self.response_scroll.saturating_add(amount), max_scroll);
     }
 
     pub fn scroll_request_up(&mut self, amount: u16) {
@@ -226,7 +227,8 @@ impl TuiApp {
             let lines = self.draft.body.lines().count() as u16;
             let view_height = self.params_area.height.saturating_sub(2);
             let max_scroll = lines.saturating_sub(view_height);
-            self.request_scroll = std::cmp::min(self.request_scroll.saturating_add(amount), max_scroll);
+            self.request_scroll =
+                std::cmp::min(self.request_scroll.saturating_add(amount), max_scroll);
         }
     }
 
@@ -255,11 +257,23 @@ impl TuiApp {
         Ok(())
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent, project: Option<&RataProject>) -> anyhow::Result<AppAction> {
-        if key.code == KeyCode::Char('q') && key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
+    pub fn handle_key(
+        &mut self,
+        key: KeyEvent,
+        project: Option<&RataProject>,
+    ) -> anyhow::Result<AppAction> {
+        if key.code == KeyCode::Char('q')
+            && key
+                .modifiers
+                .contains(crossterm::event::KeyModifiers::CONTROL)
+        {
             return Ok(AppAction::Quit);
         }
-        if key.code == KeyCode::Char('s') && key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
+        if key.code == KeyCode::Char('s')
+            && key
+                .modifiers
+                .contains(crossterm::event::KeyModifiers::CONTROL)
+        {
             self.input_mode = InputMode::Normal;
             let _ = self.send(project);
             return Ok(AppAction::Continue);
@@ -277,17 +291,26 @@ impl TuiApp {
                 KeyCode::Char(' ') => {
                     if self.active_block == ActiveBlock::Params {
                         if let Some(key) = self.get_selected_request_key(project) {
-                            if self.active_request_tab == RequestTab::Params {
-                                if self.draft.enabled_params.contains(&key) {
-                                    self.draft.enabled_params.remove(&key);
-                                } else {
-                                    self.draft.enabled_params.insert(key);
-                                }
-                            } else if self.active_request_tab == RequestTab::Headers {
-                                if self.draft.enabled_headers.contains(&key) {
-                                    self.draft.enabled_headers.remove(&key);
-                                } else {
-                                    self.draft.enabled_headers.insert(key);
+                            let params =
+                                self.get_current_parameters(project, self.active_request_tab);
+                            let is_required = params
+                                .iter()
+                                .find(|p| p.name == key)
+                                .map(|p| p.required)
+                                .unwrap_or(false);
+                            if !is_required {
+                                if self.active_request_tab == RequestTab::Query {
+                                    if self.draft.enabled_params.contains(&key) {
+                                        self.draft.enabled_params.remove(&key);
+                                    } else {
+                                        self.draft.enabled_params.insert(key);
+                                    }
+                                } else if self.active_request_tab == RequestTab::Headers {
+                                    if self.draft.enabled_headers.contains(&key) {
+                                        self.draft.enabled_headers.remove(&key);
+                                    } else {
+                                        self.draft.enabled_headers.insert(key);
+                                    }
                                 }
                             }
                         }
@@ -346,7 +369,7 @@ impl TuiApp {
                     if self.active_request_tab == RequestTab::Body {
                         self.draft.body.pop();
                     } else if let Some(key) = &self.editing_param_key {
-                        let map = if self.active_request_tab == RequestTab::Params {
+                        let map = if self.active_request_tab == RequestTab::Query {
                             &mut self.draft.param_values
                         } else {
                             &mut self.draft.header_values
@@ -361,7 +384,7 @@ impl TuiApp {
                     if self.active_request_tab == RequestTab::Body {
                         self.draft.body.push(value);
                     } else if let Some(key) = &self.editing_param_key {
-                        let map = if self.active_request_tab == RequestTab::Params {
+                        let map = if self.active_request_tab == RequestTab::Query {
                             &mut self.draft.param_values
                         } else {
                             &mut self.draft.header_values
@@ -376,7 +399,11 @@ impl TuiApp {
         }
     }
 
-    fn get_current_parameters(&self, project: Option<&RataProject>, tab: RequestTab) -> Vec<crate::project::OperationParameter> {
+    fn get_current_parameters(
+        &self,
+        project: Option<&RataProject>,
+        tab: RequestTab,
+    ) -> Vec<crate::project::OperationParameter> {
         let mut params = Vec::new();
         if let Some(project) = project {
             if let Some((method, path)) = &self.selected_operation {
@@ -384,8 +411,10 @@ impl TuiApp {
                     for operation in &collection.operations {
                         if operation.method == *method && operation.path == *path {
                             for param in &operation.parameters {
-                                if (tab == RequestTab::Params && (param.location == "path" || param.location == "query")) ||
-                                   (tab == RequestTab::Headers && param.location == "header") {
+                                if (tab == RequestTab::Query
+                                    && (param.location == "path" || param.location == "query"))
+                                    || (tab == RequestTab::Headers && param.location == "header")
+                                {
                                     params.push(param.clone());
                                 }
                             }
@@ -394,10 +423,10 @@ impl TuiApp {
                 }
             }
         }
-        
+
         let draft_map = if tab == RequestTab::Headers {
             &self.draft.header_values
-        } else if tab == RequestTab::Params {
+        } else if tab == RequestTab::Query {
             &self.draft.param_values
         } else {
             return params;
@@ -409,19 +438,25 @@ impl TuiApp {
             if !params.iter().any(|p| p.name == **key) {
                 params.push(crate::project::OperationParameter {
                     name: key.clone(),
-                    location: if tab == RequestTab::Headers { "header".to_string() } else { "query".to_string() },
+                    location: if tab == RequestTab::Headers {
+                        "header".to_string()
+                    } else {
+                        "query".to_string()
+                    },
                     description: None,
                     required: false,
                 });
             }
         }
-        
+
         params
     }
 
     fn get_selected_request_key(&self, project: Option<&RataProject>) -> Option<String> {
         let params = self.get_current_parameters(project, self.active_request_tab);
-        params.get(self.selected_request_row).map(|p| p.name.clone())
+        params
+            .get(self.selected_request_row)
+            .map(|p| p.name.clone())
     }
 
     fn load_example(&mut self, example: &crate::project::ExampleFile) {
@@ -448,7 +483,10 @@ impl TuiApp {
 
     fn select_operation(&mut self, operation: &crate::project::Operation, project: &RataProject) {
         self.selected_operation = Some((operation.method, operation.path.clone()));
-        let base = project.server_url().unwrap_or_default().trim_end_matches('/');
+        let base = project
+            .server_url()
+            .unwrap_or_default()
+            .trim_end_matches('/');
         self.draft.method = operation.method;
         self.draft.url = format!("{base}{}", operation.path);
         self.draft.body.clear();
@@ -458,9 +496,12 @@ impl TuiApp {
         self.draft.enabled_headers.clear();
 
         let examples_res = project.examples_for(operation);
-        let examples = examples_res.as_ref().map(|x| x.as_slice()).unwrap_or_default();
+        let examples = examples_res
+            .as_ref()
+            .map(|x| x.as_slice())
+            .unwrap_or_default();
         self.model.examples = examples.iter().map(|e| e.name.clone()).collect();
-        
+
         for param in &operation.parameters {
             if param.required {
                 if param.location == "header" {
@@ -476,7 +517,10 @@ impl TuiApp {
         }
     }
 
-    fn get_visible_operations<'a>(&self, project: &'a RataProject) -> Vec<&'a crate::project::Operation> {
+    fn get_visible_operations<'a>(
+        &self,
+        project: &'a RataProject,
+    ) -> Vec<&'a crate::project::Operation> {
         let mut ops = Vec::new();
         for collection in project.collections() {
             if !self.collapsed_tags.contains(&collection.name) {
@@ -491,10 +535,15 @@ impl TuiApp {
     fn select_next_operation(&mut self, project: Option<&RataProject>) {
         if let Some(project) = project {
             let ops = self.get_visible_operations(project);
-            if ops.is_empty() { return; }
+            if ops.is_empty() {
+                return;
+            }
             let mut next_op = ops[0];
             if let Some(selected) = &self.selected_operation {
-                if let Some(pos) = ops.iter().position(|op| op.method == selected.0 && op.path == selected.1) {
+                if let Some(pos) = ops
+                    .iter()
+                    .position(|op| op.method == selected.0 && op.path == selected.1)
+                {
                     if pos + 1 < ops.len() {
                         next_op = ops[pos + 1];
                     } else {
@@ -509,10 +558,15 @@ impl TuiApp {
     fn select_previous_operation(&mut self, project: Option<&RataProject>) {
         if let Some(project) = project {
             let ops = self.get_visible_operations(project);
-            if ops.is_empty() { return; }
+            if ops.is_empty() {
+                return;
+            }
             let mut prev_op = ops[0];
             if let Some(selected) = &self.selected_operation {
-                if let Some(pos) = ops.iter().position(|op| op.method == selected.0 && op.path == selected.1) {
+                if let Some(pos) = ops
+                    .iter()
+                    .position(|op| op.method == selected.0 && op.path == selected.1)
+                {
                     if pos > 0 {
                         prev_op = ops[pos - 1];
                     } else {
@@ -558,15 +612,20 @@ impl TuiApp {
                         self.collections_width = mouse.column.max(10).min(120);
                     }
                     DragTarget::Request => {
-                        self.request_height = mouse.row.saturating_sub(self.request_area.y).max(3).min(20);
+                        self.request_height =
+                            mouse.row.saturating_sub(self.request_area.y).max(3).min(20);
                     }
                     DragTarget::Response => {
                         let main_rest_y = self.params_area.y;
-                        let main_rest_h = self.params_area.height.saturating_add(self.response_area.height);
+                        let main_rest_h = self
+                            .params_area
+                            .height
+                            .saturating_add(self.response_area.height);
                         if main_rest_h > 0 {
                             let offset = mouse.row.saturating_sub(main_rest_y);
                             let percent = (offset as u32 * 100 / main_rest_h as u32) as u16;
-                            self.response_height_percent = 100u16.saturating_sub(percent).max(10).min(90);
+                            self.response_height_percent =
+                                100u16.saturating_sub(percent).max(10).min(90);
                         }
                     }
                     DragTarget::ScrollResponse => {
@@ -592,8 +651,9 @@ impl TuiApp {
                     DragTarget::ResponseSelection => {
                         let inner_y = self.response_area.y + 1;
                         let inner_x = self.response_area.x + 1;
-                        let inner_bottom = self.response_area.y + self.response_area.height.saturating_sub(1);
-                        
+                        let inner_bottom =
+                            self.response_area.y + self.response_area.height.saturating_sub(1);
+
                         if mouse.row < inner_y {
                             self.scroll_response_up(inner_y.saturating_sub(mouse.row));
                         } else if mouse.row >= inner_bottom {
@@ -604,7 +664,8 @@ impl TuiApp {
                             let line = if mouse.row < inner_y {
                                 self.response_scroll as usize
                             } else {
-                                mouse.row.saturating_sub(inner_y) as usize + self.response_scroll as usize
+                                mouse.row.saturating_sub(inner_y) as usize
+                                    + self.response_scroll as usize
                             };
                             let col = mouse.column.saturating_sub(inner_x) as usize;
                             sel.end = (line, col);
@@ -629,7 +690,9 @@ impl TuiApp {
                 return;
             }
             MouseEventKind::Down(MouseButton::Left) => {
-                if let Some(tab) = response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin) {
+                if let Some(tab) =
+                    response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin)
+                {
                     self.active_response_tab = tab;
                     self.response_scroll = 0;
                     self.active_block = ActiveBlock::Response;
@@ -644,18 +707,24 @@ impl TuiApp {
                     return;
                 }
 
-                if mouse.column == self.collections_area.right().saturating_sub(1) || mouse.column == self.collections_area.right() {
+                if mouse.column == self.collections_area.right().saturating_sub(1)
+                    || mouse.column == self.collections_area.right()
+                {
                     self.active_block = ActiveBlock::Collections;
                     self.drag_target = DragTarget::Collections;
                     return;
                 }
                 if mouse.column >= self.request_area.x {
-                    if mouse.row == self.params_area.y.saturating_sub(1) || mouse.row == self.params_area.y {
+                    if mouse.row == self.params_area.y.saturating_sub(1)
+                        || mouse.row == self.params_area.y
+                    {
                         self.active_block = ActiveBlock::Params;
                         self.drag_target = DragTarget::Request;
                         return;
                     }
-                    if mouse.row == self.response_area.y.saturating_sub(1) || mouse.row == self.response_area.y {
+                    if mouse.row == self.response_area.y.saturating_sub(1)
+                        || mouse.row == self.response_area.y
+                    {
                         self.active_block = ActiveBlock::Response;
                         self.drag_target = DragTarget::Response;
                         return;
@@ -667,7 +736,8 @@ impl TuiApp {
                         self.drag_target = DragTarget::ResponseSelection;
                         let inner_y = self.response_area.y + 1;
                         let inner_x = self.response_area.x + 1;
-                        let line = mouse.row.saturating_sub(inner_y) as usize + self.response_scroll as usize;
+                        let line = mouse.row.saturating_sub(inner_y) as usize
+                            + self.response_scroll as usize;
                         let col = mouse.column.saturating_sub(inner_x) as usize;
                         self.text_selection = Some(Selection {
                             start: (line, col),
@@ -688,8 +758,11 @@ impl TuiApp {
         self.active_block = ActiveBlock::None;
 
         let dropdown_x = self.request_area.right().saturating_sub(14);
-        let clicked_dropdown_toggle = mouse.row == self.request_area.y && mouse.column >= dropdown_x && mouse.column < self.request_area.right();
-        let clicked_inside_dropdown = self.examples_dropdown_open && contains(self.examples_area, mouse.column, mouse.row);
+        let clicked_dropdown_toggle = mouse.row == self.request_area.y
+            && mouse.column >= dropdown_x
+            && mouse.column < self.request_area.right();
+        let clicked_inside_dropdown =
+            self.examples_dropdown_open && contains(self.examples_area, mouse.column, mouse.row);
 
         if self.examples_dropdown_open && !clicked_dropdown_toggle && !clicked_inside_dropdown {
             self.examples_dropdown_open = false;
@@ -743,8 +816,19 @@ impl TuiApp {
             if let Some(example_name) = self.model.examples.get(clicked_row as usize) {
                 if let Some(project) = project {
                     if let Some(selected) = &self.selected_operation {
-                        if let Some(op) = project.collections().iter().flat_map(|c| &c.operations).find(|o| o.method == selected.0 && o.path == selected.1) {
-                            if let Some(example_file) = project.examples_for(op).ok().unwrap_or_default().iter().find(|e| &e.name == example_name) {
+                        if let Some(op) = project
+                            .collections()
+                            .iter()
+                            .flat_map(|c| &c.operations)
+                            .find(|o| o.method == selected.0 && o.path == selected.1)
+                        {
+                            if let Some(example_file) = project
+                                .examples_for(op)
+                                .ok()
+                                .unwrap_or_default()
+                                .iter()
+                                .find(|e| &e.name == example_name)
+                            {
                                 self.load_example(example_file);
                             }
                         }
@@ -800,7 +884,7 @@ impl TuiApp {
             if line_idx >= start.0 && line_idx <= end.0 {
                 let sel_start_col = if line_idx == start.0 { start.1 } else { 0 };
                 let sel_end_col = if line_idx == end.0 { end.1 } else { usize::MAX };
-                
+
                 for (col, c) in line.chars().enumerate() {
                     if col >= sel_start_col && col <= sel_end_col {
                         result.push(c);
@@ -824,9 +908,7 @@ impl TuiApp {
                 let body = pretty_body(&self.response.body);
                 apply_selection(highlight_json(&body), self.text_selection)
             }
-            ResponseTab::Headers => {
-                Text::raw(format_pairs(&self.response.headers, "No headers"))
-            }
+            ResponseTab::Headers => Text::raw(format_pairs(&self.response.headers, "No headers")),
             ResponseTab::Cookies => {
                 if self.response.cookies.is_empty() {
                     Text::raw("No cookies".to_string())
@@ -839,7 +921,7 @@ impl TuiApp {
 
     fn send_request(&self, project: Option<&RataProject>) -> anyhow::Result<ResponseView> {
         let client = reqwest::blocking::Client::new();
-        
+
         let mut final_url = self.draft.url.clone();
         if let Some(project) = project {
             for (k, v) in project.variables() {
@@ -850,7 +932,9 @@ impl TuiApp {
         let mut query_params = Vec::new();
 
         for (key, value) in &self.draft.param_values {
-            if !self.draft.enabled_params.contains(key) { continue; }
+            if !self.draft.enabled_params.contains(key) {
+                continue;
+            }
             let p1 = format!("{{{{{}}}}}", key);
             let p2 = format!("{{{}}}", key);
             if final_url.contains(&p1) || final_url.contains(&p2) {
@@ -862,13 +946,15 @@ impl TuiApp {
         }
 
         let mut request = client.request(self.draft.method.reqwest(), &final_url);
-        
+
         if !query_params.is_empty() {
             request = request.query(&query_params);
         }
-        
+
         for (key, value) in &self.draft.header_values {
-            if !self.draft.enabled_headers.contains(key) { continue; }
+            if !self.draft.enabled_headers.contains(key) {
+                continue;
+            }
             let mut final_value = value.clone();
             if let Some(project) = project {
                 for (k, v) in project.variables() {
@@ -887,9 +973,7 @@ impl TuiApp {
             }
         }
 
-        let mut response = request
-            .body(final_body)
-            .send()?;
+        let mut response = request.body(final_body).send()?;
         let status = response.status().as_u16();
         let headers = response
             .headers()
@@ -936,7 +1020,7 @@ fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
         let end = start + tab.chars().count() as u16 - 1;
         if offset >= start && offset <= end {
             return match i {
-                0 => Some(RequestTab::Params),
+                0 => Some(RequestTab::Query),
                 1 => Some(RequestTab::Body),
                 2 => Some(RequestTab::Headers),
                 _ => None,
@@ -955,7 +1039,7 @@ fn response_tab_at(app: &TuiApp, column: u16, row: u16, origin: (u16, u16)) -> O
 
     let offset = column - origin_column;
     let bounds = app.response_tab_bounds();
-    
+
     if offset >= bounds[0].0 && offset <= bounds[0].1 {
         return Some(ResponseTab::Body);
     }
@@ -1080,18 +1164,18 @@ fn run_loop(
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Min(0), Constraint::Length(1)])
                 .split(area);
-            
+
             let body = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Length(app.collections_width), Constraint::Min(0)])
+                .constraints([
+                    Constraint::Length(app.collections_width),
+                    Constraint::Min(0),
+                ])
                 .split(app_layout[0]);
             app.collections_area = body[0];
             let main = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Length(app.request_height),
-                    Constraint::Min(0),
-                ])
+                .constraints([Constraint::Length(app.request_height), Constraint::Min(0)])
                 .split(body[1]);
             let main_rest = Layout::default()
                 .direction(Direction::Vertical)
@@ -1148,7 +1232,9 @@ fn run_loop(
             if app.drag_target == DragTarget::ResponseSelection {
                 if let Some((col, row)) = last_mouse_pos {
                     let synthetic_mouse = crossterm::event::MouseEvent {
-                        kind: crossterm::event::MouseEventKind::Drag(crossterm::event::MouseButton::Left),
+                        kind: crossterm::event::MouseEventKind::Drag(
+                            crossterm::event::MouseButton::Left,
+                        ),
                         column: col,
                         row,
                         modifiers: crossterm::event::KeyModifiers::empty(),
@@ -1159,8 +1245,6 @@ fn run_loop(
         }
     }
 }
-
-
 
 fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     let mut items = Vec::new();
@@ -1184,7 +1268,8 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
             ])));
             if !is_collapsed {
                 for operation in &collection.operations {
-                    let is_selected = app.selected_operation.as_ref() == Some(&(operation.method, operation.path.clone()));
+                    let is_selected = app.selected_operation.as_ref()
+                        == Some(&(operation.method, operation.path.clone()));
                     let mut item = ListItem::new(Line::from(vec![
                         Span::raw("  "),
                         Span::styled(
@@ -1213,13 +1298,11 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
                 .title(" Collections ")
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
-                .border_style(border_style)
+                .border_style(border_style),
         )
         .style(Style::default().fg(TEXT))
         .highlight_style(Style::default().bg(SELECTED_BG))
 }
-
-
 
 fn request_line(app: &TuiApp) -> Paragraph<'static> {
     let url = if app.draft.url.is_empty() {
@@ -1253,7 +1336,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
             .title_top(Line::from(example_title).right_aligned())
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
-            .border_style(border_style)
+            .border_style(border_style),
     )
 }
 
@@ -1264,9 +1347,18 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     let mut bg_idx = 0;
 
     // Start with "Ctrl" block
-    spans.push(Span::styled(" Ctrl ", Style::default().fg(PANEL).bg(ACCENT).add_modifier(Modifier::BOLD)));
+    spans.push(Span::styled(
+        " Ctrl ",
+        Style::default()
+            .fg(PANEL)
+            .bg(ACCENT)
+            .add_modifier(Modifier::BOLD),
+    ));
     let mut current_bg = bgs[0];
-    spans.push(Span::styled("\u{E0B0} ", Style::default().fg(ACCENT).bg(current_bg)));
+    spans.push(Span::styled(
+        "\u{E0B0} ",
+        Style::default().fg(ACCENT).bg(current_bg),
+    ));
 
     let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
     if app.input_mode == InputMode::Normal {
@@ -1275,12 +1367,28 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
 
     for (i, (key, desc)) in shortcuts.iter().enumerate() {
         let is_last = i == shortcuts.len() - 1;
-        spans.push(Span::styled(format!("{}", key), Style::default().fg(GREEN).bg(current_bg).add_modifier(Modifier::BOLD)));
-        spans.push(Span::styled(format!(" {} ", desc.to_uppercase()), Style::default().fg(TEXT).bg(current_bg)));
-        
-        let next_bg = if is_last { base_bg } else { bgs[(bg_idx + 1) % bgs.len()] };
-        spans.push(Span::styled("\u{E0B0} ", Style::default().fg(current_bg).bg(next_bg)));
-        
+        spans.push(Span::styled(
+            format!("{}", key),
+            Style::default()
+                .fg(GREEN)
+                .bg(current_bg)
+                .add_modifier(Modifier::BOLD),
+        ));
+        spans.push(Span::styled(
+            format!(" {} ", desc.to_uppercase()),
+            Style::default().fg(TEXT).bg(current_bg),
+        ));
+
+        let next_bg = if is_last {
+            base_bg
+        } else {
+            bgs[(bg_idx + 1) % bgs.len()]
+        };
+        spans.push(Span::styled(
+            "\u{E0B0} ",
+            Style::default().fg(current_bg).bg(next_bg),
+        ));
+
         if !is_last {
             bg_idx = (bg_idx + 1) % bgs.len();
             current_bg = next_bg;
@@ -1290,7 +1398,12 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     Paragraph::new(Line::from(spans)).style(Style::default().bg(base_bg))
 }
 
-fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Option<&RataProject>, area: Rect) {
+fn render_request_block(
+    frame: &mut ratatui::Frame,
+    app: &TuiApp,
+    project: Option<&RataProject>,
+    area: Rect,
+) {
     let border_style = if app.active_block == ActiveBlock::Params {
         Style::default().fg(ACCENT)
     } else {
@@ -1301,17 +1414,29 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
     let spans = vec![
         Span::styled(
             request_tabs[0].clone(),
-            if app.active_request_tab == RequestTab::Params { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+            if app.active_request_tab == RequestTab::Query {
+                accent_style().add_modifier(Modifier::BOLD)
+            } else {
+                muted_style()
+            },
         ),
         Span::styled("·", muted_style()),
         Span::styled(
             request_tabs[1].clone(),
-            if app.active_request_tab == RequestTab::Body { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+            if app.active_request_tab == RequestTab::Body {
+                accent_style().add_modifier(Modifier::BOLD)
+            } else {
+                muted_style()
+            },
         ),
         Span::styled("·", muted_style()),
         Span::styled(
             request_tabs[2].clone(),
-            if app.active_request_tab == RequestTab::Headers { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+            if app.active_request_tab == RequestTab::Headers {
+                accent_style().add_modifier(Modifier::BOLD)
+            } else {
+                muted_style()
+            },
         ),
     ];
     let tabs = Line::from(spans);
@@ -1325,12 +1450,16 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
 
     match app.active_request_tab {
         RequestTab::Body => {
-            let mut text = if app.draft.body.is_empty() && app.input_mode != InputMode::EditingRequestField {
-                "No request body".to_string()
-            } else {
-                app.draft.body.clone()
-            };
-            if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
+            let mut text =
+                if app.draft.body.is_empty() && app.input_mode != InputMode::EditingRequestField {
+                    "No request body".to_string()
+                } else {
+                    app.draft.body.clone()
+                };
+            if app.input_mode == InputMode::EditingRequestField
+                && app.active_block == ActiveBlock::Params
+                && app.active_request_tab == RequestTab::Body
+            {
                 text.push('█');
             }
             let highlighted = highlight_json(&text);
@@ -1340,17 +1469,31 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                 .scroll((app.request_scroll, 0));
             frame.render_widget(p, area);
         }
-        RequestTab::Params => {
+        RequestTab::Query => {
             let mut rows = Vec::new();
-            let params = app.get_current_parameters(project, RequestTab::Params);
+            let params = app.get_current_parameters(project, RequestTab::Query);
             let mut i = 0;
             for param in &params {
-                let is_editing_this_row = app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row;
+                let is_editing_this_row = app.input_mode == InputMode::EditingRequestField
+                    && app.active_block == ActiveBlock::Params
+                    && i == app.selected_request_row;
                 let value = if is_editing_this_row {
-                    app.draft.param_values.get(&param.name).cloned().unwrap_or_default()
+                    app.draft
+                        .param_values
+                        .get(&param.name)
+                        .cloned()
+                        .unwrap_or_default()
                 } else {
-                    let default_val = if param.location == "path" { format!("{{{}}}", param.name) } else { "".to_string() };
-                    app.draft.param_values.get(&param.name).cloned().unwrap_or(default_val)
+                    let default_val = if param.location == "path" {
+                        format!("{{{}}}", param.name)
+                    } else {
+                        "".to_string()
+                    };
+                    app.draft
+                        .param_values
+                        .get(&param.name)
+                        .cloned()
+                        .unwrap_or(default_val)
                 };
                 let display_value = if is_editing_this_row {
                     format!("{}█", value)
@@ -1358,11 +1501,17 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                     value
                 };
                 let is_enabled = app.draft.enabled_params.contains(&param.name);
-                let mut row = Row::new([
-                    if is_enabled { "[x]" } else { "[ ]" }.to_string(),
-                    param.name.clone(),
-                    display_value,
-                    param.description.clone().unwrap_or_default(),
+                let checkbox_text = if is_enabled { "[x]" } else { "[ ]" }.to_string();
+                let checkbox_cell = if param.required {
+                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
+                } else {
+                    ratatui::widgets::Cell::from(checkbox_text)
+                };
+                let mut row = Row::new(vec![
+                    checkbox_cell,
+                    ratatui::widgets::Cell::from(param.name.clone()),
+                    ratatui::widgets::Cell::from(display_value),
+                    ratatui::widgets::Cell::from(param.description.clone().unwrap_or_default()),
                 ]);
                 if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
                     row = row.style(Style::default().bg(SELECTED_BG));
@@ -1396,17 +1545,31 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
             let params = app.get_current_parameters(project, RequestTab::Headers);
             let mut i = 0;
             for param in &params {
-                let value = app.draft.header_values.get(&param.name).cloned().unwrap_or_default();
-                let display_value = if app.input_mode == InputMode::EditingRequestField && app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                let value = app
+                    .draft
+                    .header_values
+                    .get(&param.name)
+                    .cloned()
+                    .unwrap_or_default();
+                let display_value = if app.input_mode == InputMode::EditingRequestField
+                    && app.active_block == ActiveBlock::Params
+                    && i == app.selected_request_row
+                {
                     format!("{}█", value)
                 } else {
                     value
                 };
                 let is_enabled = app.draft.enabled_headers.contains(&param.name);
-                let mut row = Row::new([
-                    if is_enabled { "[x]" } else { "[ ]" }.to_string(),
-                    param.name.clone(),
-                    display_value,
+                let checkbox_text = if is_enabled { "[x]" } else { "[ ]" }.to_string();
+                let checkbox_cell = if param.required {
+                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
+                } else {
+                    ratatui::widgets::Cell::from(checkbox_text)
+                };
+                let mut row = Row::new(vec![
+                    checkbox_cell,
+                    ratatui::widgets::Cell::from(param.name.clone()),
+                    ratatui::widgets::Cell::from(display_value),
                 ]);
                 if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
                     row = row.style(Style::default().bg(SELECTED_BG));
@@ -1427,8 +1590,7 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                 ],
             )
             .header(
-                Row::new(["", "Key", "Value"])
-                    .style(muted_style().add_modifier(Modifier::BOLD)),
+                Row::new(["", "Key", "Value"]).style(muted_style().add_modifier(Modifier::BOLD)),
             )
             .block(block)
             .style(Style::default().fg(TEXT));
@@ -1469,7 +1631,7 @@ fn examples(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
                 .title(" Examples ")
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
-                .border_style(border_style)
+                .border_style(border_style),
         )
         .style(Style::default().fg(TEXT))
 }
@@ -1479,23 +1641,43 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
-    app.set_response_tabs_area(Rect { x: area.x, y: area.y, width: area.width, height: 1 });
-    
+    app.set_response_tabs_area(Rect {
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: 1,
+    });
+
     let view_height = inner.height as usize;
 
     if app.active_response_tab == ResponseTab::Headers {
-        let header_rows: Vec<ratatui::widgets::Row> = app.response.headers.iter().map(|(k, v)| {
-            ratatui::widgets::Row::new(vec![
-                ratatui::widgets::Cell::from(Span::styled(k.clone(), Style::default().fg(BLUE))),
-                ratatui::widgets::Cell::from(Span::raw(v.clone()))
-            ])
-        }).collect();
-        let widths = [ratatui::layout::Constraint::Percentage(30), ratatui::layout::Constraint::Percentage(70)];
+        let header_rows: Vec<ratatui::widgets::Row> = app
+            .response
+            .headers
+            .iter()
+            .map(|(k, v)| {
+                ratatui::widgets::Row::new(vec![
+                    ratatui::widgets::Cell::from(Span::styled(
+                        k.clone(),
+                        Style::default().fg(BLUE),
+                    )),
+                    ratatui::widgets::Cell::from(Span::raw(v.clone())),
+                ])
+            })
+            .collect();
+        let widths = [
+            ratatui::layout::Constraint::Percentage(30),
+            ratatui::layout::Constraint::Percentage(70),
+        ];
         let table = ratatui::widgets::Table::new(header_rows, widths)
-            .header(ratatui::widgets::Row::new(vec!["Key", "Value"]).style(Style::default().add_modifier(Modifier::BOLD).fg(MUTED)))
+            .header(
+                ratatui::widgets::Row::new(vec!["Key", "Value"])
+                    .style(Style::default().add_modifier(Modifier::BOLD).fg(MUTED)),
+            )
             .column_spacing(2);
-        
-        let mut table_state = ratatui::widgets::TableState::default().with_offset(app.response_scroll as usize);
+
+        let mut table_state =
+            ratatui::widgets::TableState::default().with_offset(app.response_scroll as usize);
         frame.render_stateful_widget(table, inner, &mut table_state);
 
         let lines = app.response.headers.len() + 1; // +1 for header row
@@ -1509,7 +1691,10 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
                 .end_symbol(Some("▼"));
             frame.render_stateful_widget(
                 scrollbar,
-                area.inner(ratatui::layout::Margin { vertical: 1, horizontal: 0 }),
+                area.inner(ratatui::layout::Margin {
+                    vertical: 1,
+                    horizontal: 0,
+                }),
                 &mut scrollbar_state,
             );
         }
@@ -1529,7 +1714,10 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
                 .end_symbol(Some("▼"));
             frame.render_stateful_widget(
                 scrollbar,
-                area.inner(ratatui::layout::Margin { vertical: 1, horizontal: 0 }),
+                area.inner(ratatui::layout::Margin {
+                    vertical: 1,
+                    horizontal: 0,
+                }),
                 &mut scrollbar_state,
             );
         }
@@ -1550,7 +1738,10 @@ fn response_tabs_title(app: &TuiApp) -> Line<'static> {
             spans.push(Span::styled(" · ", muted_style()));
         }
         if i == selected {
-            spans.push(Span::styled(tab.clone(), accent_style().add_modifier(Modifier::BOLD)));
+            spans.push(Span::styled(
+                tab.clone(),
+                accent_style().add_modifier(Modifier::BOLD),
+            ));
         } else {
             spans.push(Span::styled(tab.clone(), muted_style()));
         }
@@ -1574,7 +1765,10 @@ fn response_status_title(app: &TuiApp) -> Line<'static> {
             500..=599 => RED,
             _ => MUTED,
         };
-        spans.push(Span::styled(format!("HTTP {status}"), Style::default().fg(color).add_modifier(Modifier::BOLD)));
+        spans.push(Span::styled(
+            format!("HTTP {status}"),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ));
     }
 
     spans.push(Span::raw(" "));
@@ -1603,7 +1797,9 @@ fn response_block(app: &TuiApp) -> Block<'static> {
 }
 
 pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text<'a> {
-    let Some(selection) = selection else { return text; };
+    let Some(selection) = selection else {
+        return text;
+    };
     let (mut start, mut end) = (selection.start, selection.end);
     if start.0 > end.0 || (start.0 == end.0 && start.1 > end.1) {
         std::mem::swap(&mut start, &mut end);
@@ -1629,7 +1825,10 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
             if span_end <= sel_start_col || span_start > sel_end_col {
                 new_spans.push(span);
             } else if span_start >= sel_start_col && span_end <= sel_end_col.saturating_add(1) {
-                new_spans.push(Span::styled(span.content, span.style.add_modifier(Modifier::REVERSED)));
+                new_spans.push(Span::styled(
+                    span.content,
+                    span.style.add_modifier(Modifier::REVERSED),
+                ));
             } else {
                 let mut current_str = String::new();
                 let mut is_reversed = false;
@@ -1637,7 +1836,11 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
                     let col = span_start + i;
                     let selected = col >= sel_start_col && col <= sel_end_col;
                     if selected != is_reversed && !current_str.is_empty() {
-                        let style = if is_reversed { span.style.add_modifier(Modifier::REVERSED) } else { span.style };
+                        let style = if is_reversed {
+                            span.style.add_modifier(Modifier::REVERSED)
+                        } else {
+                            span.style
+                        };
                         new_spans.push(Span::styled(current_str.clone(), style));
                         current_str.clear();
                     }
@@ -1645,7 +1848,11 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
                     current_str.push(c);
                 }
                 if !current_str.is_empty() {
-                    let style = if is_reversed { span.style.add_modifier(Modifier::REVERSED) } else { span.style };
+                    let style = if is_reversed {
+                        span.style.add_modifier(Modifier::REVERSED)
+                    } else {
+                        span.style
+                    };
                     new_spans.push(Span::styled(current_str, style));
                 }
             }
@@ -1694,14 +1901,24 @@ pub fn highlight_json(json: &str) -> Text<'static> {
                     let mut is_key_local = false;
                     let mut lookahead = iter.clone();
                     while let Some(lc) = lookahead.next() {
-                        if lc == ' ' { continue; }
-                        if lc == ':' { is_key_local = true; }
+                        if lc == ' ' {
+                            continue;
+                        }
+                        if lc == ':' {
+                            is_key_local = true;
+                        }
                         break;
                     }
                     if is_key_local {
-                        spans.push(Span::styled(current_span.clone(), Style::default().fg(Color::LightBlue)));
+                        spans.push(Span::styled(
+                            current_span.clone(),
+                            Style::default().fg(Color::LightBlue),
+                        ));
                     } else {
-                        spans.push(Span::styled(current_span.clone(), Style::default().fg(Color::Green)));
+                        spans.push(Span::styled(
+                            current_span.clone(),
+                            Style::default().fg(Color::Green),
+                        ));
                     }
                     current_span.clear();
                 } else {
@@ -1722,7 +1939,10 @@ pub fn highlight_json(json: &str) -> Text<'static> {
         }
         if !current_span.is_empty() {
             if in_string {
-                spans.push(Span::styled(current_span, Style::default().fg(Color::Green)));
+                spans.push(Span::styled(
+                    current_span,
+                    Style::default().fg(Color::Green),
+                ));
             } else {
                 spans.extend(highlight_non_string(&current_span));
             }
@@ -1756,7 +1976,10 @@ fn highlight_value(text: &str) -> Span<'static> {
     match text {
         "true" | "false" => Span::styled(text.to_string(), Style::default().fg(Color::Yellow)),
         "null" => Span::styled(text.to_string(), Style::default().fg(Color::DarkGray)),
-        _ if text.chars().all(|c| c.is_ascii_digit() || c == '.' || c == '-' || c == 'e' || c == 'E' || c == '+') => {
+        _ if text.chars().all(|c| {
+            c.is_ascii_digit() || c == '.' || c == '-' || c == 'e' || c == 'E' || c == '+'
+        }) =>
+        {
             Span::styled(text.to_string(), Style::default().fg(Color::Magenta))
         }
         _ => Span::raw(text.to_string()),
