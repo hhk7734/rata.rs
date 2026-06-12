@@ -259,15 +259,6 @@ impl TuiApp {
         match self.input_mode {
             InputMode::Normal => match key.code {
                 KeyCode::Char('q') | KeyCode::Esc => Ok(AppAction::Quit),
-                KeyCode::Char('e') | KeyCode::Char('i') => {
-                    if self.active_block == ActiveBlock::Params {
-                        self.input_mode = InputMode::EditingRequestField;
-                        self.editing_param_key = self.get_selected_request_key(project);
-                    } else {
-                        self.input_mode = InputMode::EditingUrl;
-                    }
-                    Ok(AppAction::Continue)
-                }
                 KeyCode::Enter | KeyCode::Char('s') => {
                     if self.active_block == ActiveBlock::Params {
                         self.input_mode = InputMode::EditingRequestField;
@@ -1199,7 +1190,6 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     match app.input_mode {
         InputMode::Normal => {
             add_shortcut("q", "Quit");
-            add_shortcut("e/i", "Edit");
             add_shortcut("Enter/s", "Send");
             add_shortcut("1-3", "Resp Tabs");
             add_shortcut("↑↓", "Navigate");

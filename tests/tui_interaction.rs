@@ -17,8 +17,7 @@ use tempfile::tempdir;
 fn tui_app_edits_url_from_key_input() {
     let mut app = TuiApp::new(None);
 
-    app.handle_key(KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE), None)
-        .unwrap();
+    app.input_mode = rata::tui::InputMode::EditingUrl;
     for value in "http://localhost:8000/v1/models".chars() {
         app.handle_key(KeyEvent::new(KeyCode::Char(value), KeyModifiers::NONE), None)
             .unwrap();
