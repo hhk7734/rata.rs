@@ -51,6 +51,8 @@ pub struct RequestDraft {
     pub body: String,
     pub param_values: std::collections::HashMap<String, String>,
     pub header_values: std::collections::HashMap<String, String>,
+    pub enabled_params: std::collections::HashSet<String>,
+    pub enabled_headers: std::collections::HashSet<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -159,6 +161,8 @@ impl TuiApp {
                 body: String::new(),
                 param_values: std::collections::HashMap::new(),
                 header_values: std::collections::HashMap::new(),
+                enabled_params: std::collections::HashSet::new(),
+                enabled_headers: std::collections::HashSet::new(),
             },
             model,
             response: ResponseView {
@@ -297,6 +301,26 @@ impl TuiApp {
                     self.text_selection = None;
                     Ok(AppAction::Continue)
                 }
+                KeyCode::Char(' ') => {
+                    if self.active_block == ActiveBlock::Params {
+                        if let Some(key) = self.get_selected_request_key(project) {
+                            if self.active_request_tab == RequestTab::Params {
+                                if self.draft.enabled_params.contains(&key) {
+                                    self.draft.enabled_params.remove(&key);
+                                } else {
+                                    self.draft.enabled_params.insert(key);
+                                }
+                            } else if self.active_request_tab == RequestTab::Headers {
+                                if self.draft.enabled_headers.contains(&key) {
+                                    self.draft.enabled_headers.remove(&key);
+                                } else {
+                                    self.draft.enabled_headers.insert(key);
+                                }
+                            }
+                        }
+                    }
+                    Ok(AppAction::Continue)
+                }
                 KeyCode::Up | KeyCode::Char('k') => {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_up(1);
@@ -404,6 +428,17 @@ impl TuiApp {
         self.draft.method = operation.method;
         self.draft.url = format!("{base}{}", operation.path);
         self.model.examples = project.examples_for(operation).ok().unwrap_or_default().into_iter().map(|e| e.name).collect();
+        self.draft.enabled_params.clear();
+        self.draft.enabled_headers.clear();
+        for param in &operation.parameters {
+            if param.required {
+                if param.location == "header" {
+                    self.draft.enabled_headers.insert(param.name.clone());
+                } else {
+                    self.draft.enabled_params.insert(param.name.clone());
+                }
+            }
+        }
     }
 
     fn get_visible_operations<'a>(&self, project: &'a RataProject) -> Vec<&'a crate::project::Operation> {
@@ -686,6 +721,14 @@ impl TuiApp {
         ]
     }
 
+    pub fn request_tabs(&self) -> [String; 3] {
+        [
+            " Body ".to_string(),
+            format!(" Params ({}) ", self.draft.enabled_params.len()),
+            format!(" Headers ({}) ", self.draft.enabled_headers.len()),
+        ]
+    }
+
     pub fn response_tab_bounds(&self) -> [(u16, u16); 3] {
         let tabs = self.response_tabs();
         let mut bounds = [(0, 0); 3];
@@ -754,6 +797,7 @@ impl TuiApp {
         let mut query_params = Vec::new();
 
         for (key, value) in &self.draft.param_values {
+            if !self.draft.enabled_params.contains(key) { continue; }
             let p1 = format!("{{{{{}}}}}", key);
             let p2 = format!("{{{}}}", key);
             if final_url.contains(&p1) || final_url.contains(&p2) {
@@ -771,6 +815,7 @@ impl TuiApp {
         }
         
         for (key, value) in &self.draft.header_values {
+            if !self.draft.enabled_headers.contains(key) { continue; }
             request = request.header(key, value);
         }
 
@@ -816,7 +861,7 @@ fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
         return None;
     }
     let offset = column - origin_column;
-    let tabs = [" Body ", " Params ", " Headers "];
+    let tabs = app.request_tabs();
     let mut current = 0;
     for (i, tab) in tabs.iter().enumerate() {
         let start = current;
@@ -1169,19 +1214,20 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
         Style::default().fg(BORDER)
     };
 
+    let request_tabs = app.request_tabs();
     let spans = vec![
         Span::styled(
-            if app.active_request_tab == RequestTab::Body { " Body " } else { " Body " },
+            request_tabs[0].clone(),
             if app.active_request_tab == RequestTab::Body { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
         ),
         Span::styled("·", muted_style()),
         Span::styled(
-            if app.active_request_tab == RequestTab::Params { " Params " } else { " Params " },
+            request_tabs[1].clone(),
             if app.active_request_tab == RequestTab::Params { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
         ),
         Span::styled("·", muted_style()),
         Span::styled(
-            if app.active_request_tab == RequestTab::Headers { " Headers " } else { " Headers " },
+            request_tabs[2].clone(),
             if app.active_request_tab == RequestTab::Headers { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
         ),
     ];
@@ -1232,8 +1278,9 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                                         } else {
                                             value
                                         };
+                                        let is_enabled = app.draft.enabled_params.contains(&param.name);
                                         let mut row = Row::new([
-                                            if param.required { "[x]" } else { "[ ]" }.to_string(),
+                                            if is_enabled { "[x]" } else { "[ ]" }.to_string(),
                                             param.name.clone(),
                                             display_value,
                                             param.location.clone(),
@@ -1289,8 +1336,9 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                                         } else {
                                             value
                                         };
+                                        let is_enabled = app.draft.enabled_headers.contains(&param.name);
                                         let mut row = Row::new([
-                                            if param.required { "[x]" } else { "[ ]" }.to_string(),
+                                            if is_enabled { "[x]" } else { "[ ]" }.to_string(),
                                             param.name.clone(),
                                             display_value,
                                         ]);
