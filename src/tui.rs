@@ -369,7 +369,34 @@ pub fn handle_key(
                 if self.active_block == ActiveBlock::Request {
                     let _ = self.send(project);
                 } else if self.active_block == ActiveBlock::Params && self.active_request_tab == RequestTab::Body {
-                    self.draft.body.push('\n');
+                    insert_char_at(&mut self.draft.body, self.text_cursor, '\n');
+                    self.text_cursor = self.text_cursor.saturating_add(1);
+                } else if self.active_block == ActiveBlock::Examples {
+                    if let Some(example_name) = self.model.examples.get(self.selected_example_row) {
+                        let name_clone = example_name.clone();
+                        if let Some(project) = project {
+                            if let Some(selected) = &self.selected_operation {
+                                if let Some(op) = project
+                                    .collections()
+                                    .iter()
+                                    .flat_map(|c| &c.operations)
+                                    .find(|o| o.method == selected.0 && o.path == selected.1)
+                                {
+                                    if let Some(example_file) = project
+                                        .examples_for(op)
+                                        .ok()
+                                        .unwrap_or_default()
+                                        .iter()
+                                        .find(|e| e.name == name_clone)
+                                    {
+                                        self.load_example(example_file);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    self.examples_dropdown_open = false;
+                    self.active_block = ActiveBlock::Request;
                 }
                 Ok(AppAction::Continue)
             }
