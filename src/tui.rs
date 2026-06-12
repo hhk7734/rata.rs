@@ -110,7 +110,6 @@ pub struct Selection {
     pub end: (usize, usize),
 }
 
-#[derive(Debug, Clone)]
 pub struct TuiApp {
     pub model: TuiModel,
     pub draft: RequestDraft,
@@ -139,6 +138,7 @@ pub struct TuiApp {
     pub drag_last_row: Option<u16>,
     pub mouse_capture_enabled: bool,
     pub text_selection: Option<Selection>,
+    pub clipboard: Option<arboard::Clipboard>,
 }
 
 impl TuiApp {
@@ -192,6 +192,7 @@ impl TuiApp {
             drag_last_row: None,
             mouse_capture_enabled: true,
             text_selection: None,
+            clipboard: arboard::Clipboard::new().ok(),
         }
     }
 
@@ -548,7 +549,7 @@ impl TuiApp {
                     if let Some(sel) = self.text_selection {
                         let text = self.extract_selection(sel);
                         if !text.is_empty() {
-                            if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                            if let Some(clipboard) = &mut self.clipboard {
                                 let _ = clipboard.set_text(text);
                             }
                         }
