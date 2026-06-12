@@ -143,23 +143,28 @@ impl RataProject {
         let collections = collect_operations(&document);
 
         let mut variables = HashMap::new();
-        for name in ["variables.yaml", "variable.yaml", "variables.yml", "variable.yml"] {
-            let path = rata_dir.join(name);
-            if path.is_file() {
-                if let Ok(source) = fs::read_to_string(&path) {
-                    if let Ok(value) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source) {
-                        for (k, v) in value {
-                            let string_val = match v {
-                                serde_yaml::Value::String(s) => s,
-                                _ => serde_yaml::to_string(&v).unwrap_or_default().trim().to_string(),
-                            };
-                            variables.insert(k, string_val);
+        let load_vars = |file_names: &[&str], vars: &mut HashMap<String, String>| {
+            for name in file_names {
+                let path = rata_dir.join(name);
+                if path.is_file() {
+                    if let Ok(source) = fs::read_to_string(&path) {
+                        if let Ok(value) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source) {
+                            for (k, v) in value {
+                                let string_val = match v {
+                                    serde_yaml::Value::String(s) => s,
+                                    _ => serde_yaml::to_string(&v).unwrap_or_default().trim().to_string(),
+                                };
+                                vars.insert(k, string_val);
+                            }
                         }
                     }
+                    break;
                 }
-                break;
             }
-        }
+        };
+
+        load_vars(&["variables.yaml", "variable.yaml", "variables.yml", "variable.yml"], &mut variables);
+        load_vars(&["variables.local.yaml", "variable.local.yaml", "variables.local.yml", "variable.local.yml"], &mut variables);
 
         Ok(Some(Self {
             root: rata_dir,
