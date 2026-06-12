@@ -120,7 +120,6 @@ pub struct RataProject {
     openapi_path: PathBuf,
     server_url: Option<String>,
     collections: Vec<Collection>,
-    variables: HashMap<String, String>,
 }
 
 impl RataProject {
@@ -142,10 +141,31 @@ impl RataProject {
 
         let collections = collect_operations(&document);
 
+        Ok(Some(Self {
+            root: rata_dir,
+            openapi_path,
+            server_url: document.servers.first().map(|server| server.url.clone()),
+            collections,
+        }))
+    }
+
+    pub fn openapi_path(&self) -> &Path {
+        &self.openapi_path
+    }
+
+    pub fn collections(&self) -> &[Collection] {
+        &self.collections
+    }
+
+    pub fn server_url(&self) -> Option<&str> {
+        self.server_url.as_deref()
+    }
+
+    pub fn variables(&self) -> HashMap<String, String> {
         let mut variables = HashMap::new();
         let load_vars = |file_names: &[&str], vars: &mut HashMap<String, String>| {
             for name in file_names {
-                let path = rata_dir.join(name);
+                let path = self.root.join(name);
                 if path.is_file() {
                     if let Ok(source) = fs::read_to_string(&path) {
                         if let Ok(value) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source) {
@@ -166,29 +186,7 @@ impl RataProject {
         load_vars(&["variables.yaml", "variable.yaml", "variables.yml", "variable.yml"], &mut variables);
         load_vars(&["variables.local.yaml", "variable.local.yaml", "variables.local.yml", "variable.local.yml"], &mut variables);
 
-        Ok(Some(Self {
-            root: rata_dir,
-            openapi_path,
-            server_url: document.servers.first().map(|server| server.url.clone()),
-            collections,
-            variables,
-        }))
-    }
-
-    pub fn openapi_path(&self) -> &Path {
-        &self.openapi_path
-    }
-
-    pub fn collections(&self) -> &[Collection] {
-        &self.collections
-    }
-
-    pub fn server_url(&self) -> Option<&str> {
-        self.server_url.as_deref()
-    }
-
-    pub fn variables(&self) -> &HashMap<String, String> {
-        &self.variables
+        variables
     }
 
     pub fn match_url(

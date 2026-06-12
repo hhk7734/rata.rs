@@ -132,3 +132,4 @@ $RECYCLE.BIN/
 
 .tmp/
 .worktrees/
+.rata/variables.local.yaml

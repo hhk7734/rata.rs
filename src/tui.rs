@@ -815,7 +815,7 @@ impl TuiApp {
         if let Some(project) = project {
             for (k, v) in project.variables() {
                 let p1 = format!("{{{{{}}}}}", k);
-                final_url = final_url.replace(&p1, v);
+                final_url = final_url.replace(&p1, &v);
             }
         }
         let mut query_params = Vec::new();
@@ -844,7 +844,7 @@ impl TuiApp {
             if let Some(project) = project {
                 for (k, v) in project.variables() {
                     let p1 = format!("{{{{{}}}}}", k);
-                    final_value = final_value.replace(&p1, v);
+                    final_value = final_value.replace(&p1, &v);
                 }
             }
             request = request.header(key, &final_value);
@@ -854,7 +854,7 @@ impl TuiApp {
         if let Some(project) = project {
             for (k, v) in project.variables() {
                 let p1 = format!("{{{{{}}}}}", k);
-                final_body = final_body.replace(&p1, v);
+                final_body = final_body.replace(&p1, &v);
             }
         }
 
