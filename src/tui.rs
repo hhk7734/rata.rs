@@ -575,14 +575,17 @@ impl TuiApp {
                 }
 
                 if mouse.column == self.collections_area.right().saturating_sub(1) || mouse.column == self.collections_area.right() {
+                    self.active_block = ActiveBlock::Collections;
                     self.drag_target = DragTarget::Collections;
                     return;
                 }
                 if mouse.row == self.params_area.y.saturating_sub(1) || mouse.row == self.params_area.y {
+                    self.active_block = ActiveBlock::Params;
                     self.drag_target = DragTarget::Request;
                     return;
                 }
                 if mouse.row == self.response_area.y.saturating_sub(1) || mouse.row == self.response_area.y {
+                    self.active_block = ActiveBlock::Response;
                     self.drag_target = DragTarget::Response;
                     return;
                 }
@@ -811,14 +814,20 @@ fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
         return None;
     }
     let offset = column - origin_column;
-    if offset <= 5 {
-        return Some(RequestTab::Body);
-    }
-    if offset >= 7 && offset <= 14 {
-        return Some(RequestTab::Params);
-    }
-    if offset >= 16 && offset <= 24 {
-        return Some(RequestTab::Headers);
+    let tabs = ["Params", "Headers", "Body"];
+    let mut current = 1;
+    for (i, tab) in tabs.iter().enumerate() {
+        let start = current;
+        let end = start + tab.len() as u16 - 1;
+        if offset >= start && offset <= end {
+            return match i {
+                0 => Some(RequestTab::Params),
+                1 => Some(RequestTab::Headers),
+                2 => Some(RequestTab::Body),
+                _ => None,
+            };
+        }
+        current = end + 1 + 3;
     }
     None
 }
