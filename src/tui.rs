@@ -949,6 +949,7 @@ fn run_loop(
     project: Option<&RataProject>,
     app: &mut TuiApp,
 ) -> anyhow::Result<()> {
+    let mut last_mouse_pos: Option<(u16, u16)> = None;
     loop {
         terminal.draw(|frame| {
             let area = frame.area();
@@ -1002,7 +1003,7 @@ fn run_loop(
             }
         })?;
 
-        if event::poll(std::time::Duration::from_millis(250))? {
+        if event::poll(std::time::Duration::from_millis(50))? {
             match event::read()? {
                 Event::Key(key) => match app.handle_key(key, project)? {
                     AppAction::Quit => return Ok(()),
@@ -1017,10 +1018,23 @@ fn run_loop(
                 },
                 Event::Mouse(mouse) => {
                     if app.mouse_capture_enabled {
+                        last_mouse_pos = Some((mouse.column, mouse.row));
                         app.handle_mouse(mouse, project);
                     }
                 }
                 _ => {}
+            }
+        } else {
+            if app.mouse_capture_enabled && app.drag_target == DragTarget::ResponseSelection {
+                if let Some((col, row)) = last_mouse_pos {
+                    let synthetic_mouse = crossterm::event::MouseEvent {
+                        kind: crossterm::event::MouseEventKind::Drag(crossterm::event::MouseButton::Left),
+                        column: col,
+                        row,
+                        modifiers: crossterm::event::KeyModifiers::empty(),
+                    };
+                    app.handle_mouse(synthetic_mouse, project);
+                }
             }
         }
     }
