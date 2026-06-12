@@ -99,6 +99,8 @@ pub enum DragTarget {
     Collections,
     Request,
     Response,
+    ScrollRequest,
+    ScrollResponse,
 }
 
 #[derive(Debug, Clone)]
@@ -126,6 +128,8 @@ pub struct TuiApp {
     pub drag_target: DragTarget,
     pub selected_request_row: usize,
     pub editing_param_key: Option<String>,
+    pub request_scroll: u16,
+    pub drag_last_row: Option<u16>,
 }
 
 impl TuiApp {
@@ -175,6 +179,8 @@ impl TuiApp {
             drag_target: DragTarget::None,
             selected_request_row: 0,
             editing_param_key: None,
+            request_scroll: 0,
+            drag_last_row: None,
         }
     }
 
@@ -195,6 +201,19 @@ impl TuiApp {
         let view_height = self.response_area.height.saturating_sub(2);
         let max_scroll = lines.saturating_sub(view_height);
         self.response_scroll = std::cmp::min(self.response_scroll.saturating_add(amount), max_scroll);
+    }
+
+    pub fn scroll_request_up(&mut self, amount: u16) {
+        self.request_scroll = self.request_scroll.saturating_sub(amount);
+    }
+
+    pub fn scroll_request_down(&mut self, amount: u16) {
+        if self.active_request_tab == RequestTab::Body {
+            let lines = self.draft.body.lines().count() as u16;
+            let view_height = self.params_area.height.saturating_sub(2);
+            let max_scroll = lines.saturating_sub(view_height);
+            self.request_scroll = std::cmp::min(self.request_scroll.saturating_add(amount), max_scroll);
+        }
     }
 
     pub fn edit_url(&mut self, url: impl Into<String>) {
@@ -425,6 +444,9 @@ impl TuiApp {
             if contains(self.response_area, mouse.column, mouse.row) {
                 self.active_block = ActiveBlock::Response;
                 self.scroll_response_up(3);
+            } else if contains(self.params_area, mouse.column, mouse.row) {
+                self.active_block = ActiveBlock::Params;
+                self.scroll_request_up(3);
             }
             return;
         }
@@ -433,6 +455,9 @@ impl TuiApp {
             if contains(self.response_area, mouse.column, mouse.row) {
                 self.active_block = ActiveBlock::Response;
                 self.scroll_response_down(3);
+            } else if contains(self.params_area, mouse.column, mouse.row) {
+                self.active_block = ActiveBlock::Params;
+                self.scroll_request_down(3);
             }
             return;
         }
@@ -454,6 +479,26 @@ impl TuiApp {
                             let percent = (offset as u32 * 100 / main_rest_h as u32) as u16;
                             self.response_height_percent = 100u16.saturating_sub(percent).max(10).min(90);
                         }
+                    }
+                    DragTarget::ScrollResponse => {
+                        if let Some(last) = self.drag_last_row {
+                            if mouse.row > last {
+                                self.scroll_response_down(mouse.row - last);
+                            } else if mouse.row < last {
+                                self.scroll_response_up(last - mouse.row);
+                            }
+                        }
+                        self.drag_last_row = Some(mouse.row);
+                    }
+                    DragTarget::ScrollRequest => {
+                        if let Some(last) = self.drag_last_row {
+                            if mouse.row > last {
+                                self.scroll_request_down(mouse.row - last);
+                            } else if mouse.row < last {
+                                self.scroll_request_up(last - mouse.row);
+                            }
+                        }
+                        self.drag_last_row = Some(mouse.row);
                     }
                     DragTarget::None => {}
                 }
@@ -489,6 +534,14 @@ impl TuiApp {
                 if mouse.row == self.response_area.y.saturating_sub(1) || mouse.row == self.response_area.y {
                     self.drag_target = DragTarget::Response;
                     return;
+                }
+
+                if contains(self.response_area, mouse.column, mouse.row) {
+                    self.drag_target = DragTarget::ScrollResponse;
+                    self.drag_last_row = Some(mouse.row);
+                } else if contains(self.params_area, mouse.column, mouse.row) {
+                    self.drag_target = DragTarget::ScrollRequest;
+                    self.drag_last_row = Some(mouse.row);
                 }
             }
             _ => return,
@@ -1021,7 +1074,8 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
             }
             let p = Paragraph::new(text)
                 .style(Style::default().fg(TEXT))
-                .block(block);
+                .block(block)
+                .scroll((app.request_scroll, 0));
             frame.render_widget(p, area);
         }
         RequestTab::Params => {
