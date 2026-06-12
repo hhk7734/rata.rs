@@ -1295,7 +1295,7 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     List::new(items)
         .block(
             Block::default()
-                .title(" Collections ")
+                .title(Span::styled(" Collections ", Style::default().fg(Color::White)))
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
                 .border_style(border_style),
@@ -1332,7 +1332,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     ])
     .block(
         Block::default()
-            .title(" URL ")
+            .title(Span::styled(" URL ", Style::default().fg(Color::White)))
             .title_top(Line::from(example_title).right_aligned())
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
@@ -1449,7 +1449,7 @@ fn render_request_block(
 
     let block = Block::default()
         .title_top(tabs)
-        .title_top(Line::from(" Request ").right_aligned())
+        .title_top(Line::from(Span::styled(" Request ", Style::default().fg(Color::White))).right_aligned())
         .borders(Borders::ALL)
         .style(Style::default().bg(PANEL).fg(TEXT))
         .border_style(border_style);
@@ -1759,7 +1759,7 @@ fn response_tabs_title(app: &TuiApp) -> Line<'static> {
 fn response_status_title(app: &TuiApp) -> Line<'static> {
     let mut spans = vec![
         Span::raw(" "),
-        Span::styled("Response", Style::default().fg(TEXT)),
+        Span::styled("Response", Style::default().fg(Color::White)),
     ];
 
     if let Some(status) = app.response.status {
