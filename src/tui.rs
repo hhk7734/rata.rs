@@ -741,7 +741,7 @@ impl TuiApp {
 
     pub fn request_tabs(&self) -> [String; 3] {
         [
-            format!(" Params ({}) ", self.draft.enabled_params.len()),
+            format!(" Query ({}) ", self.draft.enabled_params.len()),
             " Body ".to_string(),
             format!(" Headers ({}) ", self.draft.enabled_headers.len()),
         ]
@@ -1316,7 +1316,6 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                                             if is_enabled { "[x]" } else { "[ ]" }.to_string(),
                                             param.name.clone(),
                                             display_value,
-                                            param.location.clone(),
                                             param.description.clone().unwrap_or_default(),
                                         ]);
                                         if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
@@ -1332,21 +1331,20 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
                 }
             }
             if rows.is_empty() {
-                rows.push(Row::new(["", "No parameters", "", "", ""]));
+                rows.push(Row::new(["", "No query params", "", ""]));
             }
 
             let t = Table::new(
                 rows,
                 [
                     Constraint::Length(3),
-                    Constraint::Percentage(20),
                     Constraint::Percentage(25),
-                    Constraint::Percentage(18),
-                    Constraint::Percentage(34),
+                    Constraint::Percentage(35),
+                    Constraint::Percentage(37),
                 ],
             )
             .header(
-                Row::new(["", "Key", "Value", "Source", "Description"])
+                Row::new(["", "Key", "Value", "Description"])
                     .style(muted_style().add_modifier(Modifier::BOLD)),
             )
             .block(block)
