@@ -263,6 +263,16 @@ impl TuiApp {
         {
             return Ok(AppAction::Quit);
         }
+        if key.code == KeyCode::Char('e')
+            && key
+                .modifiers
+                .contains(crossterm::event::KeyModifiers::CONTROL)
+        {
+            if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
+                self.param_edit_mode = !self.param_edit_mode;
+            }
+            return Ok(AppAction::Continue);
+        }
         if key.code == KeyCode::Char('s')
             && key
                 .modifiers
