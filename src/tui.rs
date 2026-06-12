@@ -516,6 +516,7 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::MethodDropdown {
                     if let Some(m) = METHODS.get(self.selected_method_row) {
                         self.draft.method = *m;
+                        self.handle_url_edited(project);
                     }
                     self.method_dropdown_open = false;
                     self.active_block = ActiveBlock::Request;
@@ -526,6 +527,7 @@ pub fn handle_key(
                 if self.active_block == ActiveBlock::Request {
                     remove_char_at(&mut self.draft.url, self.text_cursor);
                     self.text_cursor = self.text_cursor.saturating_sub(1);
+                    self.handle_url_edited(project);
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         remove_char_at(&mut self.draft.body, self.text_cursor);
@@ -584,6 +586,7 @@ pub fn handle_key(
                 if self.active_block == ActiveBlock::Request {
                     insert_char_at(&mut self.draft.url, self.text_cursor, value);
                     self.text_cursor = self.text_cursor.saturating_add(1);
+                    self.handle_url_edited(project);
                 } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         insert_char_at(&mut self.draft.body, self.text_cursor, value);
@@ -663,6 +666,42 @@ pub fn handle_key(
 
         if let Some(first_example) = examples.first() {
             self.load_example(first_example);
+        }
+    }
+
+    fn handle_url_edited(&mut self, project: Option<&RataProject>) {
+        self.draft.params.clear();
+        self.draft.headers.clear();
+        self.draft.body.clear();
+        self.model.examples.clear();
+        self.selected_operation = None;
+        self.examples_dropdown_open = false;
+
+        let Some(project) = project else { return };
+
+        let resolved_url = crate::template::render(&self.draft.url, &project.variables());
+        if let Ok(Some(matched)) = project.match_url(self.draft.method, &resolved_url) {
+            self.selected_operation = Some((matched.operation.method, matched.operation.path.clone()));
+
+            let examples_res = project.examples_for(&matched.operation);
+            let examples = examples_res
+                .as_ref()
+                .map(|x| x.as_slice())
+                .unwrap_or_default();
+            self.model.examples = examples.iter().map(|e| e.name.clone()).collect();
+
+            for param in &matched.operation.parameters {
+                let p = ParamState { key: param.name.clone(), value: String::new(), enabled: param.required, required: param.required };
+                if param.location == "header" {
+                    self.draft.headers.push(p);
+                } else {
+                    self.draft.params.push(p);
+                }
+            }
+
+            if let Some(first_example) = examples.first() {
+                self.load_example(first_example);
+            }
         }
     }
 
@@ -870,6 +909,7 @@ pub fn handle_key(
                     let clicked_row = mouse.row.saturating_sub(self.method_dropdown_area.y + 1);
                     if let Some(m) = METHODS.get(clicked_row as usize) {
                         self.draft.method = *m;
+                        self.handle_url_edited(project);
                     }
                     return;
                 }
