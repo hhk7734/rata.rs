@@ -83,6 +83,15 @@ pub enum ActiveBlock {
     Response,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DragTarget {
+    None,
+    Collections,
+    Request,
+    Response,
+    Examples,
+}
+
 #[derive(Debug, Clone)]
 pub struct TuiApp {
     pub model: TuiModel,
@@ -100,6 +109,11 @@ pub struct TuiApp {
     pub active_block: ActiveBlock,
     pub selected_operation: Option<(HttpMethod, String)>,
     pub response_scroll: u16,
+    pub collections_width: u16,
+    pub request_height: u16,
+    pub response_height_percent: u16,
+    pub examples_width: u16,
+    pub drag_target: DragTarget,
 }
 
 impl TuiApp {
@@ -139,6 +153,11 @@ impl TuiApp {
             active_block: ActiveBlock::None,
             selected_operation,
             response_scroll: 0,
+            collections_width: 34,
+            request_height: 6,
+            response_height_percent: 66,
+            examples_width: 34,
+            drag_target: DragTarget::None,
         }
     }
 
@@ -331,8 +350,54 @@ impl TuiApp {
             return;
         }
 
-        if !matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
-            return;
+        match mouse.kind {
+            MouseEventKind::Drag(MouseButton::Left) => {
+                match self.drag_target {
+                    DragTarget::Collections => {
+                        self.collections_width = mouse.column.max(10).min(120);
+                    }
+                    DragTarget::Request => {
+                        self.request_height = mouse.row.saturating_sub(self.request_area.y).max(3).min(20);
+                    }
+                    DragTarget::Response => {
+                        let main_rest_y = self.params_area.y;
+                        let main_rest_h = self.params_area.height.saturating_add(self.response_area.height);
+                        if main_rest_h > 0 {
+                            let offset = mouse.row.saturating_sub(main_rest_y);
+                            let percent = (offset as u32 * 100 / main_rest_h as u32) as u16;
+                            self.response_height_percent = 100u16.saturating_sub(percent).max(10).min(90);
+                        }
+                    }
+                    DragTarget::Examples => {
+                        self.examples_width = self.examples_area.right().saturating_sub(mouse.column).max(10).min(120);
+                    }
+                    DragTarget::None => {}
+                }
+                return;
+            }
+            MouseEventKind::Up(MouseButton::Left) => {
+                self.drag_target = DragTarget::None;
+                return;
+            }
+            MouseEventKind::Down(MouseButton::Left) => {
+                if mouse.column == self.collections_area.right().saturating_sub(1) || mouse.column == self.collections_area.right() {
+                    self.drag_target = DragTarget::Collections;
+                    return;
+                }
+                if mouse.row == self.params_area.y.saturating_sub(1) || mouse.row == self.params_area.y {
+                    self.drag_target = DragTarget::Request;
+                    return;
+                }
+                if mouse.row == self.response_area.y.saturating_sub(1) || mouse.row == self.response_area.y {
+                    self.drag_target = DragTarget::Response;
+                    return;
+                }
+                if mouse.column == self.examples_area.x.saturating_sub(1) || mouse.column == self.examples_area.x {
+                    self.drag_target = DragTarget::Examples;
+                    return;
+                }
+            }
+            _ => return,
         }
 
         self.active_block = ActiveBlock::None;
@@ -582,32 +647,38 @@ fn run_loop(
             let area = frame.area();
             let body = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Length(34), Constraint::Min(0)])
+                .constraints([Constraint::Length(app.collections_width), Constraint::Min(0)])
                 .split(area);
             app.collections_area = body[0];
             let main = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Length(6),
-                    Constraint::Fill(1),
-                    Constraint::Fill(2),
+                    Constraint::Length(app.request_height),
+                    Constraint::Min(0),
                 ])
                 .split(body[1]);
+            let main_rest = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Percentage(100_u16.saturating_sub(app.response_height_percent)),
+                    Constraint::Percentage(app.response_height_percent),
+                ])
+                .split(main[1]);
             let request_body = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Min(0), Constraint::Length(34)])
-                .split(main[1]);
+                .constraints([Constraint::Min(0), Constraint::Length(app.examples_width)])
+                .split(main_rest[0]);
 
             app.request_area = main[0];
             app.params_area = request_body[0];
             app.examples_area = request_body[1];
-            app.response_area = main[2];
+            app.response_area = main_rest[1];
 
             frame.render_widget(collections(project, app), body[0]);
             frame.render_widget(request_line(app), main[0]);
             frame.render_widget(params_table(app), request_body[0]);
             frame.render_widget(examples(project, app), request_body[1]);
-            render_response(frame, app, main[2]);
+            render_response(frame, app, main_rest[1]);
         })?;
 
         if event::poll(std::time::Duration::from_millis(250))? {
