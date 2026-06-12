@@ -61,6 +61,13 @@ pub struct ResponseView {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RequestTab {
+    Body,
+    Params,
+    Headers,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResponseTab {
     Body,
     Headers,
@@ -97,6 +104,7 @@ pub struct TuiApp {
     pub draft: RequestDraft,
     pub response: ResponseView,
     pub input_mode: InputMode,
+    pub active_request_tab: RequestTab,
     pub active_response_tab: ResponseTab,
     response_tab_origin: (u16, u16),
     pub collections_area: Rect,
@@ -141,6 +149,7 @@ impl TuiApp {
                 error: None,
             },
             input_mode: InputMode::Normal,
+            active_request_tab: RequestTab::Params,
             active_response_tab: ResponseTab::Body,
             response_tab_origin: (0, RESPONSE_TAB_ROW),
             collections_area: Rect::default(),
@@ -383,6 +392,12 @@ impl TuiApp {
                     return;
                 }
 
+                if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
+                    self.active_request_tab = tab;
+                    self.active_block = ActiveBlock::Params;
+                    return;
+                }
+
                 if mouse.column == self.collections_area.right().saturating_sub(1) || mouse.column == self.collections_area.right() {
                     self.drag_target = DragTarget::Collections;
                     return;
@@ -540,6 +555,27 @@ impl TuiApp {
             error: None,
         })
     }
+}
+
+fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
+    if row != app.params_area.y {
+        return None;
+    }
+    let origin_column = app.params_area.x + 1;
+    if column < origin_column {
+        return None;
+    }
+    let offset = column - origin_column;
+    if offset <= 5 {
+        return Some(RequestTab::Body);
+    }
+    if offset >= 7 && offset <= 14 {
+        return Some(RequestTab::Params);
+    }
+    if offset >= 16 && offset <= 24 {
+        return Some(RequestTab::Headers);
+    }
+    None
 }
 
 fn response_tab_at(app: &TuiApp, column: u16, row: u16, origin: (u16, u16)) -> Option<ResponseTab> {
@@ -700,7 +736,7 @@ fn run_loop(
 
             frame.render_widget(collections(project, app), body[0]);
             frame.render_widget(request_line(app), main[0]);
-            frame.render_widget(params_table(app), request_body[0]);
+            render_request_block(frame, app, request_body[0]);
             render_response(frame, app, main_rest[1]);
 
             if app.examples_dropdown_open {
@@ -826,7 +862,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     ])
     .block(
         Block::default()
-            .title(" Request ")
+            .title(" URL ")
             .title_top(Line::from(example_title).right_aligned())
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
@@ -834,42 +870,93 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     )
 }
 
-fn params_table(app: &TuiApp) -> Table<'static> {
+fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, area: Rect) {
     let border_style = if app.active_block == ActiveBlock::Params {
         Style::default().fg(ACCENT)
     } else {
         Style::default().fg(BORDER)
     };
 
-    Table::new(
-        [
-            Row::new(["id", "{id}", "Path", "OpenAPI path parameter"]),
-            Row::new([
-                "accept",
-                "application/json",
-                "Header",
-                "Default response format",
-            ]),
-        ],
-        [
-            Constraint::Percentage(20),
-            Constraint::Percentage(25),
-            Constraint::Percentage(18),
-            Constraint::Percentage(37),
-        ],
-    )
-    .header(
-        Row::new(["Key", "Value", "Source", "Description"])
-            .style(muted_style().add_modifier(Modifier::BOLD)),
-    )
-    .block(
-        Block::default()
-            .title(" Params ")
-            .borders(Borders::ALL)
-            .style(Style::default().bg(PANEL).fg(TEXT))
-            .border_style(border_style)
-    )
-    .style(Style::default().fg(TEXT))
+    let spans = vec![
+        Span::styled(
+            if app.active_request_tab == RequestTab::Body { " Body " } else { " Body " },
+            if app.active_request_tab == RequestTab::Body { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+        ),
+        Span::styled("·", muted_style()),
+        Span::styled(
+            if app.active_request_tab == RequestTab::Params { " Params " } else { " Params " },
+            if app.active_request_tab == RequestTab::Params { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+        ),
+        Span::styled("·", muted_style()),
+        Span::styled(
+            if app.active_request_tab == RequestTab::Headers { " Headers " } else { " Headers " },
+            if app.active_request_tab == RequestTab::Headers { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+        ),
+    ];
+    let tabs = Line::from(spans);
+
+    let block = Block::default()
+        .title_top(tabs)
+        .title_top(Line::from(" Request ").right_aligned())
+        .borders(Borders::ALL)
+        .style(Style::default().bg(PANEL).fg(TEXT))
+        .border_style(border_style);
+
+    match app.active_request_tab {
+        RequestTab::Body => {
+            let text = if app.draft.body.is_empty() {
+                "No request body".to_string()
+            } else {
+                app.draft.body.clone()
+            };
+            let p = Paragraph::new(text)
+                .style(Style::default().fg(TEXT))
+                .block(block);
+            frame.render_widget(p, area);
+        }
+        RequestTab::Params => {
+            let t = Table::new(
+                [
+                    Row::new(["id", "{id}", "Path", "OpenAPI path parameter"]),
+                    Row::new([
+                        "accept",
+                        "application/json",
+                        "Header",
+                        "Default response format",
+                    ]),
+                ],
+                [
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(25),
+                    Constraint::Percentage(18),
+                    Constraint::Percentage(37),
+                ],
+            )
+            .header(
+                Row::new(["Key", "Value", "Source", "Description"])
+                    .style(muted_style().add_modifier(Modifier::BOLD)),
+            )
+            .block(block)
+            .style(Style::default().fg(TEXT));
+            frame.render_widget(t, area);
+        }
+        RequestTab::Headers => {
+            let t = Table::new(
+                <Vec<Row>>::new(),
+                [
+                    Constraint::Percentage(30),
+                    Constraint::Percentage(70),
+                ],
+            )
+            .header(
+                Row::new(["Key", "Value"])
+                    .style(muted_style().add_modifier(Modifier::BOLD)),
+            )
+            .block(block)
+            .style(Style::default().fg(TEXT));
+            frame.render_widget(t, area);
+        }
+    }
 }
 
 fn examples(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
