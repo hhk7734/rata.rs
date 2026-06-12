@@ -17,15 +17,15 @@ use tempfile::tempdir;
 fn tui_app_edits_url_from_key_input() {
     let mut app = TuiApp::new(None);
 
-    app.handle_key(KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE))
+    app.handle_key(KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE), None)
         .unwrap();
     for value in "http://localhost:8000/v1/models".chars() {
-        app.handle_key(KeyEvent::new(KeyCode::Char(value), KeyModifiers::NONE))
+        app.handle_key(KeyEvent::new(KeyCode::Char(value), KeyModifiers::NONE), None)
             .unwrap();
     }
-    app.handle_key(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE))
+    app.handle_key(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE), None)
         .unwrap();
-    app.handle_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE))
+    app.handle_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE), None)
         .unwrap();
 
     assert_eq!(app.draft.url, "http://localhost:8000/v1/model");
@@ -42,14 +42,14 @@ fn response_view_uses_tabs_and_pretty_json_body() {
     assert_eq!(app.active_response_tab, ResponseTab::Body);
     assert_eq!(
         app.active_response_text(),
-        "{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}"
+        "{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}".into()
     );
 
     app.active_response_tab = ResponseTab::Headers;
-    assert_eq!(app.active_response_text(), "content-type: application/json");
+    assert_eq!(app.active_response_text(), "content-type: application/json".into());
 
     app.active_response_tab = ResponseTab::Cookies;
-    assert_eq!(app.active_response_text(), "session=abc; Path=/");
+    assert_eq!(app.active_response_text(), "session=abc; Path=/".into());
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn response_tabs_are_clickable() {
         column: 9,
         row: 3,
         modifiers: KeyModifiers::NONE,
-    });
+    }, None);
     assert_eq!(app.active_response_tab, ResponseTab::Headers);
 
     app.handle_mouse(MouseEvent {
@@ -69,7 +69,7 @@ fn response_tabs_are_clickable() {
         column: 19,
         row: 3,
         modifiers: KeyModifiers::NONE,
-    });
+    }, None);
     assert_eq!(app.active_response_tab, ResponseTab::Cookies);
 
     app.handle_mouse(MouseEvent {
@@ -77,7 +77,7 @@ fn response_tabs_are_clickable() {
         column: 2,
         row: 3,
         modifiers: KeyModifiers::NONE,
-    });
+    }, None);
     assert_eq!(app.active_response_tab, ResponseTab::Body);
 }
 

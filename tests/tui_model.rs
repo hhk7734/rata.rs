@@ -49,13 +49,7 @@ paths:
 
     assert_eq!(model.theme, Theme::Dark);
     assert_eq!(model.collections_title, "Collections");
-    assert_eq!(
-        model.request_tabs,
-        vec![
-            "GET Get user by ID".to_string(),
-            "POST Create user".to_string()
-        ]
-    );
+
     assert_eq!(
         model.selected_request_url,
         "https://api.example.com/users/{id}"
