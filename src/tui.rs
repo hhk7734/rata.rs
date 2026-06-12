@@ -78,12 +78,6 @@ pub enum ResponseTab {
     Cookies,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum InputMode {
-    Normal,
-    EditingUrl,
-    EditingRequestField,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveBlock {
@@ -116,7 +110,6 @@ pub struct TuiApp {
     pub model: TuiModel,
     pub draft: RequestDraft,
     pub response: ResponseView,
-    pub input_mode: InputMode,
     pub active_request_tab: RequestTab,
     pub active_response_tab: ResponseTab,
     response_tab_origin: (u16, u16),
@@ -171,7 +164,6 @@ impl TuiApp {
                 cookies: Vec::new(),
                 error: None,
             },
-            input_mode: InputMode::Normal,
             active_request_tab: RequestTab::Query,
             active_response_tab: ResponseTab::Body,
             response_tab_origin: (0, RESPONSE_TAB_ROW),
@@ -274,116 +266,104 @@ impl TuiApp {
                 .modifiers
                 .contains(crossterm::event::KeyModifiers::CONTROL)
         {
-            self.input_mode = InputMode::Normal;
             let _ = self.send(project);
             return Ok(AppAction::Continue);
         }
 
-        match self.input_mode {
-            InputMode::Normal => match key.code {
-                KeyCode::Enter => {
-                    if self.active_block == ActiveBlock::Params {
-                        self.input_mode = InputMode::EditingRequestField;
-                        self.editing_param_key = self.get_selected_request_key(project);
-                    }
-                    Ok(AppAction::Continue)
+        match key.code {
+            KeyCode::Up => {
+                if self.active_block == ActiveBlock::Response {
+                    self.scroll_response_up(1);
+                } else if self.active_block == ActiveBlock::Collections {
+                    self.select_previous_operation(project);
+                } else if self.active_block == ActiveBlock::Params {
+                    self.selected_request_row = self.selected_request_row.saturating_sub(1);
                 }
-                KeyCode::Char(' ') => {
-                    if self.active_block == ActiveBlock::Params {
-                        if let Some(key) = self.get_selected_request_key(project) {
-                            let params =
-                                self.get_current_parameters(project, self.active_request_tab);
-                            let is_required = params
-                                .iter()
-                                .find(|p| p.name == key)
-                                .map(|p| p.required)
-                                .unwrap_or(false);
-                            if !is_required {
-                                if self.active_request_tab == RequestTab::Query {
-                                    if self.draft.enabled_params.contains(&key) {
-                                        self.draft.enabled_params.remove(&key);
-                                    } else {
-                                        self.draft.enabled_params.insert(key);
-                                    }
-                                } else if self.active_request_tab == RequestTab::Headers {
-                                    if self.draft.enabled_headers.contains(&key) {
-                                        self.draft.enabled_headers.remove(&key);
-                                    } else {
-                                        self.draft.enabled_headers.insert(key);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Ok(AppAction::Continue)
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Down => {
+                if self.active_block == ActiveBlock::Response {
+                    self.scroll_response_down(1);
+                } else if self.active_block == ActiveBlock::Collections {
+                    self.select_next_operation(project);
+                } else if self.active_block == ActiveBlock::Params {
+                    self.selected_request_row = self.selected_request_row.saturating_add(1);
                 }
-                KeyCode::Up | KeyCode::Char('k') => {
-                    if self.active_block == ActiveBlock::Response {
-                        self.scroll_response_up(1);
-                    } else if self.active_block == ActiveBlock::Collections {
-                        self.select_previous_operation(project);
-                    } else if self.active_block == ActiveBlock::Params {
-                        self.selected_request_row = self.selected_request_row.saturating_sub(1);
-                    }
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Down | KeyCode::Char('j') => {
-                    if self.active_block == ActiveBlock::Response {
-                        self.scroll_response_down(1);
-                    } else if self.active_block == ActiveBlock::Collections {
-                        self.select_next_operation(project);
-                    } else if self.active_block == ActiveBlock::Params {
-                        self.selected_request_row = self.selected_request_row.saturating_add(1);
-                    }
-                    Ok(AppAction::Continue)
-                }
-                _ => Ok(AppAction::Continue),
-            },
-            InputMode::EditingUrl => match key.code {
-                KeyCode::Esc => {
-                    self.input_mode = InputMode::Normal;
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Enter => {
-                    self.input_mode = InputMode::Normal;
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Enter => {
+                if self.active_block == ActiveBlock::Request {
                     let _ = self.send(project);
-                    Ok(AppAction::Continue)
+                } else if self.active_block == ActiveBlock::Params && self.active_request_tab == RequestTab::Body {
+                    self.draft.body.push('\n');
                 }
-                KeyCode::Backspace => {
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Backspace => {
+                if self.active_block == ActiveBlock::Request {
                     self.draft.url.pop();
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Char(value) => {
-                    self.draft.url.push(value);
-                    Ok(AppAction::Continue)
-                }
-                _ => Ok(AppAction::Continue),
-            },
-            InputMode::EditingRequestField => match key.code {
-                KeyCode::Esc | KeyCode::Enter => {
-                    self.input_mode = InputMode::Normal;
-                    self.editing_param_key = None;
-                    Ok(AppAction::Continue)
-                }
-                KeyCode::Backspace => {
+                } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         self.draft.body.pop();
-                    } else if let Some(key) = &self.editing_param_key {
+                    } else if let Some(key) = self.get_selected_request_key(project) {
                         let map = if self.active_request_tab == RequestTab::Query {
                             &mut self.draft.param_values
                         } else {
                             &mut self.draft.header_values
                         };
-                        if let Some(val) = map.get_mut(key) {
+                        if let Some(val) = map.get_mut(&key) {
                             val.pop();
                         }
                     }
-                    Ok(AppAction::Continue)
                 }
-                KeyCode::Char(value) => {
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Char(value) => {
+                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response) {
+                    if self.active_block == ActiveBlock::Response {
+                        self.scroll_response_up(1);
+                    } else {
+                        self.select_previous_operation(project);
+                    }
+                    return Ok(AppAction::Continue);
+                }
+                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Response) {
+                    if self.active_block == ActiveBlock::Response {
+                        self.scroll_response_down(1);
+                    } else {
+                        self.select_next_operation(project);
+                    }
+                    return Ok(AppAction::Continue);
+                }
+                if value == ' ' && self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
+                    if let Some(key) = self.get_selected_request_key(project) {
+                        let params = self.get_current_parameters(project, self.active_request_tab);
+                        let is_required = params.iter().find(|p| p.name == key).map(|p| p.required).unwrap_or(false);
+                        if !is_required {
+                            if self.active_request_tab == RequestTab::Query {
+                                if self.draft.enabled_params.contains(&key) {
+                                    self.draft.enabled_params.remove(&key);
+                                } else {
+                                    self.draft.enabled_params.insert(key);
+                                }
+                            } else if self.active_request_tab == RequestTab::Headers {
+                                if self.draft.enabled_headers.contains(&key) {
+                                    self.draft.enabled_headers.remove(&key);
+                                } else {
+                                    self.draft.enabled_headers.insert(key);
+                                }
+                            }
+                        }
+                    }
+                    return Ok(AppAction::Continue);
+                }
+
+                if self.active_block == ActiveBlock::Request {
+                    self.draft.url.push(value);
+                } else if self.active_block == ActiveBlock::Params {
                     if self.active_request_tab == RequestTab::Body {
                         self.draft.body.push(value);
-                    } else if let Some(key) = &self.editing_param_key {
+                    } else if let Some(key) = self.get_selected_request_key(project) {
                         let map = if self.active_request_tab == RequestTab::Query {
                             &mut self.draft.param_values
                         } else {
@@ -392,10 +372,10 @@ impl TuiApp {
                         let val = map.entry(key.clone()).or_insert_with(String::new);
                         val.push(value);
                     }
-                    Ok(AppAction::Continue)
                 }
-                _ => Ok(AppAction::Continue),
-            },
+                Ok(AppAction::Continue)
+            }
+            _ => Ok(AppAction::Continue),
         }
     }
 
@@ -1321,7 +1301,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     };
 
     let mut url_text = url.clone();
-    if app.input_mode == InputMode::EditingUrl {
+    if app.active_block == ActiveBlock::Request {
         url_text.push('█');
     }
 
@@ -1367,7 +1347,7 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     ));
 
     let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
-    let show_navigate = app.input_mode == InputMode::Normal && match app.active_block {
+    let show_navigate = match app.active_block {
         ActiveBlock::Collections => true,
         ActiveBlock::Response => app.active_response_tab != ResponseTab::Body,
         ActiveBlock::Params => app.active_request_tab == RequestTab::Query || app.active_request_tab == RequestTab::Headers,
@@ -1463,13 +1443,12 @@ fn render_request_block(
     match app.active_request_tab {
         RequestTab::Body => {
             let mut text =
-                if app.draft.body.is_empty() && app.input_mode != InputMode::EditingRequestField {
+                if app.draft.body.is_empty() && !(app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body) {
                     "No request body".to_string()
                 } else {
                     app.draft.body.clone()
                 };
-            if app.input_mode == InputMode::EditingRequestField
-                && app.active_block == ActiveBlock::Params
+            if app.active_block == ActiveBlock::Params
                 && app.active_request_tab == RequestTab::Body
             {
                 text.push('█');
@@ -1486,9 +1465,7 @@ fn render_request_block(
             let params = app.get_current_parameters(project, RequestTab::Query);
             let mut i = 0;
             for param in &params {
-                let is_editing_this_row = app.input_mode == InputMode::EditingRequestField
-                    && app.active_block == ActiveBlock::Params
-                    && i == app.selected_request_row;
+                let is_editing_this_row = app.active_block == ActiveBlock::Params && i == app.selected_request_row;
                 let value = if is_editing_this_row {
                     app.draft
                         .param_values
@@ -1563,8 +1540,7 @@ fn render_request_block(
                     .get(&param.name)
                     .cloned()
                     .unwrap_or_default();
-                let display_value = if app.input_mode == InputMode::EditingRequestField
-                    && app.active_block == ActiveBlock::Params
+                let display_value = if app.active_block == ActiveBlock::Params
                     && i == app.selected_request_row
                 {
                     format!("{}█", value)
