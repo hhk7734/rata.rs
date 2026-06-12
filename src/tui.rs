@@ -283,6 +283,12 @@ impl TuiApp {
         }
 
         match key.code {
+            KeyCode::Esc => {
+                if self.param_edit_mode {
+                    self.param_edit_mode = false;
+                }
+                Ok(AppAction::Continue)
+            }
             KeyCode::Up => {
                 if self.active_block == ActiveBlock::Response {
                     self.scroll_response_up(1);
