@@ -579,15 +579,17 @@ impl TuiApp {
                     self.drag_target = DragTarget::Collections;
                     return;
                 }
-                if mouse.row == self.params_area.y.saturating_sub(1) || mouse.row == self.params_area.y {
-                    self.active_block = ActiveBlock::Params;
-                    self.drag_target = DragTarget::Request;
-                    return;
-                }
-                if mouse.row == self.response_area.y.saturating_sub(1) || mouse.row == self.response_area.y {
-                    self.active_block = ActiveBlock::Response;
-                    self.drag_target = DragTarget::Response;
-                    return;
+                if mouse.column >= self.request_area.x {
+                    if mouse.row == self.params_area.y.saturating_sub(1) || mouse.row == self.params_area.y {
+                        self.active_block = ActiveBlock::Params;
+                        self.drag_target = DragTarget::Request;
+                        return;
+                    }
+                    if mouse.row == self.response_area.y.saturating_sub(1) || mouse.row == self.response_area.y {
+                        self.active_block = ActiveBlock::Response;
+                        self.drag_target = DragTarget::Response;
+                        return;
+                    }
                 }
 
                 if contains(self.response_area, mouse.column, mouse.row) {
