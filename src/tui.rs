@@ -380,7 +380,7 @@ impl TuiApp {
                 return;
             }
             MouseEventKind::Down(MouseButton::Left) => {
-                if let Some(tab) = response_tab_at(mouse.column, mouse.row, self.response_tab_origin) {
+                if let Some(tab) = response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin) {
                     self.active_response_tab = tab;
                     self.response_scroll = 0;
                     self.active_block = ActiveBlock::Response;
@@ -455,8 +455,25 @@ impl TuiApp {
         self.response_tab_origin = (area.x, area.y);
     }
 
-    pub fn response_tabs(&self) -> [&'static str; 3] {
-        ["Body", "Headers", "Cookies"]
+    pub fn response_tabs(&self) -> [String; 3] {
+        [
+            "Body".to_string(),
+            format!("Headers ({})", self.response.headers.len()),
+            format!("Cookies ({})", self.response.cookies.len()),
+        ]
+    }
+
+    pub fn response_tab_bounds(&self) -> [(u16, u16); 3] {
+        let tabs = self.response_tabs();
+        let mut bounds = [(0, 0); 3];
+        let mut current = 1;
+        for i in 0..3 {
+            let start = current;
+            let end = start + tabs[i].chars().count() as u16 - 1;
+            bounds[i] = (start, end);
+            current = end + 1 + 3;
+        }
+        bounds
     }
 
     pub fn active_response_text(&self) -> Text<'static> {
@@ -518,27 +535,28 @@ impl TuiApp {
     }
 }
 
-fn response_tab_at(column: u16, row: u16, origin: (u16, u16)) -> Option<ResponseTab> {
+fn response_tab_at(app: &TuiApp, column: u16, row: u16, origin: (u16, u16)) -> Option<ResponseTab> {
     let (origin_column, origin_row) = origin;
     if row != origin_row || column < origin_column {
         return None;
     }
 
-    match column - origin_column {
-        BODY_TAB_START..=BODY_TAB_END => Some(ResponseTab::Body),
-        HEADERS_TAB_START..=HEADERS_TAB_END => Some(ResponseTab::Headers),
-        COOKIES_TAB_START..=COOKIES_TAB_END => Some(ResponseTab::Cookies),
-        _ => None,
+    let offset = column - origin_column;
+    let bounds = app.response_tab_bounds();
+    
+    if offset >= bounds[0].0 && offset <= bounds[0].1 {
+        return Some(ResponseTab::Body);
     }
+    if offset >= bounds[1].0 && offset <= bounds[1].1 {
+        return Some(ResponseTab::Headers);
+    }
+    if offset >= bounds[2].0 && offset <= bounds[2].1 {
+        return Some(ResponseTab::Cookies);
+    }
+    None
 }
 
 const RESPONSE_TAB_ROW: u16 = 3;
-const BODY_TAB_START: u16 = 2;
-const BODY_TAB_END: u16 = 5;
-const HEADERS_TAB_START: u16 = 9;
-const HEADERS_TAB_END: u16 = 15;
-const COOKIES_TAB_START: u16 = 19;
-const COOKIES_TAB_END: u16 = 25;
 
 fn pretty_body(body: &str) -> String {
     if body.is_empty() {
@@ -870,25 +888,58 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
 
     app.set_response_tabs_area(Rect { x: area.x, y: area.y, width: area.width, height: 1 });
     
-    let text = app.active_response_text();
-    let lines = text.lines.len();
     let view_height = inner.height as usize;
 
-    frame.render_widget(response_body(app, text), inner);
+    if app.active_response_tab == ResponseTab::Headers {
+        let header_rows: Vec<ratatui::widgets::Row> = app.response.headers.iter().map(|(k, v)| {
+            ratatui::widgets::Row::new(vec![
+                ratatui::widgets::Cell::from(Span::styled(k.clone(), Style::default().fg(BLUE))),
+                ratatui::widgets::Cell::from(Span::raw(v.clone()))
+            ])
+        }).collect();
+        let widths = [ratatui::layout::Constraint::Percentage(30), ratatui::layout::Constraint::Percentage(70)];
+        let table = ratatui::widgets::Table::new(header_rows, widths)
+            .header(ratatui::widgets::Row::new(vec!["Key", "Value"]).style(Style::default().add_modifier(Modifier::BOLD).fg(MUTED)))
+            .column_spacing(2);
+        
+        let mut table_state = ratatui::widgets::TableState::default().with_offset(app.response_scroll as usize);
+        frame.render_stateful_widget(table, inner, &mut table_state);
 
-    if lines > view_height {
-        let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
-            .content_length(lines.saturating_sub(view_height))
-            .position(app.response_scroll as usize);
-        let scrollbar = ratatui::widgets::Scrollbar::default()
-            .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
-            .begin_symbol(Some("▲"))
-            .end_symbol(Some("▼"));
-        frame.render_stateful_widget(
-            scrollbar,
-            area.inner(ratatui::layout::Margin { vertical: 1, horizontal: 0 }),
-            &mut scrollbar_state,
-        );
+        let lines = app.response.headers.len() + 1; // +1 for header row
+        if lines > view_height {
+            let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
+                .content_length(lines.saturating_sub(view_height))
+                .position(app.response_scroll as usize);
+            let scrollbar = ratatui::widgets::Scrollbar::default()
+                .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+                .begin_symbol(Some("▲"))
+                .end_symbol(Some("▼"));
+            frame.render_stateful_widget(
+                scrollbar,
+                area.inner(ratatui::layout::Margin { vertical: 1, horizontal: 0 }),
+                &mut scrollbar_state,
+            );
+        }
+    } else {
+        let text = app.active_response_text();
+        let lines = text.lines.len();
+
+        frame.render_widget(response_body(app, text), inner);
+
+        if lines > view_height {
+            let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
+                .content_length(lines.saturating_sub(view_height))
+                .position(app.response_scroll as usize);
+            let scrollbar = ratatui::widgets::Scrollbar::default()
+                .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+                .begin_symbol(Some("▲"))
+                .end_symbol(Some("▼"));
+            frame.render_stateful_widget(
+                scrollbar,
+                area.inner(ratatui::layout::Margin { vertical: 1, horizontal: 0 }),
+                &mut scrollbar_state,
+            );
+        }
     }
 }
 
@@ -906,13 +957,13 @@ fn response_tabs_title(app: &TuiApp) -> Line<'static> {
             spans.push(Span::styled(" · ", muted_style()));
         }
         if i == selected {
-            spans.push(Span::styled(*tab, accent_style().add_modifier(Modifier::BOLD)));
+            spans.push(Span::styled(tab.clone(), accent_style().add_modifier(Modifier::BOLD)));
         } else {
-            spans.push(Span::styled(*tab, muted_style()));
+            spans.push(Span::styled(tab.clone(), muted_style()));
         }
     }
     spans.push(Span::raw(" "));
-    Line::from(spans).left_aligned()
+    Line::from(spans)
 }
 
 fn response_status_title(app: &TuiApp) -> Line<'static> {

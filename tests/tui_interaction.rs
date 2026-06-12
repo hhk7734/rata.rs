@@ -38,7 +38,7 @@ fn response_view_uses_tabs_and_pretty_json_body() {
     app.response.headers = vec![("content-type".to_string(), "application/json".to_string())];
     app.response.cookies = vec!["session=abc; Path=/".to_string()];
 
-    assert_eq!(app.response_tabs(), ["Body", "Headers", "Cookies"]);
+    assert_eq!(app.response_tabs(), ["Body".to_string(), "Headers (1)".to_string(), "Cookies (1)".to_string()]);
     assert_eq!(app.active_response_tab, ResponseTab::Body);
     assert_eq!(
         app.active_response_text(),
@@ -66,7 +66,7 @@ fn response_tabs_are_clickable() {
 
     app.handle_mouse(MouseEvent {
         kind: MouseEventKind::Down(MouseButton::Left),
-        column: 19,
+        column: 25,
         row: 3,
         modifiers: KeyModifiers::NONE,
     }, None);
