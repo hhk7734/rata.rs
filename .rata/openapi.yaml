@@ -46,10 +46,10 @@ paths:
       summary: OpenAI Chat Completions API
       description: Creates a model response for the given chat conversation.
       requestBody:
-        $ref: '#/components/requestBodies/createChatCompletionRequest'
+        $ref: "#/components/requestBodies/createChatCompletionRequest"
       responses:
         "200":
-          $ref: '#/components/responses/createChatCompletionResponse'
+          $ref: "#/components/responses/createChatCompletionResponse"
   /v1/completions:
     post:
       tags:
@@ -140,6 +140,13 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - role
+                  properties:
+                    role:
+                      type: string
+                    content:
+                      type: string
               temperature:
                 type: number
                 format: float
