@@ -816,20 +816,20 @@ fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
         return None;
     }
     let offset = column - origin_column;
-    let tabs = ["Params", "Headers", "Body"];
-    let mut current = 1;
+    let tabs = [" Body ", " Params ", " Headers "];
+    let mut current = 0;
     for (i, tab) in tabs.iter().enumerate() {
         let start = current;
-        let end = start + tab.len() as u16 - 1;
+        let end = start + tab.chars().count() as u16 - 1;
         if offset >= start && offset <= end {
             return match i {
-                0 => Some(RequestTab::Params),
-                1 => Some(RequestTab::Headers),
-                2 => Some(RequestTab::Body),
+                0 => Some(RequestTab::Body),
+                1 => Some(RequestTab::Params),
+                2 => Some(RequestTab::Headers),
                 _ => None,
             };
         }
-        current = end + 1 + 3;
+        current = end + 1 + 1; // +1 for the separator "·"
     }
     None
 }
