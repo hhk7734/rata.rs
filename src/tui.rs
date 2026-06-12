@@ -380,6 +380,13 @@ impl TuiApp {
                 return;
             }
             MouseEventKind::Down(MouseButton::Left) => {
+                if let Some(tab) = response_tab_at(mouse.column, mouse.row, self.response_tab_origin) {
+                    self.active_response_tab = tab;
+                    self.response_scroll = 0;
+                    self.active_block = ActiveBlock::Response;
+                    return;
+                }
+
                 if mouse.column == self.collections_area.right().saturating_sub(1) || mouse.column == self.collections_area.right() {
                     self.drag_target = DragTarget::Collections;
                     return;
@@ -401,13 +408,6 @@ impl TuiApp {
         }
 
         self.active_block = ActiveBlock::None;
-
-        if let Some(tab) = response_tab_at(mouse.column, mouse.row, self.response_tab_origin) {
-            self.active_response_tab = tab;
-            self.response_scroll = 0;
-            self.active_block = ActiveBlock::Response;
-            return;
-        }
 
         if contains(self.collections_area, mouse.column, mouse.row) {
             self.active_block = ActiveBlock::Collections;
