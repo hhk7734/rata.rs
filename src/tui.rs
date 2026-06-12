@@ -207,7 +207,7 @@ impl TuiApp {
             selected_operation,
             response_scroll: 0,
             collections_width: 34,
-            request_height: 5,
+            request_height: 3,
             response_height_percent: 66,
             examples_dropdown_open: false,
             wrap_body: false,
@@ -1287,36 +1287,40 @@ fn run_loop(
                 .constraints([Constraint::Min(0), Constraint::Length(1)])
                 .split(area);
 
+            let url_and_rest = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Length(app.request_height), Constraint::Min(0)])
+                .split(app_layout[0]);
+
+            let url_area = url_and_rest[0];
+            let rest_area = url_and_rest[1];
+
             let body = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Length(app.collections_width),
                     Constraint::Min(0),
                 ])
-                .split(app_layout[0]);
+                .split(rest_area);
             app.collections_area = body[0];
-            let main = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Length(app.request_height), Constraint::Min(0)])
-                .split(body[1]);
             let main_rest = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Percentage(100_u16.saturating_sub(app.response_height_percent)),
                     Constraint::Percentage(app.response_height_percent),
                 ])
-                .split(main[1]);
+                .split(body[1]);
             let request_body = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Min(0)])
                 .split(main_rest[0]);
 
-            app.request_area = main[0];
+            app.request_area = url_area;
             app.params_area = request_body[0];
             app.response_area = main_rest[1];
 
+            frame.render_widget(request_line(app), url_area);
             frame.render_widget(collections(project, app), body[0]);
-            frame.render_widget(request_line(app), main[0]);
             render_request_block(frame, app, project, request_body[0]);
             render_response(frame, app, main_rest[1]);
             frame.render_widget(render_shortcut_bar(app), app_layout[1]);
@@ -1459,6 +1463,13 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         spans.push(Span::styled(url.clone(), Style::default().fg(TEXT).bg(SELECTED_BG)));
     }
     spans.push(Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)));
+
+    let method_str_len = format!(" {} ▾ ", app.draft.method.label()).chars().count();
+    let occupied = method_str_len + 1 + 1 + url.chars().count() + 1;
+    let remaining = app.request_area.width.saturating_sub(2).saturating_sub(occupied as u16);
+    if remaining > 0 {
+        spans.push(Span::styled(" ".repeat(remaining as usize), Style::default().bg(SELECTED_BG)));
+    }
 
     Paragraph::new(Line::from(spans))
     .block(
