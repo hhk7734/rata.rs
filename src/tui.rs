@@ -185,7 +185,7 @@ impl TuiApp {
             selected_operation,
             response_scroll: 0,
             collections_width: 34,
-            request_height: 6,
+            request_height: 5,
             response_height_percent: 66,
             examples_dropdown_open: false,
             drag_target: DragTarget::None,
@@ -1002,10 +1002,15 @@ fn run_loop(
     loop {
         terminal.draw(|frame| {
             let area = frame.area();
+            let app_layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Min(0), Constraint::Length(1)])
+                .split(area);
+            
             let body = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Length(app.collections_width), Constraint::Min(0)])
-                .split(area);
+                .split(app_layout[0]);
             app.collections_area = body[0];
             let main = Layout::default()
                 .direction(Direction::Vertical)
@@ -1034,6 +1039,7 @@ fn run_loop(
             frame.render_widget(request_line(app), main[0]);
             render_request_block(frame, app, project, request_body[0]);
             render_response(frame, app, main_rest[1]);
+            frame.render_widget(render_shortcut_bar(app), app_layout[1]);
 
             if app.examples_dropdown_open {
                 let dropdown_width = 30;
@@ -1147,15 +1153,6 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     } else {
         app.draft.url.clone()
     };
-    let mode_hint = match app.input_mode {
-        InputMode::Normal => "e edit · Enter/s send · q quit",
-        InputMode::EditingUrl => {
-            "typing edits URL · Backspace delete · Enter send · Esc cancel edit"
-        }
-        InputMode::EditingRequestField => {
-            "typing edits value · Backspace delete · Enter save · Esc cancel edit"
-        }
-    };
 
     let border_style = if app.active_block == ActiveBlock::Request {
         Style::default().fg(ACCENT)
@@ -1175,7 +1172,6 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
             method_style(app.draft.method),
         )),
         Line::from(Span::styled(url, Style::default().fg(TEXT))),
-        Line::from(Span::styled(mode_hint, muted_style())),
     ])
     .block(
         Block::default()
@@ -1185,6 +1181,41 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
             .style(Style::default().bg(PANEL).fg(TEXT))
             .border_style(border_style)
     )
+}
+
+fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
+    let mut spans = Vec::new();
+    let bg = PANEL;
+    let key_fg = PANEL;
+    let key_bg = ACCENT;
+    let desc_fg = TEXT;
+    
+    let mut add_shortcut = |key: &str, desc: &str| {
+        spans.push(Span::styled(format!(" {} ", key), Style::default().fg(key_fg).bg(key_bg).add_modifier(Modifier::BOLD)));
+        spans.push(Span::styled(format!(" {} ", desc), Style::default().fg(desc_fg).bg(bg)));
+        spans.push(Span::raw(" "));
+    };
+
+    match app.input_mode {
+        InputMode::Normal => {
+            add_shortcut("q", "Quit");
+            add_shortcut("e/i", "Edit");
+            add_shortcut("Enter/s", "Send");
+            add_shortcut("1-3", "Resp Tabs");
+            add_shortcut("↑↓", "Navigate");
+            add_shortcut("Space", "Toggle");
+        }
+        InputMode::EditingUrl => {
+            add_shortcut("Esc", "Cancel");
+            add_shortcut("Enter", "Send");
+        }
+        InputMode::EditingRequestField => {
+            add_shortcut("Esc", "Cancel");
+            add_shortcut("Enter", "Save");
+        }
+    }
+
+    Paragraph::new(Line::from(spans)).style(Style::default().bg(bg))
 }
 
 fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Option<&RataProject>, area: Rect) {
