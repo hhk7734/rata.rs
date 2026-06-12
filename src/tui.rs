@@ -99,6 +99,7 @@ pub enum ActiveBlock {
     Params,
     Examples,
     Response,
+    MethodDropdown,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -149,7 +150,18 @@ pub struct TuiApp {
     pub drag_last_row: Option<u16>,
     pub text_selection: Option<Selection>,
     pub clipboard: Option<arboard::Clipboard>,
+    pub method_dropdown_open: bool,
+    pub selected_method_row: usize,
+    pub method_dropdown_area: Rect,
 }
+
+const METHODS: [HttpMethod; 5] = [
+    HttpMethod::Get,
+    HttpMethod::Post,
+    HttpMethod::Put,
+    HttpMethod::Patch,
+    HttpMethod::Delete,
+];
 
 fn count_display_lines(text: &str, wrap: bool, width: usize) -> u16 {
     if !wrap || width == 0 {
@@ -221,6 +233,9 @@ impl TuiApp {
             drag_last_row: None,
             text_selection: None,
             clipboard: arboard::Clipboard::new().ok(),
+            method_dropdown_open: false,
+            selected_method_row: 0,
+            method_dropdown_area: Rect::default(),
         }
     }
 
@@ -376,6 +391,10 @@ pub fn handle_key(
                     self.examples_dropdown_open = false;
                     self.active_block = ActiveBlock::Request;
                 }
+                if self.method_dropdown_open {
+                    self.method_dropdown_open = false;
+                    self.active_block = ActiveBlock::Request;
+                }
                 Ok(AppAction::Continue)
             }
             KeyCode::Tab => {
@@ -422,6 +441,8 @@ pub fn handle_key(
                     }
                 } else if self.active_block == ActiveBlock::Examples {
                     self.selected_example_row = self.selected_example_row.saturating_sub(1);
+                } else if self.active_block == ActiveBlock::MethodDropdown {
+                    self.selected_method_row = self.selected_method_row.saturating_sub(1);
                 }
                 Ok(AppAction::Continue)
             }
@@ -444,6 +465,9 @@ pub fn handle_key(
                 } else if self.active_block == ActiveBlock::Examples {
                     let max = self.model.examples.len().saturating_sub(1);
                     self.selected_example_row = self.selected_example_row.saturating_add(1).min(max);
+                } else if self.active_block == ActiveBlock::MethodDropdown {
+                    let max = METHODS.len().saturating_sub(1);
+                    self.selected_method_row = self.selected_method_row.saturating_add(1).min(max);
                 }
                 Ok(AppAction::Continue)
             }
@@ -488,6 +512,12 @@ pub fn handle_key(
                         }
                     }
                     self.examples_dropdown_open = false;
+                    self.active_block = ActiveBlock::Request;
+                } else if self.active_block == ActiveBlock::MethodDropdown {
+                    if let Some(m) = METHODS.get(self.selected_method_row) {
+                        self.draft.method = *m;
+                    }
+                    self.method_dropdown_open = false;
                     self.active_block = ActiveBlock::Request;
                 }
                 Ok(AppAction::Continue)
@@ -811,6 +841,39 @@ pub fn handle_key(
                 return;
             }
             MouseEventKind::Down(MouseButton::Left) => {
+                let method_str_len = format!(" {} ▾ ", self.draft.method.label()).chars().count() as u16;
+                let clicked_method_dropdown = mouse.row == self.request_area.y + 1
+                    && mouse.column >= self.request_area.x + 1
+                    && mouse.column < self.request_area.x + 1 + method_str_len;
+                let clicked_inside_method_dropdown =
+                    self.method_dropdown_open && contains(self.method_dropdown_area, mouse.column, mouse.row);
+
+                if self.method_dropdown_open && !clicked_method_dropdown && !clicked_inside_method_dropdown {
+                    self.method_dropdown_open = false;
+                }
+
+                if clicked_method_dropdown {
+                    self.method_dropdown_open = !self.method_dropdown_open;
+                    if self.method_dropdown_open {
+                        self.active_block = ActiveBlock::MethodDropdown;
+                        self.selected_method_row = METHODS.iter().position(|m| m == &self.draft.method).unwrap_or(0);
+                    } else {
+                        self.active_block = ActiveBlock::Request;
+                        self.text_cursor = usize::MAX;
+                    }
+                    return;
+                }
+
+                if clicked_inside_method_dropdown {
+                    self.active_block = ActiveBlock::Request;
+                    self.method_dropdown_open = false; // Close when clicked inside
+                    let clicked_row = mouse.row.saturating_sub(self.method_dropdown_area.y + 1);
+                    if let Some(m) = METHODS.get(clicked_row as usize) {
+                        self.draft.method = *m;
+                    }
+                    return;
+                }
+
                 let dropdown_x = self.request_area.right().saturating_sub(14);
                 let clicked_dropdown_toggle = mouse.row == self.request_area.y
                     && mouse.column >= dropdown_x
@@ -834,7 +897,7 @@ pub fn handle_key(
                 }
 
                 if clicked_inside_dropdown {
-                    self.active_block = ActiveBlock::Examples;
+                    self.active_block = ActiveBlock::Request;
                     self.examples_dropdown_open = false; // Close when clicked inside
                     let clicked_row = mouse.row.saturating_sub(self.examples_area.y + 1);
                     if let Some(example_name) = self.model.examples.get(clicked_row as usize) {
@@ -887,6 +950,13 @@ pub fn handle_key(
                     self.drag_target = DragTarget::Collections;
                     return;
                 }
+
+                if contains(self.request_area, mouse.column, mouse.row) {
+                    self.active_block = ActiveBlock::Request;
+                    self.text_cursor = usize::MAX;
+                    return;
+                }
+
                 if mouse.column >= self.request_area.x {
                     if mouse.row == self.params_area.y.saturating_sub(1)
                         || mouse.row == self.params_area.y
@@ -1337,6 +1407,22 @@ fn run_loop(
             } else {
                 app.examples_area = Rect::default();
             }
+
+            if app.method_dropdown_open {
+                let dropdown_width = 15;
+                let dropdown_height = METHODS.len() as u16 + 2;
+                let area = Rect {
+                    x: app.request_area.x + 1,
+                    y: app.request_area.y + 1,
+                    width: dropdown_width,
+                    height: dropdown_height,
+                };
+                app.method_dropdown_area = area;
+                frame.render_widget(ratatui::widgets::Clear, area);
+                frame.render_widget(method_dropdown(app), area);
+            } else {
+                app.method_dropdown_area = Rect::default();
+            }
         })?;
 
         if event::poll(std::time::Duration::from_millis(50))? {
@@ -1446,9 +1532,11 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         " Examples ▾ "
     };
 
+    let method_icon = if app.method_dropdown_open { "▴" } else { "▾" };
+
     let mut spans = vec![
         Span::styled(
-            format!(" {} ▾ ", app.draft.method.label()),
+            format!(" {} {} ", app.draft.method.label(), method_icon),
             method_style(app.draft.method).bg(SELECTED_BG).add_modifier(Modifier::BOLD),
         ),
         Span::raw(" "),
@@ -1461,7 +1549,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     }
     spans.push(Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)));
 
-    let method_str_len = format!(" {} ▾ ", app.draft.method.label()).chars().count();
+    let method_str_len = format!(" {} {} ", app.draft.method.label(), method_icon).chars().count();
     let occupied = method_str_len + 1 + 1 + url.chars().count() + 1;
     let remaining = app.request_area.width.saturating_sub(2).saturating_sub(occupied as u16);
     if remaining > 0 {
@@ -1758,6 +1846,34 @@ fn examples(_project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
                 .border_style(border_style),
         )
         .style(Style::default().fg(TEXT))
+}
+
+fn method_dropdown(app: &TuiApp) -> List<'static> {
+    let border_style = if app.active_block == ActiveBlock::MethodDropdown {
+        Style::default().fg(ACCENT)
+    } else {
+        Style::default().fg(BORDER)
+    };
+
+    let items: Vec<ListItem> = METHODS
+        .iter()
+        .enumerate()
+        .map(|(i, m)| {
+            let mut style = method_style(*m);
+            if app.active_block == ActiveBlock::MethodDropdown && i == app.selected_method_row {
+                style = style.bg(SELECTED_BG);
+            }
+            ListItem::new(Span::styled(format!(" {:<6}", m.label()), style))
+        })
+        .collect();
+
+    List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(border_style)
+            .title(" Method ")
+            .style(Style::default().bg(PANEL)),
+    )
 }
 
 fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect) {
