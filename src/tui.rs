@@ -723,8 +723,8 @@ impl TuiApp {
 
     pub fn request_tabs(&self) -> [String; 3] {
         [
-            " Body ".to_string(),
             format!(" Params ({}) ", self.draft.enabled_params.len()),
+            " Body ".to_string(),
             format!(" Headers ({}) ", self.draft.enabled_headers.len()),
         ]
     }
@@ -868,8 +868,8 @@ fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
         let end = start + tab.chars().count() as u16 - 1;
         if offset >= start && offset <= end {
             return match i {
-                0 => Some(RequestTab::Body),
-                1 => Some(RequestTab::Params),
+                0 => Some(RequestTab::Params),
+                1 => Some(RequestTab::Body),
                 2 => Some(RequestTab::Headers),
                 _ => None,
             };
@@ -1218,12 +1218,12 @@ fn render_request_block(frame: &mut ratatui::Frame, app: &TuiApp, project: Optio
     let spans = vec![
         Span::styled(
             request_tabs[0].clone(),
-            if app.active_request_tab == RequestTab::Body { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+            if app.active_request_tab == RequestTab::Params { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
         ),
         Span::styled("·", muted_style()),
         Span::styled(
             request_tabs[1].clone(),
-            if app.active_request_tab == RequestTab::Params { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
+            if app.active_request_tab == RequestTab::Body { accent_style().add_modifier(Modifier::BOLD) } else { muted_style() },
         ),
         Span::styled("·", muted_style()),
         Span::styled(
