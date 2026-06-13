@@ -20,12 +20,12 @@ use ratatui::{
 
 use crate::project::{HttpMethod, RataProject};
 
-const PANEL: Color = Color::Rgb(24, 27, 34);
+pub const PANEL: Color = Color::Rgb(30, 30, 35);
 const SELECTED_BG: Color = Color::Rgb(55, 60, 75);
 const BORDER: Color = Color::Rgb(62, 68, 82);
-const TEXT: Color = Color::Rgb(242, 244, 247);
+pub const TEXT: Color = Color::Rgb(242, 244, 247);
 const MUTED: Color = Color::Rgb(152, 162, 179);
-const ACCENT: Color = Color::Rgb(255, 138, 95);
+pub const ACCENT: Color = Color::Rgb(255, 138, 95);
 const GREEN: Color = Color::Rgb(47, 209, 124);
 const YELLOW: Color = Color::Rgb(245, 184, 75);
 const RED: Color = Color::Rgb(255, 123, 114);
@@ -284,7 +284,7 @@ fn visual_to_char_index(
     text.chars().count()
 }
 
-fn count_visual_lines(text: &str, width: usize, wrap: bool) -> usize {
+pub fn count_visual_lines(text: &str, width: usize, wrap: bool) -> usize {
     if !wrap || width == 0 {
         return text.lines().count();
     }
@@ -456,7 +456,11 @@ impl TuiApp {
             match self.active_response_tab {
                 ResponseTab::Body => {
                     let width = self.response_area.width.saturating_sub(2) as usize;
-                    count_display_lines(&pretty_body(&self.response.body), self.wrap_body, width)
+                    count_display_lines(
+                        &crate::components::body::pretty_body(&self.response.body),
+                        self.wrap_body,
+                        width,
+                    )
                 }
                 ResponseTab::Headers => self.response.headers.len().max(1) as u16,
                 ResponseTab::Cookies => self.response.cookies.len().max(1) as u16,
@@ -1563,7 +1567,7 @@ impl TuiApp {
             return error.clone();
         }
         match self.active_response_tab {
-            ResponseTab::Body => pretty_body(&self.response.body),
+            ResponseTab::Body => crate::components::body::pretty_body(&self.response.body),
             ResponseTab::Headers => format_pairs(&self.response.headers, "No headers"),
             ResponseTab::Cookies => {
                 if self.response.cookies.is_empty() {
@@ -1605,32 +1609,6 @@ impl TuiApp {
 
     pub fn extract_request_selection(&self, sel: Selection) -> String {
         Self::extract_text_selection(&self.draft.body, sel)
-    }
-
-    pub fn active_response_text(&self) -> Text<'static> {
-        if let Some(error) = &self.response.error {
-            let text = Text::raw(error.clone());
-            return apply_selection(text, self.text_selection);
-        }
-
-        match self.active_response_tab {
-            ResponseTab::Body => {
-                let body = pretty_body(&self.response.body);
-                apply_selection(highlight_json(&body), self.text_selection)
-            }
-            ResponseTab::Headers => {
-                let text = Text::raw(format_pairs(&self.response.headers, "No headers"));
-                apply_selection(text, self.text_selection)
-            }
-            ResponseTab::Cookies => {
-                let text = if self.response.cookies.is_empty() {
-                    Text::raw("No cookies".to_string())
-                } else {
-                    Text::raw(self.response.cookies.join("\n"))
-                };
-                apply_selection(text, self.text_selection)
-            }
-        }
     }
 }
 
@@ -1770,16 +1748,6 @@ fn response_tab_at(app: &TuiApp, column: u16, row: u16, origin: (u16, u16)) -> O
 }
 
 const RESPONSE_TAB_ROW: u16 = 3;
-
-fn pretty_body(body: &str) -> String {
-    if body.is_empty() {
-        return "No response yet.".to_string();
-    }
-
-    serde_json::from_str::<serde_json::Value>(body)
-        .and_then(|value| serde_json::to_string_pretty(&value))
-        .unwrap_or_else(|_| body.to_string())
-}
 
 fn format_pairs(pairs: &[(String, String)], empty: &str) -> String {
     if pairs.is_empty() {
@@ -2299,45 +2267,24 @@ fn render_request_block(
             } else {
                 app.draft.body.clone()
             };
-            let mut highlighted = highlight_json(&text);
-            highlighted = apply_selection(highlighted, app.request_selection);
-            if app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body
+            let cursor = if app.active_block == ActiveBlock::Params
+                && app.active_request_tab == RequestTab::Body
             {
-                highlighted = apply_cursor_to_text(highlighted, app.text_cursor);
-            }
-            let mut p = Paragraph::new(highlighted.clone())
-                .style(Style::default().fg(TEXT))
-                .block(block)
-                .scroll((app.request_scroll, 0));
-            if app.wrap_body {
-                p = p.wrap(ratatui::widgets::Wrap { trim: false });
-            }
-            frame.render_widget(p, area);
-
-            let inner_width = area.width.saturating_sub(2) as usize;
-            let lines = if app.wrap_body && inner_width > 0 {
-                count_visual_lines(&app.draft.body, inner_width, app.wrap_body)
+                Some(app.text_cursor)
             } else {
-                highlighted.lines.len()
+                None
             };
-            let view_height = area.height.saturating_sub(2) as usize;
-            if lines > view_height {
-                let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
-                    .content_length(lines.saturating_sub(view_height))
-                    .position(app.request_scroll as usize);
-                let scrollbar = ratatui::widgets::Scrollbar::default()
-                    .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
-                    .begin_symbol(Some("▲"))
-                    .end_symbol(Some("▼"));
-                frame.render_stateful_widget(
-                    scrollbar,
-                    area.inner(ratatui::layout::Margin {
-                        vertical: 1,
-                        horizontal: 0,
-                    }),
-                    &mut scrollbar_state,
-                );
-            }
+
+            crate::components::body::render_body_with_scrollbar(
+                frame,
+                area,
+                &text,
+                Some(block),
+                app.request_scroll,
+                app.wrap_body,
+                app.request_selection,
+                cursor,
+            );
         }
         RequestTab::Query => {
             let mut rows = Vec::new();
@@ -2628,32 +2575,58 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
             );
         }
     } else {
-        let text = app.active_response_text();
-        let inner_width = inner.width as usize;
-        let lines = if app.wrap_body && inner_width > 0 {
-            count_visual_lines(&app.active_response_string(), inner_width, app.wrap_body)
-        } else {
-            text.lines.len()
-        };
+        let raw_string = app.active_response_string();
 
-        frame.render_widget(response_body(app, text), inner);
-
-        if lines > view_height {
-            let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
-                .content_length(lines.saturating_sub(view_height))
-                .position(app.response_scroll as usize);
-            let scrollbar = ratatui::widgets::Scrollbar::default()
-                .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
-                .begin_symbol(Some("▲"))
-                .end_symbol(Some("▼"));
-            frame.render_stateful_widget(
-                scrollbar,
-                area.inner(ratatui::layout::Margin {
-                    vertical: 1,
-                    horizontal: 0,
-                }),
-                &mut scrollbar_state,
+        if app.active_response_tab == ResponseTab::Body && app.response.error.is_none() {
+            crate::components::body::render_body_with_scrollbar(
+                frame,
+                inner,
+                &raw_string,
+                None,
+                app.response_scroll,
+                app.wrap_body,
+                app.text_selection,
+                None,
             );
+        } else {
+            let mut text = ratatui::text::Text::raw(raw_string.clone());
+            text = apply_selection(text, app.text_selection);
+
+            let mut p = ratatui::widgets::Paragraph::new(text)
+                .style(ratatui::style::Style::default().fg(TEXT))
+                .scroll((app.response_scroll, 0));
+
+            if app.wrap_body {
+                p = p.wrap(ratatui::widgets::Wrap { trim: false });
+            }
+
+            frame.render_widget(p, inner);
+
+            let inner_width = inner.width as usize;
+            let lines = if app.wrap_body && inner_width > 0 {
+                count_visual_lines(&raw_string, inner_width, app.wrap_body)
+            } else {
+                raw_string.lines().count()
+            };
+
+            let view_height = inner.height as usize;
+            if lines > view_height {
+                let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
+                    .content_length(lines.saturating_sub(view_height))
+                    .position(app.response_scroll as usize);
+                let scrollbar = ratatui::widgets::Scrollbar::default()
+                    .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+                    .begin_symbol(Some("▲"))
+                    .end_symbol(Some("▼"));
+                frame.render_stateful_widget(
+                    scrollbar,
+                    area.inner(ratatui::layout::Margin {
+                        vertical: 1,
+                        horizontal: 0,
+                    }),
+                    &mut scrollbar_state,
+                );
+            }
         }
     }
 }
@@ -2707,16 +2680,6 @@ fn response_status_title(app: &TuiApp) -> Line<'static> {
 
     spans.push(Span::raw(" "));
     Line::from(spans).right_aligned()
-}
-
-fn response_body(app: &TuiApp, text: Text<'static>) -> Paragraph<'static> {
-    let mut p = Paragraph::new(text)
-        .style(Style::default().bg(PANEL).fg(TEXT))
-        .scroll((app.response_scroll, 0));
-    if app.wrap_body {
-        p = p.wrap(ratatui::widgets::Wrap { trim: false });
-    }
-    p
 }
 
 fn response_block(app: &TuiApp) -> Block<'static> {
@@ -2801,7 +2764,7 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
     Text::from(new_lines)
 }
 
-fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'static> {
+pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'static> {
     let mut char_count = 0;
     let mut cursor_applied = false;
 
@@ -2882,110 +2845,6 @@ fn method_style(method: HttpMethod) -> Style {
     };
 
     Style::default().fg(color).add_modifier(Modifier::BOLD)
-}
-
-pub fn highlight_json(json: &str) -> Text<'static> {
-    let mut lines = Vec::new();
-    for line in json.lines() {
-        let mut spans = Vec::new();
-        let mut current_span = String::new();
-        let mut in_string = false;
-        let mut escaped = false;
-
-        let mut iter = line.chars().peekable();
-        while let Some(c) = iter.next() {
-            if in_string {
-                current_span.push(c);
-                if c == '\\' && !escaped {
-                    escaped = true;
-                } else if c == '"' && !escaped {
-                    in_string = false;
-                    let mut is_key_local = false;
-                    let mut lookahead = iter.clone();
-                    while let Some(lc) = lookahead.next() {
-                        if lc == ' ' {
-                            continue;
-                        }
-                        if lc == ':' {
-                            is_key_local = true;
-                        }
-                        break;
-                    }
-                    if is_key_local {
-                        spans.push(Span::styled(
-                            current_span.clone(),
-                            Style::default().fg(Color::LightBlue),
-                        ));
-                    } else {
-                        spans.push(Span::styled(
-                            current_span.clone(),
-                            Style::default().fg(Color::Green),
-                        ));
-                    }
-                    current_span.clear();
-                } else {
-                    escaped = false;
-                }
-            } else {
-                if c == '"' {
-                    if !current_span.is_empty() {
-                        spans.extend(highlight_non_string(&current_span));
-                        current_span.clear();
-                    }
-                    in_string = true;
-                    current_span.push(c);
-                } else {
-                    current_span.push(c);
-                }
-            }
-        }
-        if !current_span.is_empty() {
-            if in_string {
-                spans.push(Span::styled(
-                    current_span,
-                    Style::default().fg(Color::Green),
-                ));
-            } else {
-                spans.extend(highlight_non_string(&current_span));
-            }
-        }
-        lines.push(Line::from(spans));
-    }
-    Text::from(lines)
-}
-
-fn highlight_non_string(text: &str) -> Vec<Span<'static>> {
-    let mut spans = Vec::new();
-    let mut current = String::new();
-    for c in text.chars() {
-        if " \t\r\n{}[],:".contains(c) {
-            if !current.is_empty() {
-                spans.push(highlight_value(&current));
-                current.clear();
-            }
-            spans.push(Span::raw(c.to_string()));
-        } else {
-            current.push(c);
-        }
-    }
-    if !current.is_empty() {
-        spans.push(highlight_value(&current));
-    }
-    spans
-}
-
-fn highlight_value(text: &str) -> Span<'static> {
-    match text {
-        "true" | "false" => Span::styled(text.to_string(), Style::default().fg(Color::Yellow)),
-        "null" => Span::styled(text.to_string(), Style::default().fg(Color::DarkGray)),
-        _ if text.chars().all(|c| {
-            c.is_ascii_digit() || c == '.' || c == '-' || c == 'e' || c == 'E' || c == '+'
-        }) =>
-        {
-            Span::styled(text.to_string(), Style::default().fg(Color::Magenta))
-        }
-        _ => Span::raw(text.to_string()),
-    }
 }
 
 #[cfg(test)]
