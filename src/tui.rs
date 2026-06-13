@@ -243,7 +243,6 @@ fn visual_to_char_index(
                 let fit = width - line_width;
                 remaining_word -= fit;
                 char_iter_idx += fit;
-                line_width = width;
 
                 current_v_line += 1;
                 if current_v_line > target_v_line {
@@ -260,7 +259,6 @@ fn visual_to_char_index(
                 let fit = width - line_width;
                 remaining_ws -= fit;
                 char_iter_idx += fit;
-                line_width = width;
 
                 current_v_line += 1;
                 if current_v_line > target_v_line {
