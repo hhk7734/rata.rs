@@ -1,0 +1,18 @@
+headers:
+  content-type: application/json
+
+body:
+  model: "{{model}}"
+  messages:
+    - role: system
+      content:
+        - type: text
+          text: "You are a helpful assistant."
+    - role: user
+      content:
+        - type: image_url
+          image_url:
+            url: https://picsum.photos/id/32/512/512
+        - type: text
+          text: "Describe this image in detail."
+  max_completion_tokens: 500
