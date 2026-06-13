@@ -166,19 +166,190 @@ const METHODS: [HttpMethod; 5] = [
 ];
 
 fn count_display_lines(text: &str, wrap: bool, width: usize) -> u16 {
+    count_visual_lines(text, width, wrap) as u16
+}
+
+fn visual_to_char_index(text: &str, target_v_line: usize, target_v_col: usize, width: usize, wrap: bool) -> usize {
     if !wrap || width == 0 {
-        return text.split('\n').count() as u16;
-    }
-    let mut count = 0;
-    for line in text.split('\n') {
-        let len = line.chars().count();
-        if len == 0 {
-            count += 1;
-        } else {
-            count += (len.saturating_sub(1) / width) as u16 + 1;
+        let mut index = 0;
+        let mut current_v_line = 0;
+        for line in text.lines() {
+            let line_len = line.chars().count();
+            if current_v_line == target_v_line {
+                return index + target_v_col.min(line_len);
+            }
+            current_v_line += 1;
+            index += line_len + 1;
         }
+        return text.chars().count();
     }
-    count
+
+    let mut current_v_line = 0;
+    let mut index = 0;
+
+    for line in text.lines() {
+        let chars: Vec<char> = line.chars().collect();
+        if chars.is_empty() {
+            if current_v_line == target_v_line {
+                return index;
+            }
+            current_v_line += 1;
+            index += 1;
+            continue;
+        }
+
+        let mut line_width = 0;
+        let mut char_iter_idx = 0;
+        let mut visual_line_start_idx = index;
+
+        while char_iter_idx < chars.len() {
+            let mut word_end = char_iter_idx;
+            while word_end < chars.len() && !chars[word_end].is_whitespace() {
+                word_end += 1;
+            }
+            let mut ws_end = word_end;
+            while ws_end < chars.len() && chars[ws_end].is_whitespace() {
+                ws_end += 1;
+            }
+
+            let word_len = word_end - char_iter_idx;
+            let ws_len = ws_end - word_end;
+
+            if line_width + word_len > width {
+                if line_width > 0 {
+                    current_v_line += 1;
+                    if current_v_line > target_v_line {
+                        return visual_line_start_idx + target_v_col.min(line_width);
+                    }
+                    line_width = 0;
+                    visual_line_start_idx = index + char_iter_idx;
+                }
+            }
+
+            let mut remaining_word = word_len;
+            let mut remaining_ws = ws_len;
+            
+            while line_width + remaining_word > width {
+                let fit = width - line_width;
+                remaining_word -= fit;
+                char_iter_idx += fit;
+                line_width = width;
+                
+                current_v_line += 1;
+                if current_v_line > target_v_line {
+                    return visual_line_start_idx + target_v_col.min(width);
+                }
+                line_width = 0;
+                visual_line_start_idx = index + char_iter_idx;
+            }
+            
+            line_width += remaining_word;
+            char_iter_idx += remaining_word;
+            
+            while line_width + remaining_ws > width {
+                let fit = width - line_width;
+                remaining_ws -= fit;
+                char_iter_idx += fit;
+                line_width = width;
+                
+                current_v_line += 1;
+                if current_v_line > target_v_line {
+                    return visual_line_start_idx + target_v_col.min(width);
+                }
+                line_width = 0;
+                visual_line_start_idx = index + char_iter_idx;
+            }
+            
+            line_width += remaining_ws;
+            char_iter_idx += remaining_ws;
+        }
+
+        if current_v_line == target_v_line {
+            return visual_line_start_idx + target_v_col.min(line_width);
+        }
+        current_v_line += 1;
+        index += chars.len() + 1;
+    }
+
+    text.chars().count()
+}
+
+fn count_visual_lines(text: &str, width: usize, wrap: bool) -> usize {
+    if !wrap || width == 0 {
+        return text.lines().count();
+    }
+    let mut current_v_line = 0;
+    for line in text.lines() {
+        let chars: Vec<char> = line.chars().collect();
+        if chars.is_empty() {
+            current_v_line += 1;
+            continue;
+        }
+
+        let mut line_width = 0;
+        let mut char_iter_idx = 0;
+
+        while char_iter_idx < chars.len() {
+            let mut word_end = char_iter_idx;
+            while word_end < chars.len() && !chars[word_end].is_whitespace() {
+                word_end += 1;
+            }
+            let mut ws_end = word_end;
+            while ws_end < chars.len() && chars[ws_end].is_whitespace() {
+                ws_end += 1;
+            }
+
+            let word_len = word_end - char_iter_idx;
+            let ws_len = ws_end - word_end;
+
+            if line_width + word_len > width && line_width > 0 {
+                current_v_line += 1;
+                line_width = 0;
+            }
+
+            let mut remaining_word = word_len;
+            let mut remaining_ws = ws_len;
+            
+            while line_width + remaining_word > width {
+                let fit = width - line_width;
+                remaining_word -= fit;
+                char_iter_idx += fit;
+                
+                current_v_line += 1;
+                line_width = 0;
+            }
+            
+            line_width += remaining_word;
+            char_iter_idx += remaining_word;
+            
+            while line_width + remaining_ws > width {
+                let fit = width - line_width;
+                remaining_ws -= fit;
+                char_iter_idx += fit;
+                
+                current_v_line += 1;
+                line_width = 0;
+            }
+            
+            line_width += remaining_ws;
+            char_iter_idx += remaining_ws;
+        }
+
+        current_v_line += 1;
+    }
+    current_v_line
+}
+
+fn char_index_to_logical(text: &str, target_index: usize) -> (usize, usize) {
+    let mut index = 0;
+    for (l_idx, line) in text.lines().enumerate() {
+        let chars_count = line.chars().count();
+        if index + chars_count >= target_index {
+            return (l_idx, target_index - index);
+        }
+        index += chars_count + 1;
+    }
+    (text.lines().count().saturating_sub(1), usize::MAX)
 }
 
 impl TuiApp {
@@ -905,15 +1076,21 @@ pub fn handle_key(
                             self.scroll_response_down(mouse.row.saturating_sub(inner_bottom) + 1);
                         }
 
+                        let text_str = self.active_response_string();
+                        let width = self.response_area.width.saturating_sub(2) as usize;
+                        let wrap = self.active_response_tab == ResponseTab::Body && self.wrap_body;
+
                         if let Some(sel) = &mut self.text_selection {
-                            let line = if mouse.row < inner_y {
+                            let v_line = if mouse.row < inner_y {
                                 self.response_scroll as usize
                             } else {
                                 mouse.row.saturating_sub(inner_y) as usize
                                     + self.response_scroll as usize
                             };
-                            let col = mouse.column.saturating_sub(inner_x) as usize;
-                            sel.end = (line, col);
+                            let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                            
+                            let char_idx = visual_to_char_index(&text_str, v_line, v_col, width, wrap);
+                            sel.end = char_index_to_logical(&text_str, char_idx);
                         }
                     }
                     DragTarget::RequestSelection => {
@@ -928,15 +1105,21 @@ pub fn handle_key(
                             self.scroll_request_down(mouse.row.saturating_sub(inner_bottom) + 1);
                         }
 
+                        let text_str = self.draft.body.clone();
+                        let width = self.params_area.width.saturating_sub(2) as usize;
+                        let wrap = self.wrap_body;
+
                         if let Some(sel) = &mut self.request_selection {
-                            let line = if mouse.row < inner_y {
+                            let v_line = if mouse.row < inner_y {
                                 self.request_scroll as usize
                             } else {
                                 mouse.row.saturating_sub(inner_y) as usize
                                     + self.request_scroll as usize
                             };
-                            let col = mouse.column.saturating_sub(inner_x) as usize;
-                            sel.end = (line, col);
+                            let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                            
+                            let char_idx = visual_to_char_index(&text_str, v_line, v_col, width, wrap);
+                            sel.end = char_index_to_logical(&text_str, char_idx);
                         }
                     }
                     DragTarget::None => {}
@@ -1080,7 +1263,15 @@ pub fn handle_key(
 
                 if contains(self.request_area, mouse.column, mouse.row) {
                     self.active_block = ActiveBlock::Request;
-                    self.text_cursor = usize::MAX;
+                    let method_icon = if self.method_dropdown_open { "▴" } else { "▾" };
+                    let method_str_len = format!(" {} {} ", self.draft.method.label(), method_icon).chars().count() as u16;
+                    let url_start_x = self.request_area.x + 1 + method_str_len + 2;
+                    if mouse.column >= url_start_x {
+                        let clicked_col = (mouse.column - url_start_x) as usize;
+                        self.text_cursor = clicked_col.min(self.draft.url.chars().count());
+                    } else {
+                        self.text_cursor = usize::MAX;
+                    }
                     return;
                 }
 
@@ -1103,33 +1294,52 @@ pub fn handle_key(
                 }
 
                 if contains(self.response_area, mouse.column, mouse.row) {
+                    self.active_block = ActiveBlock::Response;
                     self.drag_target = DragTarget::ResponseSelection;
                     let inner_y = self.response_area.y + 1;
                     let inner_x = self.response_area.x + 1;
-                    let line = mouse.row.saturating_sub(inner_y) as usize
+                    let v_line = mouse.row.saturating_sub(inner_y) as usize
                         + self.response_scroll as usize;
-                    let col = mouse.column.saturating_sub(inner_x) as usize;
+                    let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                    
+                    let text_str = self.active_response_string();
+                    let width = self.response_area.width.saturating_sub(2) as usize;
+                    let wrap = self.active_response_tab == ResponseTab::Body && self.wrap_body;
+                    let char_idx = visual_to_char_index(&text_str, v_line, v_col, width, wrap);
+                    let logical_pos = char_index_to_logical(&text_str, char_idx);
+                    
                     self.text_selection = Some(Selection {
-                        start: (line, col),
-                        end: (line, col),
+                        start: logical_pos,
+                        end: logical_pos,
                     });
                     self.drag_last_row = Some(mouse.row);
+                    return;
                 } else if contains(self.params_area, mouse.column, mouse.row) {
+                    self.active_block = ActiveBlock::Params;
                     if self.active_request_tab == RequestTab::Body {
                         self.drag_target = DragTarget::RequestSelection;
                         let inner_y = self.params_area.y + 1;
                         let inner_x = self.params_area.x + 1;
-                        let line = mouse.row.saturating_sub(inner_y) as usize
+                        let v_line = mouse.row.saturating_sub(inner_y) as usize
                             + self.request_scroll as usize;
-                        let col = mouse.column.saturating_sub(inner_x) as usize;
+                        let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                        
+                        let width = self.params_area.width.saturating_sub(2) as usize;
+                        let wrap = self.wrap_body;
+                        let char_idx = visual_to_char_index(&self.draft.body, v_line, v_col, width, wrap);
+                        let logical_pos = char_index_to_logical(&self.draft.body, char_idx);
+                        
                         self.request_selection = Some(Selection {
-                            start: (line, col),
-                            end: (line, col),
+                            start: logical_pos,
+                            end: logical_pos,
                         });
+                        self.text_cursor = char_idx;
                     } else {
                         self.drag_target = DragTarget::ScrollRequest;
+                        self.text_cursor = usize::MAX;
                     }
                     self.drag_last_row = Some(mouse.row);
+                    return;
                 }
             }
             _ => return,
@@ -1168,14 +1378,6 @@ pub fn handle_key(
                     }
                 }
             }
-        } else if contains(self.request_area, mouse.column, mouse.row) {
-            self.active_block = ActiveBlock::Request;
-                self.text_cursor = usize::MAX;
-        } else if contains(self.params_area, mouse.column, mouse.row) {
-            self.active_block = ActiveBlock::Params;
-                self.text_cursor = usize::MAX;
-        } else if contains(self.response_area, mouse.column, mouse.row) {
-            self.active_block = ActiveBlock::Response;
         }
     }
 
@@ -1872,7 +2074,7 @@ fn render_request_block(
             
             let inner_width = area.width.saturating_sub(2) as usize;
             let lines = if app.wrap_body && inner_width > 0 {
-                highlighted.lines.iter().map(|l| (l.width().saturating_sub(1) / inner_width) + 1).sum()
+                count_visual_lines(&app.draft.body, inner_width, app.wrap_body)
             } else {
                 highlighted.lines.len()
             };
@@ -2111,7 +2313,7 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
         let text = app.active_response_text();
         let inner_width = inner.width as usize;
         let lines = if app.wrap_body && inner_width > 0 {
-            text.lines.iter().map(|l| (l.width().saturating_sub(1) / inner_width) + 1).sum()
+            count_visual_lines(&app.active_response_string(), inner_width, app.wrap_body)
         } else {
             text.lines.len()
         };
