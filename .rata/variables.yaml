@@ -1,0 +1,2 @@
+headers:
+  authorization: Bearer {{env:LITELLM_API_KEY}}
