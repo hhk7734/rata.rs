@@ -161,6 +161,40 @@ impl RataProject {
         self.server_url.as_deref()
     }
 
+    pub fn global_headers(&self) -> HashMap<String, String> {
+        let mut headers = HashMap::new();
+        let load_headers = |file_names: &[&str], hdrs: &mut HashMap<String, String>| {
+            for name in file_names {
+                let path = self.root.join(name);
+                if path.is_file() {
+                    if let Ok(source) = fs::read_to_string(&path) {
+                        if let Ok(value) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source) {
+                            if let Some(serde_yaml::Value::Mapping(map)) = value.get("headers") {
+                                for (k, v) in map {
+                                    let k_str = match k {
+                                        serde_yaml::Value::String(s) => s.clone(),
+                                        _ => serde_yaml::to_string(k).unwrap_or_default().trim().to_string(),
+                                    };
+                                    let v_str = match v {
+                                        serde_yaml::Value::String(s) => s.clone(),
+                                        _ => serde_yaml::to_string(v).unwrap_or_default().trim().to_string(),
+                                    };
+                                    hdrs.insert(k_str, v_str);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        };
+
+        load_headers(&["variables.yaml", "variable.yaml", "variables.yml", "variable.yml"], &mut headers);
+        load_headers(&["variables.local.yaml", "variable.local.yaml", "variables.local.yml", "variable.local.yml"], &mut headers);
+
+        headers
+    }
+
     pub fn variables(&self) -> HashMap<String, String> {
         let mut variables = HashMap::new();
         let load_vars = |file_names: &[&str], vars: &mut HashMap<String, String>| {

@@ -196,12 +196,25 @@ impl TuiApp {
                 url: model.selected_request_url.clone(),
                 body: String::new(),
                 params: Vec::new(),
-                headers: vec![ParamState {
-                    key: "user-agent".to_string(),
-                    value: format!("rata/{}", env!("CARGO_PKG_VERSION")),
-                    enabled: true,
-                    required: false,
-                }],
+                headers: {
+                    let mut h = vec![ParamState {
+                        key: "user-agent".to_string(),
+                        value: format!("rata/{}", env!("CARGO_PKG_VERSION")),
+                        enabled: true,
+                        required: false,
+                    }];
+                    if let Some(p) = project {
+                        for (k, v) in p.global_headers() {
+                            h.push(ParamState {
+                                key: k,
+                                value: v,
+                                enabled: true,
+                                required: false,
+                            });
+                        }
+                    }
+                    h
+                },
             },
             model,
             response: ResponseView {
@@ -676,6 +689,15 @@ pub fn handle_key(
             required: false,
         });
 
+        for (k, v) in project.global_headers() {
+            self.draft.headers.push(ParamState {
+                key: k,
+                value: v,
+                enabled: true,
+                required: false,
+            });
+        }
+
         if let Some(first_example) = examples.first() {
             self.load_example(first_example);
         }
@@ -695,6 +717,17 @@ pub fn handle_key(
             enabled: true,
             required: false,
         });
+
+        if let Some(project) = project {
+            for (k, v) in project.global_headers() {
+                self.draft.headers.push(ParamState {
+                    key: k,
+                    value: v,
+                    enabled: true,
+                    required: false,
+                });
+            }
+        }
 
         let Some(project) = project else { return };
 

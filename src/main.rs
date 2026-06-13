@@ -48,7 +48,14 @@ fn run_request(method: rata::HttpMethod, url: &str) -> anyhow::Result<()> {
     let client = reqwest::blocking::Client::builder()
         .user_agent(concat!("rata/", env!("CARGO_PKG_VERSION")))
         .build()?;
-    let mut response = client.request(method.reqwest(), &final_url).send()?;
+    let mut request = client.request(method.reqwest(), &final_url);
+    if let Some(project) = &project {
+        for (k, v) in project.global_headers() {
+            let final_value = rata::render(&v, &variables);
+            request = request.header(k, final_value);
+        }
+    }
+    let mut response = request.send()?;
     println!("HTTP {}", response.status());
     for (name, value) in response.headers() {
         println!("{}: {}", name, value.to_str().unwrap_or("<binary>"));
