@@ -111,6 +111,7 @@ pub enum DragTarget {
     ScrollRequest,
     ScrollResponse,
     ResponseSelection,
+    RequestSelection,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -149,6 +150,7 @@ pub struct TuiApp {
     pub request_scroll: u16,
     pub drag_last_row: Option<u16>,
     pub text_selection: Option<Selection>,
+    pub request_selection: Option<Selection>,
     pub clipboard: Option<arboard::Clipboard>,
     pub method_dropdown_open: bool,
     pub selected_method_row: usize,
@@ -250,6 +252,7 @@ impl TuiApp {
             request_scroll: 0,
             drag_last_row: None,
             text_selection: None,
+            request_selection: None,
             clipboard: arboard::Clipboard::new().ok(),
             method_dropdown_open: false,
             selected_method_row: 0,
@@ -913,6 +916,29 @@ pub fn handle_key(
                             sel.end = (line, col);
                         }
                     }
+                    DragTarget::RequestSelection => {
+                        let inner_y = self.params_area.y + 1;
+                        let inner_x = self.params_area.x + 1;
+                        let inner_bottom =
+                            self.params_area.y + self.params_area.height.saturating_sub(1);
+
+                        if mouse.row < inner_y {
+                            self.scroll_request_up(inner_y.saturating_sub(mouse.row));
+                        } else if mouse.row >= inner_bottom {
+                            self.scroll_request_down(mouse.row.saturating_sub(inner_bottom) + 1);
+                        }
+
+                        if let Some(sel) = &mut self.request_selection {
+                            let line = if mouse.row < inner_y {
+                                self.request_scroll as usize
+                            } else {
+                                mouse.row.saturating_sub(inner_y) as usize
+                                    + self.request_scroll as usize
+                            };
+                            let col = mouse.column.saturating_sub(inner_x) as usize;
+                            sel.end = (line, col);
+                        }
+                    }
                     DragTarget::None => {}
                 }
                 return;
@@ -921,6 +947,15 @@ pub fn handle_key(
                 if self.drag_target == DragTarget::ResponseSelection {
                     if let Some(sel) = self.text_selection {
                         let text = self.extract_selection(sel);
+                        if !text.is_empty() {
+                            if let Some(clipboard) = &mut self.clipboard {
+                                let _ = clipboard.set_text(text);
+                            }
+                        }
+                    }
+                } else if self.drag_target == DragTarget::RequestSelection {
+                    if let Some(sel) = self.request_selection {
+                        let text = self.extract_request_selection(sel);
                         if !text.is_empty() {
                             if let Some(clipboard) = &mut self.clipboard {
                                 let _ = clipboard.set_text(text);
@@ -1068,23 +1103,32 @@ pub fn handle_key(
                 }
 
                 if contains(self.response_area, mouse.column, mouse.row) {
-                    if self.active_response_tab == ResponseTab::Body {
-                        self.drag_target = DragTarget::ResponseSelection;
-                        let inner_y = self.response_area.y + 1;
-                        let inner_x = self.response_area.x + 1;
+                    self.drag_target = DragTarget::ResponseSelection;
+                    let inner_y = self.response_area.y + 1;
+                    let inner_x = self.response_area.x + 1;
+                    let line = mouse.row.saturating_sub(inner_y) as usize
+                        + self.response_scroll as usize;
+                    let col = mouse.column.saturating_sub(inner_x) as usize;
+                    self.text_selection = Some(Selection {
+                        start: (line, col),
+                        end: (line, col),
+                    });
+                    self.drag_last_row = Some(mouse.row);
+                } else if contains(self.params_area, mouse.column, mouse.row) {
+                    if self.active_request_tab == RequestTab::Body {
+                        self.drag_target = DragTarget::RequestSelection;
+                        let inner_y = self.params_area.y + 1;
+                        let inner_x = self.params_area.x + 1;
                         let line = mouse.row.saturating_sub(inner_y) as usize
-                            + self.response_scroll as usize;
+                            + self.request_scroll as usize;
                         let col = mouse.column.saturating_sub(inner_x) as usize;
-                        self.text_selection = Some(Selection {
+                        self.request_selection = Some(Selection {
                             start: (line, col),
                             end: (line, col),
                         });
                     } else {
-                        self.drag_target = DragTarget::ScrollResponse;
+                        self.drag_target = DragTarget::ScrollRequest;
                     }
-                    self.drag_last_row = Some(mouse.row);
-                } else if contains(self.params_area, mouse.column, mouse.row) {
-                    self.drag_target = DragTarget::ScrollRequest;
                     self.drag_last_row = Some(mouse.row);
                 }
             }
@@ -1168,8 +1212,24 @@ pub fn handle_key(
         bounds
     }
 
-    pub fn extract_selection(&self, sel: Selection) -> String {
-        let text = pretty_body(&self.response.body);
+    pub fn active_response_string(&self) -> String {
+        if let Some(error) = &self.response.error {
+            return error.clone();
+        }
+        match self.active_response_tab {
+            ResponseTab::Body => pretty_body(&self.response.body),
+            ResponseTab::Headers => format_pairs(&self.response.headers, "No headers"),
+            ResponseTab::Cookies => {
+                if self.response.cookies.is_empty() {
+                    "No cookies".to_string()
+                } else {
+                    self.response.cookies.join("\n")
+                }
+            }
+        }
+    }
+
+    fn extract_text_selection(text: &str, sel: Selection) -> String {
         let (mut start, mut end) = (sel.start, sel.end);
         if start.0 > end.0 || (start.0 == end.0 && start.1 > end.1) {
             std::mem::swap(&mut start, &mut end);
@@ -1193,9 +1253,18 @@ pub fn handle_key(
         result
     }
 
+    pub fn extract_selection(&self, sel: Selection) -> String {
+        Self::extract_text_selection(&self.active_response_string(), sel)
+    }
+
+    pub fn extract_request_selection(&self, sel: Selection) -> String {
+        Self::extract_text_selection(&self.draft.body, sel)
+    }
+
     pub fn active_response_text(&self) -> Text<'static> {
         if let Some(error) = &self.response.error {
-            return Text::raw(error.clone());
+            let text = Text::raw(error.clone());
+            return apply_selection(text, self.text_selection);
         }
 
         match self.active_response_tab {
@@ -1203,13 +1272,17 @@ pub fn handle_key(
                 let body = pretty_body(&self.response.body);
                 apply_selection(highlight_json(&body), self.text_selection)
             }
-            ResponseTab::Headers => Text::raw(format_pairs(&self.response.headers, "No headers")),
+            ResponseTab::Headers => {
+                let text = Text::raw(format_pairs(&self.response.headers, "No headers"));
+                apply_selection(text, self.text_selection)
+            }
             ResponseTab::Cookies => {
-                if self.response.cookies.is_empty() {
+                let text = if self.response.cookies.is_empty() {
                     Text::raw("No cookies".to_string())
                 } else {
                     Text::raw(self.response.cookies.join("\n"))
-                }
+                };
+                apply_selection(text, self.text_selection)
             }
         }
     }
@@ -1784,6 +1857,7 @@ fn render_request_block(
                     app.draft.body.clone()
                 };
             let mut highlighted = highlight_json(&text);
+            highlighted = apply_selection(highlighted, app.request_selection);
             if app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
                 highlighted = apply_cursor_to_text(highlighted, app.text_cursor);
             }
