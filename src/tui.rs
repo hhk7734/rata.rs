@@ -59,6 +59,7 @@ pub enum ParamEditMode {
     Value,
 }
 
+#[derive(Debug, Clone)]
 pub struct RequestDraft {
     pub method: HttpMethod,
     pub url: String,
@@ -89,7 +90,6 @@ pub enum ResponseTab {
     Headers,
     Cookies,
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveBlock {
@@ -155,6 +155,10 @@ pub struct TuiApp {
     pub method_dropdown_open: bool,
     pub selected_method_row: usize,
     pub method_dropdown_area: Rect,
+    pub is_sending: bool,
+    pub send_button_area: Rect,
+    pub send_rx: Option<std::sync::mpsc::Receiver<anyhow::Result<ResponseView>>>,
+    pub sending_frame: usize,
 }
 
 const METHODS: [HttpMethod; 5] = [
@@ -169,7 +173,13 @@ fn count_display_lines(text: &str, wrap: bool, width: usize) -> u16 {
     count_visual_lines(text, width, wrap) as u16
 }
 
-fn visual_to_char_index(text: &str, target_v_line: usize, target_v_col: usize, width: usize, wrap: bool) -> usize {
+fn visual_to_char_index(
+    text: &str,
+    target_v_line: usize,
+    target_v_col: usize,
+    width: usize,
+    wrap: bool,
+) -> usize {
     if !wrap || width == 0 {
         let mut index = 0;
         let mut current_v_line = 0;
@@ -228,13 +238,13 @@ fn visual_to_char_index(text: &str, target_v_line: usize, target_v_col: usize, w
 
             let mut remaining_word = word_len;
             let mut remaining_ws = ws_len;
-            
+
             while line_width + remaining_word > width {
                 let fit = width - line_width;
                 remaining_word -= fit;
                 char_iter_idx += fit;
                 line_width = width;
-                
+
                 current_v_line += 1;
                 if current_v_line > target_v_line {
                     return visual_line_start_idx + target_v_col.min(width);
@@ -242,16 +252,16 @@ fn visual_to_char_index(text: &str, target_v_line: usize, target_v_col: usize, w
                 line_width = 0;
                 visual_line_start_idx = index + char_iter_idx;
             }
-            
+
             line_width += remaining_word;
             char_iter_idx += remaining_word;
-            
+
             while line_width + remaining_ws > width {
                 let fit = width - line_width;
                 remaining_ws -= fit;
                 char_iter_idx += fit;
                 line_width = width;
-                
+
                 current_v_line += 1;
                 if current_v_line > target_v_line {
                     return visual_line_start_idx + target_v_col.min(width);
@@ -259,7 +269,7 @@ fn visual_to_char_index(text: &str, target_v_line: usize, target_v_col: usize, w
                 line_width = 0;
                 visual_line_start_idx = index + char_iter_idx;
             }
-            
+
             line_width += remaining_ws;
             char_iter_idx += remaining_ws;
         }
@@ -309,28 +319,28 @@ fn count_visual_lines(text: &str, width: usize, wrap: bool) -> usize {
 
             let mut remaining_word = word_len;
             let mut remaining_ws = ws_len;
-            
+
             while line_width + remaining_word > width {
                 let fit = width - line_width;
                 remaining_word -= fit;
                 char_iter_idx += fit;
-                
+
                 current_v_line += 1;
                 line_width = 0;
             }
-            
+
             line_width += remaining_word;
             char_iter_idx += remaining_word;
-            
+
             while line_width + remaining_ws > width {
                 let fit = width - line_width;
                 remaining_ws -= fit;
                 char_iter_idx += fit;
-                
+
                 current_v_line += 1;
                 line_width = 0;
             }
-            
+
             line_width += remaining_ws;
             char_iter_idx += remaining_ws;
         }
@@ -428,6 +438,10 @@ impl TuiApp {
             method_dropdown_open: false,
             selected_method_row: 0,
             method_dropdown_area: Rect::default(),
+            is_sending: false,
+            send_button_area: Rect::default(),
+            send_rx: None,
+            sending_frame: 0,
         }
     }
 
@@ -443,7 +457,7 @@ impl TuiApp {
                 ResponseTab::Body => {
                     let width = self.response_area.width.saturating_sub(2) as usize;
                     count_display_lines(&pretty_body(&self.response.body), self.wrap_body, width)
-                },
+                }
                 ResponseTab::Headers => self.response.headers.len().max(1) as u16,
                 ResponseTab::Cookies => self.response.cookies.len().max(1) as u16,
             }
@@ -470,14 +484,24 @@ impl TuiApp {
     }
 
     pub fn ensure_cursor_visible(&mut self) {
-        if self.active_request_tab != RequestTab::Body { return; }
-        
+        if self.active_request_tab != RequestTab::Body {
+            return;
+        }
+
         let width = self.params_area.width.saturating_sub(2) as usize;
-        let text_before_cursor = self.draft.body.chars().take(self.text_cursor).collect::<String>();
-        let cursor_line = count_display_lines(&text_before_cursor, self.wrap_body, width).saturating_sub(1);
+        let text_before_cursor = self
+            .draft
+            .body
+            .chars()
+            .take(self.text_cursor)
+            .collect::<String>();
+        let cursor_line =
+            count_display_lines(&text_before_cursor, self.wrap_body, width).saturating_sub(1);
         let view_height = self.params_area.height.saturating_sub(2);
-        if view_height == 0 { return; }
-        
+        if view_height == 0 {
+            return;
+        }
+
         if cursor_line < self.request_scroll {
             self.request_scroll = cursor_line;
         } else if cursor_line >= self.request_scroll + view_height {
@@ -489,7 +513,11 @@ impl TuiApp {
         self.draft.url = url.into();
     }
 
-    pub fn send(&mut self, project: Option<&RataProject>) -> anyhow::Result<()> {
+    pub fn send(&mut self, project: Option<&RataProject>) {
+        if self.is_sending {
+            return;
+        }
+
         self.response_scroll = 0;
         self.response = ResponseView {
             status: None,
@@ -499,18 +527,20 @@ impl TuiApp {
             error: None,
         };
 
-        match self.send_request(project) {
-            Ok(response) => self.response = response,
-            Err(error) => {
-                self.response.error = Some(error.to_string());
-                return Err(error);
-            }
-        }
+        let (tx, rx) = std::sync::mpsc::channel();
+        let draft = self.draft.clone();
+        let project = project.cloned();
 
-        Ok(())
+        std::thread::spawn(move || {
+            let res = execute_request(&draft, project.as_ref());
+            let _ = tx.send(res);
+        });
+
+        self.send_rx = Some(rx);
+        self.sending_frame = 0;
+        self.is_sending = true;
     }
 
-    
     fn get_current_text_len(&self, _project: Option<&RataProject>) -> usize {
         if self.active_block == ActiveBlock::Request {
             return self.draft.url.chars().count();
@@ -518,7 +548,11 @@ impl TuiApp {
             if self.active_request_tab == RequestTab::Body {
                 return self.draft.body.chars().count();
             } else if self.param_edit_mode != ParamEditMode::None {
-                let map = if self.active_request_tab == RequestTab::Query { &self.draft.params } else { &self.draft.headers };
+                let map = if self.active_request_tab == RequestTab::Query {
+                    &self.draft.params
+                } else {
+                    &self.draft.headers
+                };
                 if let Some(param) = map.get(self.selected_request_row) {
                     if self.param_edit_mode == ParamEditMode::Key {
                         return param.key.chars().count();
@@ -530,7 +564,7 @@ impl TuiApp {
         }
         0
     }
-pub fn handle_key(
+    pub fn handle_key(
         &mut self,
         key: KeyEvent,
         project: Option<&RataProject>,
@@ -547,7 +581,9 @@ pub fn handle_key(
                 .modifiers
                 .contains(crossterm::event::KeyModifiers::CONTROL)
         {
-            if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
+            if self.active_block == ActiveBlock::Params
+                && self.active_request_tab != RequestTab::Body
+            {
                 if self.param_edit_mode == ParamEditMode::None {
                     self.param_edit_mode = ParamEditMode::Value;
                     self.text_cursor = usize::MAX;
@@ -562,7 +598,7 @@ pub fn handle_key(
                 .modifiers
                 .contains(crossterm::event::KeyModifiers::CONTROL)
         {
-            let _ = self.send(project);
+            self.send(project);
             return Ok(AppAction::Continue);
         }
         if key.code == KeyCode::Char('w')
@@ -590,8 +626,15 @@ pub fn handle_key(
                 Ok(AppAction::Continue)
             }
             KeyCode::Tab => {
-                if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode != ParamEditMode::None {
-                    let map = if self.active_request_tab == RequestTab::Query { &self.draft.params } else { &self.draft.headers };
+                if self.active_block == ActiveBlock::Params
+                    && self.active_request_tab != RequestTab::Body
+                    && self.param_edit_mode != ParamEditMode::None
+                {
+                    let map = if self.active_request_tab == RequestTab::Query {
+                        &self.draft.params
+                    } else {
+                        &self.draft.headers
+                    };
                     if let Some(param) = map.get(self.selected_request_row) {
                         if self.param_edit_mode == ParamEditMode::Key {
                             self.param_edit_mode = ParamEditMode::Value;
@@ -604,7 +647,7 @@ pub fn handle_key(
                 }
                 Ok(AppAction::Continue)
             }
-                        KeyCode::Left => {
+            KeyCode::Left => {
                 let len = self.get_current_text_len(project);
                 self.text_cursor = self.text_cursor.min(len).saturating_sub(1);
                 self.ensure_cursor_visible();
@@ -648,15 +691,21 @@ pub fn handle_key(
                         self.text_cursor = move_cursor_down(&self.draft.body, self.text_cursor);
                         self.ensure_cursor_visible();
                     } else if self.param_edit_mode == ParamEditMode::None {
-                        let max = if self.active_request_tab == RequestTab::Query { self.draft.params.len() } else { self.draft.headers.len() };
-                        self.selected_request_row = self.selected_request_row.saturating_add(1).min(max);
+                        let max = if self.active_request_tab == RequestTab::Query {
+                            self.draft.params.len()
+                        } else {
+                            self.draft.headers.len()
+                        };
+                        self.selected_request_row =
+                            self.selected_request_row.saturating_add(1).min(max);
                         self.text_cursor = usize::MAX;
                     } else {
                         self.text_cursor = usize::MAX;
                     }
                 } else if self.active_block == ActiveBlock::Examples {
                     let max = self.model.examples.len().saturating_sub(1);
-                    self.selected_example_row = self.selected_example_row.saturating_add(1).min(max);
+                    self.selected_example_row =
+                        self.selected_example_row.saturating_add(1).min(max);
                 } else if self.active_block == ActiveBlock::MethodDropdown {
                     let max = METHODS.len().saturating_sub(1);
                     self.selected_method_row = self.selected_method_row.saturating_add(1).min(max);
@@ -665,15 +714,29 @@ pub fn handle_key(
             }
             KeyCode::Enter => {
                 if self.active_block == ActiveBlock::Request {
-                    let _ = self.send(project);
-                } else if self.active_block == ActiveBlock::Params && self.active_request_tab == RequestTab::Body {
+                    self.send(project);
+                } else if self.active_block == ActiveBlock::Params
+                    && self.active_request_tab == RequestTab::Body
+                {
                     insert_char_at(&mut self.draft.body, self.text_cursor, '\n');
                     self.text_cursor += 1;
                     self.ensure_cursor_visible();
-                } else if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode == ParamEditMode::None {
-                    let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                } else if self.active_block == ActiveBlock::Params
+                    && self.active_request_tab != RequestTab::Body
+                    && self.param_edit_mode == ParamEditMode::None
+                {
+                    let map = if self.active_request_tab == RequestTab::Query {
+                        &mut self.draft.params
+                    } else {
+                        &mut self.draft.headers
+                    };
                     if self.selected_request_row == map.len() {
-                        map.push(ParamState { key: String::new(), value: String::new(), enabled: true, required: false });
+                        map.push(ParamState {
+                            key: String::new(),
+                            value: String::new(),
+                            enabled: true,
+                            required: false,
+                        });
                         self.param_edit_mode = ParamEditMode::Key;
                         self.text_cursor = usize::MAX;
                     } else if let Some(param) = map.get_mut(self.selected_request_row) {
@@ -725,7 +788,11 @@ pub fn handle_key(
                         remove_char_at(&mut self.draft.body, self.text_cursor);
                         self.text_cursor = self.text_cursor.saturating_sub(1);
                     } else if self.param_edit_mode != ParamEditMode::None {
-                        let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                        let map = if self.active_request_tab == RequestTab::Query {
+                            &mut self.draft.params
+                        } else {
+                            &mut self.draft.headers
+                        };
                         if let Some(param) = map.get_mut(self.selected_request_row) {
                             if self.param_edit_mode == ParamEditMode::Key && !param.required {
                                 remove_char_at(&mut param.key, self.text_cursor);
@@ -740,7 +807,14 @@ pub fn handle_key(
                 Ok(AppAction::Continue)
             }
             KeyCode::Char(value) => {
-                if value == 'k' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && self.param_edit_mode == ParamEditMode::None && self.active_request_tab != RequestTab::Body)) {
+                if value == 'k'
+                    && (self.active_block == ActiveBlock::Collections
+                        || self.active_block == ActiveBlock::Examples
+                        || self.active_block == ActiveBlock::Response
+                        || (self.active_block == ActiveBlock::Params
+                            && self.param_edit_mode == ParamEditMode::None
+                            && self.active_request_tab != RequestTab::Body))
+                {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_up(1);
                     } else if self.active_block == ActiveBlock::Collections {
@@ -752,7 +826,14 @@ pub fn handle_key(
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == 'j' && (self.active_block == ActiveBlock::Collections || self.active_block == ActiveBlock::Examples || self.active_block == ActiveBlock::Response || (self.active_block == ActiveBlock::Params && self.param_edit_mode == ParamEditMode::None && self.active_request_tab != RequestTab::Body)) {
+                if value == 'j'
+                    && (self.active_block == ActiveBlock::Collections
+                        || self.active_block == ActiveBlock::Examples
+                        || self.active_block == ActiveBlock::Response
+                        || (self.active_block == ActiveBlock::Params
+                            && self.param_edit_mode == ParamEditMode::None
+                            && self.active_request_tab != RequestTab::Body))
+                {
                     if self.active_block == ActiveBlock::Response {
                         self.scroll_response_down(1);
                     } else if self.active_block == ActiveBlock::Collections {
@@ -761,12 +842,21 @@ pub fn handle_key(
                         self.selected_request_row = self.selected_request_row.saturating_add(1);
                     } else if self.active_block == ActiveBlock::Examples {
                         let max = self.model.examples.len().saturating_sub(1);
-                        self.selected_example_row = self.selected_example_row.saturating_add(1).min(max);
+                        self.selected_example_row =
+                            self.selected_example_row.saturating_add(1).min(max);
                     }
                     return Ok(AppAction::Continue);
                 }
-                if value == ' ' && self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body && self.param_edit_mode == ParamEditMode::None {
-                    let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                if value == ' '
+                    && self.active_block == ActiveBlock::Params
+                    && self.active_request_tab != RequestTab::Body
+                    && self.param_edit_mode == ParamEditMode::None
+                {
+                    let map = if self.active_request_tab == RequestTab::Query {
+                        &mut self.draft.params
+                    } else {
+                        &mut self.draft.headers
+                    };
                     if let Some(param) = map.get_mut(self.selected_request_row) {
                         if !param.required {
                             param.enabled = !param.enabled;
@@ -784,7 +874,11 @@ pub fn handle_key(
                         insert_char_at(&mut self.draft.body, self.text_cursor, value);
                         self.text_cursor = self.text_cursor.saturating_add(1);
                     } else if self.param_edit_mode != ParamEditMode::None {
-                        let map = if self.active_request_tab == RequestTab::Query { &mut self.draft.params } else { &mut self.draft.headers };
+                        let map = if self.active_request_tab == RequestTab::Query {
+                            &mut self.draft.params
+                        } else {
+                            &mut self.draft.headers
+                        };
                         if let Some(param) = map.get_mut(self.selected_request_row) {
                             if self.param_edit_mode == ParamEditMode::Key && !param.required {
                                 insert_char_at(&mut param.key, self.text_cursor, value);
@@ -810,7 +904,12 @@ pub fn handle_key(
                         p.value = v;
                         p.enabled = true;
                     } else {
-                        self.draft.params.push(ParamState { key: k, value: v, enabled: true, required: false });
+                        self.draft.params.push(ParamState {
+                            key: k,
+                            value: v,
+                            enabled: true,
+                            required: false,
+                        });
                     }
                 }
             }
@@ -820,7 +919,12 @@ pub fn handle_key(
                         p.value = v;
                         p.enabled = true;
                     } else {
-                        self.draft.headers.push(ParamState { key: k, value: v, enabled: true, required: false });
+                        self.draft.headers.push(ParamState {
+                            key: k,
+                            value: v,
+                            enabled: true,
+                            required: false,
+                        });
                     }
                 }
             }
@@ -848,7 +952,12 @@ pub fn handle_key(
         self.model.examples = examples.iter().map(|e| e.name.clone()).collect();
 
         for param in &operation.parameters {
-            let p = ParamState { key: param.name.clone(), value: String::new(), enabled: param.required, required: param.required };
+            let p = ParamState {
+                key: param.name.clone(),
+                value: String::new(),
+                enabled: param.required,
+                required: param.required,
+            };
             if param.location == "header" {
                 self.draft.headers.push(p);
             } else {
@@ -907,7 +1016,8 @@ pub fn handle_key(
 
         let resolved_url = crate::template::render(&self.draft.url, &project.variables());
         if let Ok(Some(matched)) = project.match_url(self.draft.method, &resolved_url) {
-            self.selected_operation = Some((matched.operation.method, matched.operation.path.clone()));
+            self.selected_operation =
+                Some((matched.operation.method, matched.operation.path.clone()));
 
             let examples_res = project.examples_for(&matched.operation);
             let examples = examples_res
@@ -917,7 +1027,12 @@ pub fn handle_key(
             self.model.examples = examples.iter().map(|e| e.name.clone()).collect();
 
             for param in &matched.operation.parameters {
-                let p = ParamState { key: param.name.clone(), value: String::new(), enabled: param.required, required: param.required };
+                let p = ParamState {
+                    key: param.name.clone(),
+                    value: String::new(),
+                    enabled: param.required,
+                    required: param.required,
+                };
                 if param.location == "header" {
                     self.draft.headers.push(p);
                 } else {
@@ -1088,8 +1203,9 @@ pub fn handle_key(
                                     + self.response_scroll as usize
                             };
                             let v_col = mouse.column.saturating_sub(inner_x) as usize;
-                            
-                            let char_idx = visual_to_char_index(&text_str, v_line, v_col, width, wrap);
+
+                            let char_idx =
+                                visual_to_char_index(&text_str, v_line, v_col, width, wrap);
                             sel.end = char_index_to_logical(&text_str, char_idx);
                         }
                     }
@@ -1117,8 +1233,9 @@ pub fn handle_key(
                                     + self.request_scroll as usize
                             };
                             let v_col = mouse.column.saturating_sub(inner_x) as usize;
-                            
-                            let char_idx = visual_to_char_index(&text_str, v_line, v_col, width, wrap);
+
+                            let char_idx =
+                                visual_to_char_index(&text_str, v_line, v_col, width, wrap);
                             sel.end = char_index_to_logical(&text_str, char_idx);
                         }
                     }
@@ -1150,14 +1267,18 @@ pub fn handle_key(
                 return;
             }
             MouseEventKind::Down(MouseButton::Left) => {
-                let method_str_len = format!(" {} ▾ ", self.draft.method.label()).chars().count() as u16;
+                let method_str_len =
+                    format!(" {} ▾ ", self.draft.method.label()).chars().count() as u16;
                 let clicked_method_dropdown = mouse.row == self.request_area.y + 1
                     && mouse.column >= self.request_area.x + 1
                     && mouse.column < self.request_area.x + 1 + method_str_len;
-                let clicked_inside_method_dropdown =
-                    self.method_dropdown_open && contains(self.method_dropdown_area, mouse.column, mouse.row);
+                let clicked_inside_method_dropdown = self.method_dropdown_open
+                    && contains(self.method_dropdown_area, mouse.column, mouse.row);
 
-                if self.method_dropdown_open && !clicked_method_dropdown && !clicked_inside_method_dropdown {
+                if self.method_dropdown_open
+                    && !clicked_method_dropdown
+                    && !clicked_inside_method_dropdown
+                {
                     self.method_dropdown_open = false;
                 }
 
@@ -1165,7 +1286,10 @@ pub fn handle_key(
                     self.method_dropdown_open = !self.method_dropdown_open;
                     if self.method_dropdown_open {
                         self.active_block = ActiveBlock::MethodDropdown;
-                        self.selected_method_row = METHODS.iter().position(|m| m == &self.draft.method).unwrap_or(0);
+                        self.selected_method_row = METHODS
+                            .iter()
+                            .position(|m| m == &self.draft.method)
+                            .unwrap_or(0);
                     } else {
                         self.active_block = ActiveBlock::Request;
                         self.text_cursor = usize::MAX;
@@ -1188,10 +1312,13 @@ pub fn handle_key(
                 let clicked_dropdown_toggle = mouse.row == self.request_area.y
                     && mouse.column >= dropdown_x
                     && mouse.column < self.request_area.right();
-                let clicked_inside_dropdown =
-                    self.examples_dropdown_open && contains(self.examples_area, mouse.column, mouse.row);
+                let clicked_inside_dropdown = self.examples_dropdown_open
+                    && contains(self.examples_area, mouse.column, mouse.row);
 
-                if self.examples_dropdown_open && !clicked_dropdown_toggle && !clicked_inside_dropdown {
+                if self.examples_dropdown_open
+                    && !clicked_dropdown_toggle
+                    && !clicked_inside_dropdown
+                {
                     self.examples_dropdown_open = false;
                 }
 
@@ -1248,7 +1375,7 @@ pub fn handle_key(
                 if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
                     self.active_request_tab = tab;
                     self.active_block = ActiveBlock::Params;
-                self.text_cursor = usize::MAX;
+                    self.text_cursor = usize::MAX;
                     self.selected_request_row = 0;
                     return;
                 }
@@ -1262,9 +1389,19 @@ pub fn handle_key(
                 }
 
                 if contains(self.request_area, mouse.column, mouse.row) {
+                    if contains(self.send_button_area, mouse.column, mouse.row) {
+                        self.send(project);
+                        return;
+                    }
                     self.active_block = ActiveBlock::Request;
-                    let method_icon = if self.method_dropdown_open { "▴" } else { "▾" };
-                    let method_str_len = format!(" {} {} ", self.draft.method.label(), method_icon).chars().count() as u16;
+                    let method_icon = if self.method_dropdown_open {
+                        "▴"
+                    } else {
+                        "▾"
+                    };
+                    let method_str_len = format!(" {} {} ", self.draft.method.label(), method_icon)
+                        .chars()
+                        .count() as u16;
                     let url_start_x = self.request_area.x + 1 + method_str_len + 2;
                     if mouse.column >= url_start_x {
                         let clicked_col = (mouse.column - url_start_x) as usize;
@@ -1280,7 +1417,7 @@ pub fn handle_key(
                         || mouse.row == self.params_area.y
                     {
                         self.active_block = ActiveBlock::Params;
-                self.text_cursor = usize::MAX;
+                        self.text_cursor = usize::MAX;
                         self.drag_target = DragTarget::Request;
                         return;
                     }
@@ -1298,16 +1435,16 @@ pub fn handle_key(
                     self.drag_target = DragTarget::ResponseSelection;
                     let inner_y = self.response_area.y + 1;
                     let inner_x = self.response_area.x + 1;
-                    let v_line = mouse.row.saturating_sub(inner_y) as usize
-                        + self.response_scroll as usize;
+                    let v_line =
+                        mouse.row.saturating_sub(inner_y) as usize + self.response_scroll as usize;
                     let v_col = mouse.column.saturating_sub(inner_x) as usize;
-                    
+
                     let text_str = self.active_response_string();
                     let width = self.response_area.width.saturating_sub(2) as usize;
                     let wrap = self.active_response_tab == ResponseTab::Body && self.wrap_body;
                     let char_idx = visual_to_char_index(&text_str, v_line, v_col, width, wrap);
                     let logical_pos = char_index_to_logical(&text_str, char_idx);
-                    
+
                     self.text_selection = Some(Selection {
                         start: logical_pos,
                         end: logical_pos,
@@ -1323,12 +1460,13 @@ pub fn handle_key(
                         let v_line = mouse.row.saturating_sub(inner_y) as usize
                             + self.request_scroll as usize;
                         let v_col = mouse.column.saturating_sub(inner_x) as usize;
-                        
+
                         let width = self.params_area.width.saturating_sub(2) as usize;
                         let wrap = self.wrap_body;
-                        let char_idx = visual_to_char_index(&self.draft.body, v_line, v_col, width, wrap);
+                        let char_idx =
+                            visual_to_char_index(&self.draft.body, v_line, v_col, width, wrap);
                         let logical_pos = char_index_to_logical(&self.draft.body, char_idx);
-                        
+
                         self.request_selection = Some(Selection {
                             start: logical_pos,
                             end: logical_pos,
@@ -1395,9 +1533,15 @@ pub fn handle_key(
 
     pub fn request_tabs(&self) -> [String; 3] {
         [
-            format!(" Query ({}) ", self.draft.params.iter().filter(|p| p.enabled).count()),
+            format!(
+                " Query ({}) ",
+                self.draft.params.iter().filter(|p| p.enabled).count()
+            ),
             " Body ".to_string(),
-            format!(" Headers ({}) ", self.draft.headers.iter().filter(|p| p.enabled).count()),
+            format!(
+                " Headers ({}) ",
+                self.draft.headers.iter().filter(|p| p.enabled).count()
+            ),
         ]
     }
 
@@ -1488,83 +1632,93 @@ pub fn handle_key(
             }
         }
     }
+}
 
-    fn send_request(&self, project: Option<&RataProject>) -> anyhow::Result<ResponseView> {
-        let client = reqwest::blocking::Client::builder()
-            .user_agent("") // Empty default so it can be disabled
-            .build()
-            .unwrap();
+fn execute_request(
+    draft: &RequestDraft,
+    project: Option<&RataProject>,
+) -> anyhow::Result<ResponseView> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("") // Empty default so it can be disabled
+        .build()
+        .unwrap();
 
-        let mut variables = std::collections::HashMap::new();
-        if let Some(project) = project {
-            variables = project.variables();
-            if !variables.contains_key("baseUrl") {
-                if let Some(server) = project.server_url() {
-                    variables.insert("baseUrl".to_string(), server.trim_end_matches('/').to_string());
-                }
+    let mut variables = std::collections::HashMap::new();
+    if let Some(project) = project {
+        variables = project.variables();
+        if !variables.contains_key("baseUrl") {
+            if let Some(server) = project.server_url() {
+                variables.insert(
+                    "baseUrl".to_string(),
+                    server.trim_end_matches('/').to_string(),
+                );
             }
         }
-
-        let mut final_url = self.draft.url.clone();
-        let mut query_params = Vec::new();
-
-        for param in &self.draft.params {
-            if !param.enabled || param.key.is_empty() { continue; }
-            let p1 = format!("{{{{{}}}}}", param.key);
-            let p2 = format!("{{{}}}", param.key);
-            if final_url.contains(&p1) || final_url.contains(&p2) {
-                final_url = final_url.replace(&p1, &param.value);
-                final_url = final_url.replace(&p2, &param.value);
-            } else if !param.value.is_empty() {
-                query_params.push((&param.key, &param.value));
-            }
-        }
-
-        final_url = crate::render(&final_url, &variables);
-
-        let mut request = client.request(self.draft.method.reqwest(), &final_url);
-
-        if !query_params.is_empty() {
-            request = request.query(&query_params);
-        }
-
-        for param in &self.draft.headers {
-            if !param.enabled || param.key.is_empty() { continue; }
-            let final_value = crate::render(&param.value, &variables);
-            request = request.header(&param.key, &final_value);
-        }
-
-        let final_body = crate::render(&self.draft.body, &variables);
-
-        let mut response = request.body(final_body).send()?;
-        let status = response.status().as_u16();
-        let headers = response
-            .headers()
-            .iter()
-            .map(|(name, value)| {
-                (
-                    name.to_string(),
-                    value.to_str().unwrap_or("<binary>").to_string(),
-                )
-            })
-            .collect::<Vec<_>>();
-        let cookies = response
-            .headers()
-            .get_all(reqwest::header::SET_COOKIE)
-            .iter()
-            .map(|value| value.to_str().unwrap_or("<binary>").to_string())
-            .collect::<Vec<_>>();
-        let mut body = String::new();
-        response.read_to_string(&mut body)?;
-
-        Ok(ResponseView {
-            status: Some(status),
-            body,
-            headers,
-            cookies,
-            error: None,
-        })
     }
+
+    let mut final_url = draft.url.clone();
+    let mut query_params = Vec::new();
+
+    for param in &draft.params {
+        if !param.enabled || param.key.is_empty() {
+            continue;
+        }
+        let p1 = format!("{{{{{}}}}}", param.key);
+        let p2 = format!("{{{}}}", param.key);
+        if final_url.contains(&p1) || final_url.contains(&p2) {
+            final_url = final_url.replace(&p1, &param.value);
+            final_url = final_url.replace(&p2, &param.value);
+        } else if !param.value.is_empty() {
+            query_params.push((&param.key, &param.value));
+        }
+    }
+
+    final_url = crate::render(&final_url, &variables);
+
+    let mut request = client.request(draft.method.reqwest(), &final_url);
+
+    if !query_params.is_empty() {
+        request = request.query(&query_params);
+    }
+
+    for param in &draft.headers {
+        if !param.enabled || param.key.is_empty() {
+            continue;
+        }
+        let final_value = crate::render(&param.value, &variables);
+        request = request.header(&param.key, &final_value);
+    }
+
+    let final_body = crate::render(&draft.body, &variables);
+
+    let mut response = request.body(final_body).send()?;
+    let status = response.status().as_u16();
+    let headers = response
+        .headers()
+        .iter()
+        .map(|(name, value)| {
+            (
+                name.to_string(),
+                value.to_str().unwrap_or("<binary>").to_string(),
+            )
+        })
+        .collect::<Vec<_>>();
+    let cookies = response
+        .headers()
+        .get_all(reqwest::header::SET_COOKIE)
+        .iter()
+        .map(|value| value.to_str().unwrap_or("<binary>").to_string())
+        .collect::<Vec<_>>();
+    let mut body = String::new();
+    response.read_to_string(&mut body)?;
+
+    Ok(ResponseView {
+        status: Some(status),
+        body,
+        headers,
+        cookies,
+        error: None,
+    })
 }
 
 fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
@@ -1670,9 +1824,7 @@ pub fn build_model(project: Option<&RataProject>) -> TuiModel {
         .collect::<Vec<_>>();
     let selected = operations.first().copied();
     let selected_request_url = selected
-        .map(|operation| {
-            format!("{{{{baseUrl}}}}{}", operation.path)
-        })
+        .map(|operation| format!("{{{{baseUrl}}}}{}", operation.path))
         .unwrap_or_default();
     let examples = selected
         .and_then(|operation| project.examples_for(operation).ok())
@@ -1756,6 +1908,14 @@ fn run_loop(
             app.params_area = request_body[0];
             app.response_area = main_rest[1];
 
+            let send_len = 11;
+            app.send_button_area = Rect {
+                x: url_area.right().saturating_sub(1 + send_len),
+                y: url_area.y + 1,
+                width: send_len,
+                height: 1,
+            };
+
             frame.render_widget(request_line(app), url_area);
             frame.render_widget(collections(project, app), body[0]);
             render_request_block(frame, app, project, request_body[0]);
@@ -1794,6 +1954,19 @@ fn run_loop(
                 app.method_dropdown_area = Rect::default();
             }
         })?;
+
+        if let Some(rx) = &app.send_rx {
+            if let Ok(res) = rx.try_recv() {
+                match res {
+                    Ok(response) => app.response = response,
+                    Err(error) => app.response.error = Some(error.to_string()),
+                }
+                app.is_sending = false;
+                app.send_rx = None;
+            } else {
+                app.sending_frame = app.sending_frame.wrapping_add(1);
+            }
+        }
 
         if event::poll(std::time::Duration::from_millis(50))? {
             match event::read()? {
@@ -1874,7 +2047,10 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     List::new(items)
         .block(
             Block::default()
-                .title(Span::styled(" Collections ", Style::default().fg(Color::White)))
+                .title(Span::styled(
+                    " Collections ",
+                    Style::default().fg(Color::White),
+                ))
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
                 .border_style(border_style),
@@ -1902,32 +2078,92 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         " Examples ▾ "
     };
 
-    let method_icon = if app.method_dropdown_open { "▴" } else { "▾" };
+    let method_icon = if app.method_dropdown_open {
+        "▴"
+    } else {
+        "▾"
+    };
 
     let mut spans = vec![
         Span::styled(
             format!(" {} {} ", app.draft.method.label(), method_icon),
-            method_style(app.draft.method).bg(SELECTED_BG).add_modifier(Modifier::BOLD),
+            method_style(app.draft.method)
+                .bg(SELECTED_BG)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" "),
         Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)),
     ];
     if app.active_block == ActiveBlock::Request {
-        spans.extend(render_with_cursor_spans(&url, app.text_cursor, Style::default().fg(TEXT).bg(SELECTED_BG)));
+        spans.extend(render_with_cursor_spans(
+            &url,
+            app.text_cursor,
+            Style::default().fg(TEXT).bg(SELECTED_BG),
+        ));
     } else {
-        spans.push(Span::styled(url.clone(), Style::default().fg(TEXT).bg(SELECTED_BG)));
+        spans.push(Span::styled(
+            url.clone(),
+            Style::default().fg(TEXT).bg(SELECTED_BG),
+        ));
     }
     spans.push(Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)));
 
-    let method_str_len = format!(" {} {} ", app.draft.method.label(), method_icon).chars().count();
+    let method_str_len = format!(" {} {} ", app.draft.method.label(), method_icon)
+        .chars()
+        .count();
     let occupied = method_str_len + 1 + 1 + url.chars().count() + 1;
-    let remaining = app.request_area.width.saturating_sub(2).saturating_sub(occupied as u16);
-    if remaining > 0 {
-        spans.push(Span::styled(" ".repeat(remaining as usize), Style::default().bg(SELECTED_BG)));
+    let remaining = app
+        .request_area
+        .width
+        .saturating_sub(2)
+        .saturating_sub(occupied as u16);
+
+    let (send_len, mut send_spans) = if app.is_sending {
+        let frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let frame = frames[app.sending_frame % frames.len()];
+        let btn = vec![
+            Span::styled(
+                format!("{}", frame),
+                Style::default().fg(Color::Green).bg(SELECTED_BG),
+            ),
+            Span::styled(
+                "  SEND  ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .bg(SELECTED_BG)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ];
+        (11, btn)
+    } else {
+        let btn = vec![
+            Span::styled(" ", Style::default().bg(SELECTED_BG)),
+            Span::styled(
+                "  SEND  ",
+                Style::default()
+                    .fg(Color::White)
+                    .bg(ACCENT)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ];
+        (11, btn)
+    };
+
+    if remaining >= send_len as u16 + 1 {
+        let padding = remaining - send_len as u16;
+        spans.push(Span::styled(
+            " ".repeat(padding as usize),
+            Style::default().bg(SELECTED_BG),
+        ));
+        spans.append(&mut send_spans);
+    } else if remaining > 0 {
+        spans.push(Span::styled(
+            " ".repeat(remaining as usize),
+            Style::default().bg(SELECTED_BG),
+        ));
     }
 
-    Paragraph::new(Line::from(spans))
-    .block(
+    Paragraph::new(Line::from(spans)).block(
         Block::default()
             .title(Span::styled(" URL ", Style::default().fg(Color::White)))
             .title_top(Line::from(example_title).right_aligned())
@@ -2045,22 +2281,28 @@ fn render_request_block(
 
     let block = Block::default()
         .title_top(tabs)
-        .title_top(Line::from(Span::styled(" Request ", Style::default().fg(Color::White))).right_aligned())
+        .title_top(
+            Line::from(Span::styled(" Request ", Style::default().fg(Color::White)))
+                .right_aligned(),
+        )
         .borders(Borders::ALL)
         .style(Style::default().bg(PANEL).fg(TEXT))
         .border_style(border_style);
 
     match app.active_request_tab {
         RequestTab::Body => {
-            let text =
-                if app.draft.body.is_empty() && !(app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body) {
-                    "No request body".to_string()
-                } else {
-                    app.draft.body.clone()
-                };
+            let text = if app.draft.body.is_empty()
+                && !(app.active_block == ActiveBlock::Params
+                    && app.active_request_tab == RequestTab::Body)
+            {
+                "No request body".to_string()
+            } else {
+                app.draft.body.clone()
+            };
             let mut highlighted = highlight_json(&text);
             highlighted = apply_selection(highlighted, app.request_selection);
-            if app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body {
+            if app.active_block == ActiveBlock::Params && app.active_request_tab == RequestTab::Body
+            {
                 highlighted = apply_cursor_to_text(highlighted, app.text_cursor);
             }
             let mut p = Paragraph::new(highlighted.clone())
@@ -2071,7 +2313,7 @@ fn render_request_block(
                 p = p.wrap(ratatui::widgets::Wrap { trim: false });
             }
             frame.render_widget(p, area);
-            
+
             let inner_width = area.width.saturating_sub(2) as usize;
             let lines = if app.wrap_body && inner_width > 0 {
                 count_visual_lines(&app.draft.body, inner_width, app.wrap_body)
@@ -2101,24 +2343,63 @@ fn render_request_block(
             let mut rows = Vec::new();
             let params = &app.draft.params;
             for (i, param) in params.iter().enumerate() {
-                let display_key = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Key && i == app.selected_request_row {
-                    Line::from(render_with_cursor_spans(&param.key, app.text_cursor, Style::default()))
+                let display_key = if app.active_block == ActiveBlock::Params
+                    && app.param_edit_mode == ParamEditMode::Key
+                    && i == app.selected_request_row
+                {
+                    Line::from(render_with_cursor_spans(
+                        &param.key,
+                        app.text_cursor,
+                        Style::default(),
+                    ))
                 } else {
                     Line::from(param.key.clone())
                 };
-                let display_value = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Value && i == app.selected_request_row {
-                    Line::from(render_with_cursor_spans(&param.value, app.text_cursor, Style::default()))
+                let display_value = if app.active_block == ActiveBlock::Params
+                    && app.param_edit_mode == ParamEditMode::Value
+                    && i == app.selected_request_row
+                {
+                    Line::from(render_with_cursor_spans(
+                        &param.value,
+                        app.text_cursor,
+                        Style::default(),
+                    ))
                 } else {
                     Line::from(param.value.clone())
                 };
                 let checkbox_text = if param.enabled { "[x]" } else { "[ ]" }.to_string();
-                let checkbox_cell = if param.required { ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED)) } else { ratatui::widgets::Cell::from(checkbox_text) };
-                let mut row = Row::new(vec![ checkbox_cell, ratatui::widgets::Cell::from(display_key), ratatui::widgets::Cell::from(display_value), ratatui::widgets::Cell::from("") ]);
-                if app.active_block == ActiveBlock::Params && i == app.selected_request_row { row = row.style(Style::default().bg(SELECTED_BG)); }
+                let checkbox_cell = if param.required {
+                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
+                } else {
+                    ratatui::widgets::Cell::from(checkbox_text)
+                };
+                let mut row = Row::new(vec![
+                    checkbox_cell,
+                    ratatui::widgets::Cell::from(display_key),
+                    ratatui::widgets::Cell::from(display_value),
+                    ratatui::widgets::Cell::from(""),
+                ]);
+                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                    row = row.style(Style::default().bg(SELECTED_BG));
+                }
                 rows.push(row);
             }
-            let add_style = if app.active_block == ActiveBlock::Params && app.selected_request_row == params.len() { Style::default().bg(SELECTED_BG) } else { Style::default() };
-            rows.push(Row::new(vec![ ratatui::widgets::Cell::from(""), ratatui::widgets::Cell::from("<Add new query...>").style(add_style.fg(MUTED)), ratatui::widgets::Cell::from(""), ratatui::widgets::Cell::from("") ]).style(add_style));
+            let add_style = if app.active_block == ActiveBlock::Params
+                && app.selected_request_row == params.len()
+            {
+                Style::default().bg(SELECTED_BG)
+            } else {
+                Style::default()
+            };
+            rows.push(
+                Row::new(vec![
+                    ratatui::widgets::Cell::from(""),
+                    ratatui::widgets::Cell::from("<Add new query...>").style(add_style.fg(MUTED)),
+                    ratatui::widgets::Cell::from(""),
+                    ratatui::widgets::Cell::from(""),
+                ])
+                .style(add_style),
+            );
 
             let t = Table::new(
                 rows,
@@ -2141,24 +2422,61 @@ fn render_request_block(
             let mut rows = Vec::new();
             let params = &app.draft.headers;
             for (i, param) in params.iter().enumerate() {
-                let display_key = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Key && i == app.selected_request_row {
-                    Line::from(render_with_cursor_spans(&param.key, app.text_cursor, Style::default()))
+                let display_key = if app.active_block == ActiveBlock::Params
+                    && app.param_edit_mode == ParamEditMode::Key
+                    && i == app.selected_request_row
+                {
+                    Line::from(render_with_cursor_spans(
+                        &param.key,
+                        app.text_cursor,
+                        Style::default(),
+                    ))
                 } else {
                     Line::from(param.key.clone())
                 };
-                let display_value = if app.active_block == ActiveBlock::Params && app.param_edit_mode == ParamEditMode::Value && i == app.selected_request_row {
-                    Line::from(render_with_cursor_spans(&param.value, app.text_cursor, Style::default()))
+                let display_value = if app.active_block == ActiveBlock::Params
+                    && app.param_edit_mode == ParamEditMode::Value
+                    && i == app.selected_request_row
+                {
+                    Line::from(render_with_cursor_spans(
+                        &param.value,
+                        app.text_cursor,
+                        Style::default(),
+                    ))
                 } else {
                     Line::from(param.value.clone())
                 };
                 let checkbox_text = if param.enabled { "[x]" } else { "[ ]" }.to_string();
-                let checkbox_cell = if param.required { ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED)) } else { ratatui::widgets::Cell::from(checkbox_text) };
-                let mut row = Row::new(vec![ checkbox_cell, ratatui::widgets::Cell::from(display_key), ratatui::widgets::Cell::from(display_value) ]);
-                if app.active_block == ActiveBlock::Params && i == app.selected_request_row { row = row.style(Style::default().bg(SELECTED_BG)); }
+                let checkbox_cell = if param.required {
+                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
+                } else {
+                    ratatui::widgets::Cell::from(checkbox_text)
+                };
+                let mut row = Row::new(vec![
+                    checkbox_cell,
+                    ratatui::widgets::Cell::from(display_key),
+                    ratatui::widgets::Cell::from(display_value),
+                ]);
+                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
+                    row = row.style(Style::default().bg(SELECTED_BG));
+                }
                 rows.push(row);
             }
-            let add_style = if app.active_block == ActiveBlock::Params && app.selected_request_row == params.len() { Style::default().bg(SELECTED_BG) } else { Style::default() };
-            rows.push(Row::new(vec![ ratatui::widgets::Cell::from(""), ratatui::widgets::Cell::from("<Add new header...>").style(add_style.fg(MUTED)), ratatui::widgets::Cell::from("") ]).style(add_style));
+            let add_style = if app.active_block == ActiveBlock::Params
+                && app.selected_request_row == params.len()
+            {
+                Style::default().bg(SELECTED_BG)
+            } else {
+                Style::default()
+            };
+            rows.push(
+                Row::new(vec![
+                    ratatui::widgets::Cell::from(""),
+                    ratatui::widgets::Cell::from("<Add new header...>").style(add_style.fg(MUTED)),
+                    ratatui::widgets::Cell::from(""),
+                ])
+                .style(add_style),
+            );
 
             let t = Table::new(
                 rows,
@@ -2505,7 +2823,10 @@ fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'static>
                 if !left.is_empty() {
                     new_spans.push(Span::styled(left.to_string(), span.style));
                 }
-                new_spans.push(Span::styled(cursor_char.to_string(), span.style.add_modifier(Modifier::REVERSED)));
+                new_spans.push(Span::styled(
+                    cursor_char.to_string(),
+                    span.style.add_modifier(Modifier::REVERSED),
+                ));
                 if !rest.is_empty() {
                     new_spans.push(Span::styled(rest.to_string(), span.style));
                 }
@@ -2515,23 +2836,32 @@ fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'static>
             }
             char_count += span_chars;
         }
-        
+
         if !cursor_applied && char_count == cursor {
-            new_spans.push(Span::styled(" ", Style::default().add_modifier(Modifier::REVERSED)));
+            new_spans.push(Span::styled(
+                " ",
+                Style::default().add_modifier(Modifier::REVERSED),
+            ));
             cursor_applied = true;
         }
         char_count += 1; // for newline
         line.spans = new_spans;
     }
-    
+
     if !cursor_applied {
         if let Some(last) = text.lines.last_mut() {
-            last.spans.push(Span::styled(" ", Style::default().add_modifier(Modifier::REVERSED)));
+            last.spans.push(Span::styled(
+                " ",
+                Style::default().add_modifier(Modifier::REVERSED),
+            ));
         } else {
-            text.lines.push(Line::from(Span::styled(" ", Style::default().add_modifier(Modifier::REVERSED))));
+            text.lines.push(Line::from(Span::styled(
+                " ",
+                Style::default().add_modifier(Modifier::REVERSED),
+            )));
         }
     }
-    
+
     text
 }
 
@@ -2694,12 +3024,13 @@ fn insert_char_at(s: &mut String, idx: usize, ch: char) {
 
 fn remove_char_at(s: &mut String, idx: usize) {
     let char_len = s.chars().count();
-    if char_len == 0 || idx == 0 { return; }
+    if char_len == 0 || idx == 0 {
+        return;
+    }
     let idx = idx.min(char_len);
     let byte_idx = s.char_indices().nth(idx - 1).unwrap().0;
     s.remove(byte_idx);
 }
-
 
 fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Span<'static>> {
     let char_len = s.chars().count();
@@ -2708,15 +3039,21 @@ fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Sp
 
     if idx == char_len {
         spans.push(Span::styled(s.to_string(), base_style));
-        spans.push(Span::styled(" ", base_style.add_modifier(Modifier::REVERSED)));
+        spans.push(Span::styled(
+            " ",
+            base_style.add_modifier(Modifier::REVERSED),
+        ));
     } else {
         let byte_idx = s.char_indices().nth(idx).unwrap().0;
         let (left, right) = s.split_at(byte_idx);
         let first_char = right.chars().next().unwrap();
         let rest = &right[first_char.len_utf8()..];
-        
+
         spans.push(Span::styled(left.to_string(), base_style));
-        spans.push(Span::styled(first_char.to_string(), base_style.add_modifier(Modifier::REVERSED)));
+        spans.push(Span::styled(
+            first_char.to_string(),
+            base_style.add_modifier(Modifier::REVERSED),
+        ));
         spans.push(Span::styled(rest.to_string(), base_style));
     }
     spans
@@ -2725,23 +3062,33 @@ fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Sp
 fn move_cursor_up(s: &str, cursor: usize) -> usize {
     let char_len = s.chars().count();
     let cursor = cursor.min(char_len);
-    
+
     let mut current_line_start = 0;
     for (i, c) in s.chars().enumerate() {
-        if i == cursor { break; }
-        if c == '\n' { current_line_start = i + 1; }
+        if i == cursor {
+            break;
+        }
+        if c == '\n' {
+            current_line_start = i + 1;
+        }
     }
-    
-    if current_line_start == 0 { return 0; }
-    
+
+    if current_line_start == 0 {
+        return 0;
+    }
+
     let col = cursor - current_line_start;
-    
+
     let mut prev_line_start = 0;
     for (i, c) in s.chars().enumerate() {
-        if i == current_line_start - 1 { break; }
-        if c == '\n' { prev_line_start = i + 1; }
+        if i == current_line_start - 1 {
+            break;
+        }
+        if c == '\n' {
+            prev_line_start = i + 1;
+        }
     }
-    
+
     let prev_line_len = current_line_start - 1 - prev_line_start;
     prev_line_start + col.min(prev_line_len)
 }
@@ -2749,15 +3096,19 @@ fn move_cursor_up(s: &str, cursor: usize) -> usize {
 fn move_cursor_down(s: &str, cursor: usize) -> usize {
     let char_len = s.chars().count();
     let cursor = cursor.min(char_len);
-    
+
     let mut current_line_start = 0;
     for (i, c) in s.chars().enumerate() {
-        if i == cursor { break; }
-        if c == '\n' { current_line_start = i + 1; }
+        if i == cursor {
+            break;
+        }
+        if c == '\n' {
+            current_line_start = i + 1;
+        }
     }
-    
+
     let col = cursor - current_line_start;
-    
+
     let mut next_line_start = char_len;
     for (i, c) in s.chars().enumerate().skip(cursor) {
         if c == '\n' {
@@ -2765,9 +3116,11 @@ fn move_cursor_down(s: &str, cursor: usize) -> usize {
             break;
         }
     }
-    
-    if next_line_start == char_len { return char_len; }
-    
+
+    if next_line_start == char_len {
+        return char_len;
+    }
+
     let mut next_line_len = char_len - next_line_start;
     for (i, c) in s.chars().enumerate().skip(next_line_start) {
         if c == '\n' {
@@ -2775,6 +3128,6 @@ fn move_cursor_down(s: &str, cursor: usize) -> usize {
             break;
         }
     }
-    
+
     next_line_start + col.min(next_line_len)
 }
