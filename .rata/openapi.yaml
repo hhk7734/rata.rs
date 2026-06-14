@@ -106,6 +106,8 @@ paths:
           description: Gateway is healthy
   /metrics:
     get:
+      tags:
+        - system
       summary: Metrics
       description: Prometheus metrics endpoint.
       responses:
@@ -117,11 +119,22 @@ paths:
                 type: string
   /debug/metrics-store:
     get:
+      tags:
+        - system
       summary: Debug Metrics Store
       description: Returns internal metrics store state for debugging.
       responses:
         "200":
           description: Debug info
+  /debug/reset-prefix-cache:
+    post:
+      tags:
+        - system
+      summary: Reset Prefix Cache
+      description: Resets the prefix cache for debugging purposes.
+      responses:
+        "200":
+          description: Cache reset successful
 components:
   requestBodies:
     createChatCompletionRequest:
@@ -234,6 +247,7 @@ components:
                         type: integer
                       audio_tokens:
                         type: integer
+  schemas: {}
 tags:
   - name: models
     description: models for OpenAI/Anthropic compatible Models API.
@@ -245,3 +259,5 @@ tags:
     description: OpenAI-compatible Responses API.
   - name: messages
     description: Anthropic-compatible Messages API.
+  - name: system
+    description: System endpoints for health, metrics, and debugging.
