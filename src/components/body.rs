@@ -66,10 +66,6 @@ pub fn render_body_with_scrollbar<'a>(
 }
 
 pub fn pretty_body(body: &str) -> String {
-    if body.is_empty() {
-        return "No response yet.".to_string();
-    }
-
     serde_json::from_str::<serde_json::Value>(body)
         .and_then(|value| serde_json::to_string_pretty(&value))
         .unwrap_or_else(|_| body.to_string())
