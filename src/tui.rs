@@ -159,6 +159,8 @@ pub struct TuiApp {
     pub send_button_area: Rect,
     pub send_rx: Option<std::sync::mpsc::Receiver<anyhow::Result<ResponseView>>>,
     pub sending_frame: usize,
+    pub error_popup: Option<String>,
+    pub error_popup_area: Rect,
 }
 
 const METHODS: [HttpMethod; 5] = [
@@ -440,6 +442,8 @@ impl TuiApp {
             send_button_area: Rect::default(),
             send_rx: None,
             sending_frame: 0,
+            error_popup: None,
+            error_popup_area: Rect::default(),
         }
     }
 
@@ -520,6 +524,23 @@ impl TuiApp {
             return;
         }
 
+        if let Some(proj) = project {
+            if let Some((method, path)) = &self.selected_operation {
+                match proj.validate_request_body(*method, path, &self.draft.body) {
+                    Ok(errors) => {
+                        if !errors.is_empty() {
+                            self.error_popup = Some(format!("Request Validation Failed:\n{}", errors.join("\n")));
+                            return;
+                        }
+                    }
+                    Err(e) => {
+                        self.error_popup = Some(format!("Schema Error:\n{}", e));
+                        return;
+                    }
+                }
+            }
+        }
+
         self.response_scroll = 0;
         self.response = ResponseView {
             status: None,
@@ -571,6 +592,13 @@ impl TuiApp {
         key: KeyEvent,
         project: Option<&RataProject>,
     ) -> anyhow::Result<AppAction> {
+        if self.error_popup.is_some() {
+            if key.code == KeyCode::Enter || key.code == KeyCode::Esc {
+                self.error_popup = None;
+            }
+            return Ok(AppAction::Continue);
+        }
+
         if key.code == KeyCode::Char('q')
             && key
                 .modifiers
@@ -1113,6 +1141,15 @@ impl TuiApp {
         let contains = |rect: Rect, x, y| {
             x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
         };
+
+        if self.error_popup.is_some() {
+            if matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
+                if !contains(self.error_popup_area, mouse.column, mouse.row) {
+                    self.error_popup = None;
+                }
+            }
+            return;
+        }
 
         if matches!(mouse.kind, MouseEventKind::ScrollUp) {
             if contains(self.response_area, mouse.column, mouse.row) {
@@ -1924,12 +1961,48 @@ fn run_loop(
             } else {
                 app.method_dropdown_area = Rect::default();
             }
+
+            if let Some(error) = &app.error_popup {
+                let area = frame.area();
+                let popup_width = (area.width * 6) / 10;
+                let popup_height = (area.height * 6) / 10;
+                let x = area.x + (area.width.saturating_sub(popup_width)) / 2;
+                let y = area.y + (area.height.saturating_sub(popup_height)) / 2;
+
+                app.error_popup_area = Rect {
+                    x,
+                    y,
+                    width: popup_width.max(20),
+                    height: popup_height.max(10),
+                };
+                render_error_popup(frame, error, app.error_popup_area);
+            } else {
+                app.error_popup_area = Rect::default();
+            }
         })?;
 
         if let Some(rx) = &app.send_rx {
             if let Ok(res) = rx.try_recv() {
                 match res {
-                    Ok(response) => app.response = response,
+                    Ok(response) => {
+                        app.response = response;
+                        if let Some(proj) = project.as_ref() {
+                            if let Some((method, path)) = &app.selected_operation {
+                                if let Some(status) = app.response.status {
+                                    match proj.validate_response_body(*method, path, status, &app.response.body) {
+                                        Ok(errors) => {
+                                            if !errors.is_empty() {
+                                                app.error_popup = Some(format!("Response Validation Failed:\n{}", errors.join("\n")));
+                                            }
+                                        }
+                                        Err(e) => {
+                                            app.error_popup = Some(format!("Response Schema Error:\n{}", e));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Err(error) => app.response.error = Some(error.to_string()),
                 }
                 app.is_sending = false;
@@ -3004,4 +3077,21 @@ fn move_cursor_down(s: &str, cursor: usize) -> usize {
     }
 
     next_line_start + col.min(next_line_len)
+}
+
+fn render_error_popup(frame: &mut ratatui::Frame, error: &str, popup_area: ratatui::layout::Rect) {
+    use ratatui::widgets::{Block, Borders, Paragraph, Wrap, Clear};
+    use ratatui::style::{Style, Color};
+
+    let block = Block::default()
+        .title(" Validation Error ")
+        .borders(Borders::ALL)
+        .style(Style::default().fg(Color::Red));
+        
+    let paragraph = Paragraph::new(error)
+        .block(block)
+        .wrap(Wrap { trim: true });
+
+    frame.render_widget(Clear, popup_area);
+    frame.render_widget(paragraph, popup_area);
 }

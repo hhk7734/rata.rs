@@ -120,6 +120,7 @@ pub struct RataProject {
     openapi_path: PathBuf,
     server_url: Option<String>,
     collections: Vec<Collection>,
+    openapi_value: serde_json::Value,
 }
 
 impl RataProject {
@@ -132,12 +133,17 @@ impl RataProject {
         };
 
         let source = fs::read_to_string(&openapi_path)?;
-        let document: OpenAPI =
-            if openapi_path.extension().and_then(|ext| ext.to_str()) == Some("json") {
-                serde_json::from_str(&source)?
-            } else {
-                serde_yaml::from_str(&source)?
-            };
+        let is_json = openapi_path.extension().and_then(|ext| ext.to_str()) == Some("json");
+        let document: OpenAPI = if is_json {
+            serde_json::from_str(&source)?
+        } else {
+            serde_yaml::from_str(&source)?
+        };
+        let openapi_value: serde_json::Value = if is_json {
+            serde_json::from_str(&source)?
+        } else {
+            serde_yaml::from_str(&source)?
+        };
 
         let collections = collect_operations(&document);
 
@@ -146,6 +152,7 @@ impl RataProject {
             openapi_path,
             server_url: document.servers.first().map(|server| server.url.clone()),
             collections,
+            openapi_value,
         }))
     }
 
@@ -221,6 +228,107 @@ impl RataProject {
         load_vars(&["variables.local.yaml", "variable.local.yaml", "variables.local.yml", "variable.local.yml"], &mut variables);
 
         variables
+    }
+
+    fn get_schema_pointer(&self, mut base_pointer: String, suffix: &str) -> Option<String> {
+        let mut current = self.openapi_value.pointer(&base_pointer);
+        while let Some(node) = current {
+            if let Some(ref_val) = node.get("$ref").and_then(|v| v.as_str()) {
+                if ref_val.starts_with("#") {
+                    base_pointer = ref_val[1..].to_string();
+                    current = self.openapi_value.pointer(&base_pointer);
+                } else {
+                    return None;
+                }
+            } else {
+                break;
+            }
+        }
+        let schema_ptr = format!("{}{}", base_pointer, suffix);
+        if self.openapi_value.pointer(&schema_ptr).is_some() {
+            Some(schema_ptr)
+        } else {
+            None
+        }
+    }
+
+    pub fn validate_request_body(&self, method: HttpMethod, path: &str, body: &str) -> anyhow::Result<Vec<String>> {
+        if body.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+        let body_value: serde_json::Value = match serde_json::from_str(body) {
+            Ok(v) => v,
+            Err(_) => return Ok(Vec::new()), // skip json schema validation if not parseable as JSON
+        };
+
+        let method_str = method.label().to_lowercase();
+        let path_escaped = path.replace("~", "~0").replace("/", "~1");
+        
+        let base_pointer = format!("/paths/{}/{}/requestBody", path_escaped, method_str);
+        if let Some(pointer) = self.get_schema_pointer(base_pointer, "/content/application~1json/schema") {
+            let user_schema = serde_json::json!({"$ref": format!("http://localhost/root#{}", pointer)});
+            let registry = jsonschema::Registry::new()
+                .add("http://localhost/root", self.openapi_value.clone())
+                .map_err(|e| anyhow::anyhow!("Failed to add registry: {}", e))?
+                .prepare()
+                .map_err(|e| anyhow::anyhow!("Failed to prepare registry: {}", e))?;
+
+            let validator = jsonschema::options()
+                .with_registry(&registry)
+                .build(&user_schema)
+                .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
+            
+            let mut errors: Vec<String> = Vec::new();
+            if !validator.is_valid(&body_value) {
+                for error in validator.iter_errors(&body_value) {
+                    errors.push(error.to_string());
+                }
+            }
+            return Ok(errors);
+        }
+        Ok(Vec::new())
+    }
+
+    pub fn validate_response_body(&self, method: HttpMethod, path: &str, status: u16, body: &str) -> anyhow::Result<Vec<String>> {
+        if body.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+        let body_value: serde_json::Value = match serde_json::from_str(body) {
+            Ok(v) => v,
+            Err(_) => return Ok(Vec::new()),
+        };
+
+        let method_str = method.label().to_lowercase();
+        let path_escaped = path.replace("~", "~0").replace("/", "~1");
+        
+        let base_pointer = format!("/paths/{}/{}/responses/{}", path_escaped, method_str, status);
+        let base_pointer_default = format!("/paths/{}/{}/responses/default", path_escaped, method_str);
+        
+        let target_pointer = self.get_schema_pointer(base_pointer, "/content/application~1json/schema")
+            .or_else(|| self.get_schema_pointer(base_pointer_default, "/content/application~1json/schema"));
+
+        if let Some(p) = target_pointer {
+            let user_schema = serde_json::json!({"$ref": format!("http://localhost/root#{}", p)});
+            let registry = jsonschema::Registry::new()
+                .add("http://localhost/root", self.openapi_value.clone())
+                .map_err(|e| anyhow::anyhow!("Failed to add registry: {}", e))?
+                .prepare()
+                .map_err(|e| anyhow::anyhow!("Failed to prepare registry: {}", e))?;
+
+            let validator = jsonschema::options()
+                .with_registry(&registry)
+                .build(&user_schema)
+                .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
+            
+            let mut errors: Vec<String> = Vec::new();
+            if !validator.is_valid(&body_value) {
+                for error in validator.iter_errors(&body_value) {
+                    errors.push(error.to_string());
+                }
+            }
+            return Ok(errors);
+        }
+        Ok(Vec::new())
     }
 
     pub fn match_url(
