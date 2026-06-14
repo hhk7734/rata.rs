@@ -964,6 +964,19 @@ impl TuiApp {
             } else {
                 self.draft.body.clear();
             }
+
+            self.update_request_tab();
+        }
+    }
+
+    fn update_request_tab(&mut self) {
+        let query_empty = self.draft.params.iter().all(|p| !p.enabled || p.value.is_empty());
+        let body_empty = self.draft.body.trim().is_empty();
+
+        if query_empty && !body_empty {
+            self.active_request_tab = RequestTab::Body;
+        } else {
+            self.active_request_tab = RequestTab::Query;
         }
     }
 
@@ -1014,6 +1027,8 @@ impl TuiApp {
 
         if let Some(first_example) = examples.first() {
             self.load_example(first_example);
+        } else {
+            self.update_request_tab();
         }
     }
 
