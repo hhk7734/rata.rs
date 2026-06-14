@@ -112,6 +112,7 @@ pub enum DragTarget {
     ScrollResponse,
     ResponseSelection,
     RequestSelection,
+    ErrorPopupSelection,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1142,11 +1143,57 @@ impl TuiApp {
             x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
         };
 
-        if self.error_popup.is_some() {
-            if matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
-                if !contains(self.error_popup_area, mouse.column, mouse.row) {
-                    self.error_popup = None;
+        if let Some(error) = self.error_popup.clone() {
+            match mouse.kind {
+                MouseEventKind::Down(MouseButton::Left) => {
+                    if !contains(self.error_popup_area, mouse.column, mouse.row) {
+                        self.error_popup = None;
+                        self.text_selection = None;
+                    } else {
+                        self.drag_target = DragTarget::ErrorPopupSelection;
+                        let inner_y = self.error_popup_area.y + 1;
+                        let inner_x = self.error_popup_area.x + 1;
+                        let v_line = mouse.row.saturating_sub(inner_y) as usize;
+                        let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                        let width = self.error_popup_area.width.saturating_sub(2) as usize;
+                        
+                        let char_idx = visual_to_char_index(&error, v_line, v_col, width, true);
+                        let logical_pos = char_index_to_logical(&error, char_idx);
+                        
+                        self.text_selection = Some(Selection {
+                            start: logical_pos,
+                            end: logical_pos,
+                        });
+                    }
                 }
+                MouseEventKind::Drag(MouseButton::Left) => {
+                    if self.drag_target == DragTarget::ErrorPopupSelection {
+                        if let Some(sel) = &mut self.text_selection {
+                            let inner_y = self.error_popup_area.y + 1;
+                            let inner_x = self.error_popup_area.x + 1;
+                            let v_line = mouse.row.saturating_sub(inner_y) as usize;
+                            let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                            let width = self.error_popup_area.width.saturating_sub(2) as usize;
+                            
+                            let char_idx = visual_to_char_index(&error, v_line, v_col, width, true);
+                            sel.end = char_index_to_logical(&error, char_idx);
+                        }
+                    }
+                }
+                MouseEventKind::Up(MouseButton::Left) => {
+                    if self.drag_target == DragTarget::ErrorPopupSelection {
+                        if let Some(sel) = self.text_selection {
+                            let text = Self::extract_text_selection(&error, sel);
+                            if !text.is_empty() {
+                                if let Some(clipboard) = &mut self.clipboard {
+                                    let _ = clipboard.set_text(text);
+                                }
+                            }
+                        }
+                        self.drag_target = DragTarget::None;
+                    }
+                }
+                _ => {}
             }
             return;
         }
@@ -1278,7 +1325,7 @@ impl TuiApp {
                             sel.end = char_index_to_logical(&text_str, char_idx);
                         }
                     }
-                    DragTarget::None => {}
+                    DragTarget::None | DragTarget::ErrorPopupSelection => {}
                 }
                 return;
             }
@@ -1975,7 +2022,7 @@ fn run_loop(
                     width: popup_width.max(20),
                     height: popup_height.max(10),
                 };
-                render_error_popup(frame, error, app.error_popup_area);
+                render_error_popup(frame, error, app.error_popup_area, app.text_selection);
             } else {
                 app.error_popup_area = Rect::default();
             }
@@ -3079,17 +3126,22 @@ fn move_cursor_down(s: &str, cursor: usize) -> usize {
     next_line_start + col.min(next_line_len)
 }
 
-fn render_error_popup(frame: &mut ratatui::Frame, error: &str, popup_area: ratatui::layout::Rect) {
+fn render_error_popup(frame: &mut ratatui::Frame, error: &str, popup_area: ratatui::layout::Rect, text_selection: Option<Selection>) {
     use ratatui::widgets::{Block, Borders, Paragraph, Wrap, Clear};
     use ratatui::style::{Style, Color};
+    use ratatui::text::Text;
 
     let block = Block::default()
         .title(" Validation Error ")
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::Red));
         
-    let paragraph = Paragraph::new(error)
+    let mut text = Text::from(error);
+    text = apply_selection(text, text_selection);
+
+    let paragraph = Paragraph::new(text)
         .block(block)
+        .style(Style::default().fg(Color::White))
         .wrap(Wrap { trim: true });
 
     frame.render_widget(Clear, popup_area);
