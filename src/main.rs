@@ -7,7 +7,7 @@ fn main() -> anyhow::Result<()> {
         Command::Tui => {
             let cwd = std::env::current_dir()?;
             let project = RataProject::discover(cwd)?;
-            rata::tui::run(project.as_ref())
+            rata::tui::run(project)
         }
         Command::Request { method, url } => {
             run_request(method, &url)?;

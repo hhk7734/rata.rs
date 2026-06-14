@@ -1807,15 +1807,15 @@ pub fn build_model(project: Option<&RataProject>) -> TuiModel {
     }
 }
 
-pub fn run(project: Option<&RataProject>) -> anyhow::Result<()> {
+pub fn run(mut project: Option<RataProject>) -> anyhow::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut app = TuiApp::new(project);
-    let result = run_loop(&mut terminal, project, &mut app);
+    let mut app = TuiApp::new(project.as_ref());
+    let result = run_loop(&mut terminal, &mut project, &mut app);
 
     disable_raw_mode()?;
     execute!(
@@ -1830,10 +1830,15 @@ pub fn run(project: Option<&RataProject>) -> anyhow::Result<()> {
 
 fn run_loop(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
-    project: Option<&RataProject>,
+    project: &mut Option<RataProject>,
     app: &mut TuiApp,
 ) -> anyhow::Result<()> {
     let mut last_mouse_pos: Option<(u16, u16)> = None;
+    let mut last_modified = project.as_ref()
+        .map(|p| p.openapi_path().to_path_buf())
+        .and_then(|p| std::fs::metadata(&p).ok())
+        .and_then(|m| m.modified().ok());
+
     loop {
         terminal.draw(|frame| {
             let area = frame.area();
@@ -1883,8 +1888,8 @@ fn run_loop(
             };
 
             frame.render_widget(request_line(app), url_area);
-            frame.render_widget(collections(project, app), body[0]);
-            render_request_block(frame, app, project, request_body[0]);
+            frame.render_widget(collections(project.as_ref(), app), body[0]);
+            render_request_block(frame, app, project.as_ref(), request_body[0]);
             render_response(frame, app, main_rest[1]);
             frame.render_widget(render_shortcut_bar(app), app_layout[1]);
 
@@ -1899,7 +1904,7 @@ fn run_loop(
                 };
                 app.examples_area = area;
                 frame.render_widget(ratatui::widgets::Clear, area);
-                frame.render_widget(examples(project, app), area);
+                frame.render_widget(examples(project.as_ref(), app), area);
             } else {
                 app.examples_area = Rect::default();
             }
@@ -1936,17 +1941,29 @@ fn run_loop(
 
         if event::poll(std::time::Duration::from_millis(50))? {
             match event::read()? {
-                Event::Key(key) => match app.handle_key(key, project)? {
+                Event::Key(key) => match app.handle_key(key, project.as_ref())? {
                     AppAction::Quit => return Ok(()),
                     AppAction::Continue => {}
                 },
                 Event::Mouse(mouse) => {
                     last_mouse_pos = Some((mouse.column, mouse.row));
-                    app.handle_mouse(mouse, project);
+                    app.handle_mouse(mouse, project.as_ref());
                 }
                 _ => {}
             }
         } else {
+            if let Some(p) = project.as_ref() {
+                if let Ok(m) = std::fs::metadata(p.openapi_path()) {
+                    if let Ok(current_modified) = m.modified() {
+                        if Some(current_modified) != last_modified {
+                            if let Ok(Some(new_project)) = crate::RataProject::discover(std::env::current_dir().unwrap_or_default()) {
+                                *project = Some(new_project);
+                            }
+                            last_modified = Some(current_modified);
+                        }
+                    }
+                }
+            }
             if app.drag_target == DragTarget::ResponseSelection {
                 if let Some((col, row)) = last_mouse_pos {
                     let synthetic_mouse = crossterm::event::MouseEvent {
@@ -1957,7 +1974,7 @@ fn run_loop(
                         row,
                         modifiers: crossterm::event::KeyModifiers::empty(),
                     };
-                    app.handle_mouse(synthetic_mouse, project);
+                    app.handle_mouse(synthetic_mouse, project.as_ref());
                 }
             }
         }
