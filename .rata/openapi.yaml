@@ -708,7 +708,7 @@ components:
             - type: "null"
           default: null
         finish_reason:
-          anyOf:
+          oneOf:
             - $ref: "#/components/schemas/FinishReason"
             - type: "null"
       required:
@@ -2259,25 +2259,12 @@ components:
       oneOf:
         - type: string
           enum:
-            - EoS
-            - Length
-            - Stop
-            - ToolCalls
-            - Cancelled
-            - ContentFilter
-        - type: object
-          properties:
-            Error:
-              type: string
-          required:
-            - Error
-          additionalProperties: false
-        - type: object
-          properties:
-            Unknown:
-              type: string
-          required:
-            - Unknown
+            - eos
+            - length
+            - stop
+            - tool_calls
+            - cancelled
+            - content_filter
           additionalProperties: false
     FunctionCall:
       type: object
