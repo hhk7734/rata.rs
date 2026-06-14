@@ -11,7 +11,7 @@ paths:
     get:
       tags:
         - models
-      summary: List models
+      summary: List Models
       description: Returns a list of available models.
       responses:
         "200":
@@ -19,12 +19,12 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/ModelsResponse"
   /v1/models/{model_id}:
     get:
       tags:
         - models
-      summary: Retrieve a model
+      summary: Get a Model
       description: Retrieves a specific model by ID.
       parameters:
         - name: model_id
@@ -38,12 +38,12 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/ModelObject"
   /v1/chat/completions:
     post:
       tags:
         - chat
-      summary: OpenAI Chat Completions API
+      summary: Create a Chat Completion
       description: Creates a model response for the given chat conversation.
       requestBody:
         $ref: "#/components/requestBodies/createChatCompletionRequest"
@@ -54,52 +54,62 @@ paths:
     post:
       tags:
         - completions
-      summary: completions
+      summary: Create a Completion
       description: Creates a completion for the provided prompt and parameters.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
+              $ref: "#/components/schemas/CreateCompletionRequest"
       responses:
         "200":
           description: A completion response
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/CreateCompletionResponse"
   /v1/messages:
     post:
       tags:
         - messages
-      summary: messages
+      summary: Create a Message
       description: Creates a message using the Anthropic API format.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
+              $ref: "#/components/schemas/CreateMessagesRequest"
       responses:
         "200":
           description: A message response
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/CreateMessagesResponse"
   /v1/responses:
     post:
       tags:
         - responses
-      summary: Responses API
+      summary: Create a Response
       description: Responses endpoint for Heimdall Gateway.
       responses:
         "200":
-          description: Successful operation
+          description: A response object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateResponseResponse"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResponseRequest"
   /health:
     get:
-      summary: Health Check
+      summary: Get Health
       description: Returns the health status of the gateway.
       responses:
         "200":
@@ -108,7 +118,7 @@ paths:
     get:
       tags:
         - system
-      summary: Metrics
+      summary: Get Metrics
       description: Prometheus metrics endpoint.
       responses:
         "200":
@@ -121,7 +131,7 @@ paths:
     get:
       tags:
         - system
-      summary: Debug Metrics Store
+      summary: Get Metrics for debugging
       description: Returns internal metrics store state for debugging.
       responses:
         "200":
@@ -142,112 +152,4796 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - model
-              - messages
-            properties:
-              model:
-                type: string
-              messages:
-                type: array
-                items:
-                  type: object
-                  required:
-                    - role
-                  properties:
-                    role:
-                      type: string
-                    content:
-                      type: string
-              temperature:
-                type: number
-                format: float
-              stream:
-                type: boolean
-              tools:
-                type: array
-                items:
-                  type: object
-              tool_choice:
-                anyOf:
-                  - type: string
-                  - type: object
+            $ref: "#/components/schemas/CreateChatCompletionRequest"
   responses:
     createChatCompletionResponse:
       description: A chat completion response
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - id
-              - object
-              - created
-              - model
-              - choices
-              - usage
-            properties:
-              id:
+            $ref: "#/components/schemas/CreateChatCompletionResponse"
+  schemas:
+    Annotation:
+      description: Citation / annotation attached to an `output_text` part.
+      anyOf:
+        - type: object
+          properties:
+            file_id:
+              type: string
+            index:
+              anyOf:
+                - type: integer
+                  format: uint32
+                  minimum: 0
+                - type: "null"
+            filename:
+              anyOf:
+                - type: string
+                - type: "null"
+            type:
+              type: string
+              const: file_citation
+          required:
+            - type
+            - file_id
+        - type: object
+          properties:
+            url:
+              type: string
+              format: uri
+            title:
+              anyOf:
+                - type: string
+                - type: "null"
+            start_index:
+              anyOf:
+                - type: integer
+                  format: uint32
+                  minimum: 0
+                - type: "null"
+            end_index:
+              anyOf:
+                - type: integer
+                  format: uint32
+                  minimum: 0
+                - type: "null"
+            type:
+              type: string
+              const: url_citation
+          required:
+            - type
+            - url
+        - type: object
+          properties:
+            file_id:
+              type: string
+            index:
+              anyOf:
+                - type: integer
+                  format: uint32
+                  minimum: 0
+                - type: "null"
+            type:
+              type: string
+              const: file_path
+          required:
+            - type
+            - file_id
+        - description: Forward-compatible catch-all.
+    ApplyPatchToolCallItemParam: {}
+    ApplyPatchToolCallOutputItemParam: {}
+    AssistantRole:
+      description:
+        'Single-variant role enum used to constrain `InputOutputMessage.role`
+
+        to `"assistant"` only.'
+      type: string
+      enum:
+        - assistant
+    AudioUrl:
+      description:
+        "`audio_url` payload (vLLM extension). Distinct from OpenAI's base64
+
+        `input_audio` shape."
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        uuid:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required:
+        - url
+    ChatChoiceLogprobs:
+      description:
+        "Per-choice logprobs payload. `content` carries assistant-content tokens;
+
+        `refusal` carries refusal-content tokens (kept for spec parity)."
+      type: object
+      properties:
+        content:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/TokenLogprob"
+            - type: "null"
+        refusal:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/TokenLogprob"
+            - type: "null"
+    ChatCompletionAudio:
+      description: "`audio` request configuration \u2014 voice + output format for audio\nmodality responses."
+      type: object
+      properties:
+        voice:
+          $ref: "#/components/schemas/ChatCompletionAudioVoice"
+        format:
+          $ref: "#/components/schemas/ChatCompletionAudioFormat"
+      required:
+        - voice
+        - format
+    ChatCompletionAudioFormat:
+      type: string
+      enum:
+        - wav
+        - aac
+        - mp3
+        - flac
+        - opus
+        - pcm16
+    ChatCompletionAudioVoice:
+      type: string
+      enum:
+        - alloy
+        - ash
+        - ballad
+        - coral
+        - echo
+        - fable
+        - onyx
+        - nova
+        - sage
+        - shimmer
+        - verse
+    ChatCompletionNamedToolChoice:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ChatCompletionToolType"
+        function:
+          $ref: "#/components/schemas/FunctionName"
+      required:
+        - type
+        - function
+    ChatCompletionRequestAssistantMessage:
+      type: object
+      properties:
+        content:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContent"
+            - type: "null"
+        reasoning_content:
+          anyOf:
+            - $ref: "#/components/schemas/ReasoningContent"
+            - type: "null"
+        refusal:
+          anyOf:
+            - type: string
+            - type: "null"
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+        audio:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageAudio"
+            - type: "null"
+        tool_calls:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ToolCall"
+            - type: "null"
+    ChatCompletionRequestAssistantMessageAudio:
+      description: Assistant-side audio reference echoed back in multi-turn audio threads.
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    ChatCompletionRequestAssistantMessageContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
+    ChatCompletionRequestAssistantMessageContentPart:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: refusal
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
+          required:
+            - type
+    ChatCompletionRequestDeveloperMessage:
+      type: object
+      properties:
+        content:
+          $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessageContent"
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - content
+    ChatCompletionRequestDeveloperMessageContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessageContentPart"
+    ChatCompletionRequestDeveloperMessageContentPart:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          required:
+            - type
+    ChatCompletionRequestMessage:
+      oneOf:
+        - type: object
+          properties:
+            role:
+              type: string
+              const: system
+          $ref: "#/components/schemas/ChatCompletionRequestSystemMessage"
+          required:
+            - role
+        - type: object
+          properties:
+            role:
+              type: string
+              const: developer
+          $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessage"
+          required:
+            - role
+        - type: object
+          properties:
+            role:
+              type: string
+              const: user
+          $ref: "#/components/schemas/ChatCompletionRequestUserMessage"
+          required:
+            - role
+        - type: object
+          properties:
+            role:
+              type: string
+              const: assistant
+          $ref: "#/components/schemas/ChatCompletionRequestAssistantMessage"
+          required:
+            - role
+        - type: object
+          properties:
+            role:
+              type: string
+              const: tool
+          $ref: "#/components/schemas/ChatCompletionRequestToolMessage"
+          required:
+            - role
+    ChatCompletionRequestMessageContentPartAudio:
+      description: '`{"type":"input_audio","input_audio":{...}}` content part.'
+      type: object
+      properties:
+        input_audio:
+          $ref: "#/components/schemas/InputAudio"
+      required:
+        - input_audio
+    ChatCompletionRequestMessageContentPartAudioUrl:
+      description: '`{"type":"audio_url","audio_url":{...}}` content part (vLLM extension).'
+      type: object
+      properties:
+        audio_url:
+          $ref: "#/components/schemas/AudioUrl"
+      required:
+        - audio_url
+    ChatCompletionRequestMessageContentPartFile:
+      description:
+        '`{"type":"file","file":{...}}` content part. `file` is left typed as
+
+        `serde_json::Value` because OpenAI accepts multiple sub-shapes
+
+        (`{file_id}`, `{file_data, filename}`) that the gateway forwards as-is.'
+      type: object
+      properties:
+        file: {}
+      required:
+        - file
+    ChatCompletionRequestMessageContentPartImage:
+      description: '`{"type":"image_url","image_url":{...}}` content part.'
+      type: object
+      properties:
+        image_url:
+          $ref: "#/components/schemas/ImageUrl"
+      required:
+        - image_url
+    ChatCompletionRequestMessageContentPartRefusal:
+      description: "Body for `{\"type\":\"refusal\",\"refusal\":\"\u2026\"}` content parts. Only valid\non assistant turns echoed back as input \u2014 refusal text from a prior\nresponse."
+      type: object
+      properties:
+        refusal:
+          type: string
+      required:
+        - refusal
+    ChatCompletionRequestMessageContentPartText:
+      description: "Shared body for every `{\"type\":\"text\",\"text\":\"\u2026\"}` content part."
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+    ChatCompletionRequestMessageContentPartVideo:
+      description: '`{"type":"video_url","video_url":{...}}` content part (vLLM extension).'
+      type: object
+      properties:
+        video_url:
+          $ref: "#/components/schemas/VideoUrl"
+      required:
+        - video_url
+    ChatCompletionRequestSystemMessage:
+      type: object
+      properties:
+        content:
+          $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContent"
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - content
+    ChatCompletionRequestSystemMessageContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
+    ChatCompletionRequestSystemMessageContentPart:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          required:
+            - type
+    ChatCompletionRequestToolMessage:
+      type: object
+      properties:
+        content:
+          $ref: "#/components/schemas/ChatCompletionRequestToolMessageContent"
+        tool_call_id:
+          type: string
+      required:
+        - content
+        - tool_call_id
+    ChatCompletionRequestToolMessageContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
+    ChatCompletionRequestToolMessageContentPart:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          required:
+            - type
+    ChatCompletionRequestUserMessage:
+      type: object
+      properties:
+        content:
+          $ref: "#/components/schemas/ChatCompletionRequestUserMessageContent"
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - content
+    ChatCompletionRequestUserMessageContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
+    ChatCompletionRequestUserMessageContentPart:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: image_url
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: input_audio
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
+          required:
+            - type
+        - description: "vLLM extension: video reference passed by URL."
+          type: object
+          properties:
+            type:
+              type: string
+              const: video_url
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartVideo"
+          required:
+            - type
+        - description:
+            "vLLM extension: audio reference passed by URL (distinct from base64
+
+            `input_audio`)."
+          type: object
+          properties:
+            type:
+              type: string
+              const: audio_url
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudioUrl"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: file
+          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartFile"
+          required:
+            - type
+    ChatCompletionResponseMessageAudio:
+      description:
+        "Audio reference returned on assistant messages when the response
+
+        includes the `audio` modality."
+      type: object
+      properties:
+        id:
+          type: string
+        expires_at:
+          anyOf:
+            - type: integer
+              format: uint64
+              minimum: 0
+            - type: "null"
+        data:
+          anyOf:
+            - type: string
+            - type: "null"
+        transcript:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - id
+    ChatCompletionStreamOptions:
+      description: "Streaming options. Extends OpenAI's spec with vLLM / SGLang's\n`continuous_usage_stats` flag (per-chunk usage instead of trailing-only).\n\nBoth fields default to `false` when absent so an empty object\n(`\"stream_options\": {}`) deserializes as a no-op \u2014 matching the\npre-Dynamo-mirror behavior where `include_usage` was `Option<bool>`."
+      type: object
+      properties:
+        include_usage:
+          type: boolean
+          default: false
+        continuous_usage_stats:
+          type: boolean
+          default: false
+    ChatCompletionTool:
+      description: One entry in the request's `tools` array.
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ChatCompletionToolType"
+          default: function
+        function:
+          $ref: "#/components/schemas/FunctionObject"
+      required:
+        - function
+    ChatCompletionToolChoiceOption:
+      description: "Tool-choice policy. The lowercase string variants (`none` / `auto` /\n`required`) match OpenAI's spec; a specific named tool deserializes\nfrom the struct form `{ \"type\": \"function\", \"function\": { \"name\": \"\u2026\" } }`."
+      anyOf:
+        - type: string
+          enum:
+            - none
+            - auto
+            - required
+        - $ref: "#/components/schemas/ChatCompletionNamedToolChoice"
+    ChatCompletionToolType:
+      description: Tool-type discriminator. OpenAI currently defines only `function`.
+      type: string
+      enum:
+        - function
+    Choice:
+      type: object
+      properties:
+        index:
+          type: integer
+          format: uint32
+          minimum: 0
+        message:
+          $ref: "#/components/schemas/ResponseMessage"
+        logprobs:
+          anyOf:
+            - $ref: "#/components/schemas/ChatChoiceLogprobs"
+            - type: "null"
+          default: null
+        finish_reason:
+          anyOf:
+            - $ref: "#/components/schemas/FinishReason"
+            - type: "null"
+      required:
+        - index
+        - message
+    ChunkChoice:
+      type: object
+      properties:
+        index:
+          type: integer
+          format: uint32
+          minimum: 0
+        delta:
+          $ref: "#/components/schemas/Delta"
+        finish_reason:
+          anyOf:
+            - $ref: "#/components/schemas/FinishReason"
+            - type: "null"
+        logprobs:
+          anyOf:
+            - $ref: "#/components/schemas/ChatChoiceLogprobs"
+            - type: "null"
+      required:
+        - index
+        - delta
+    CodeInterpreterToolCall: {}
+    CompactionSummaryItemParam: {}
+    CompletionChoice:
+      type: object
+      properties:
+        text:
+          type: string
+        index:
+          type: integer
+          format: uint32
+          minimum: 0
+        logprobs:
+          anyOf:
+            - $ref: "#/components/schemas/Logprobs"
+            - type: "null"
+        finish_reason:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - text
+        - index
+    CompletionTokensDetails:
+      type: object
+      properties:
+        reasoning_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        audio_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        accepted_prediction_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        rejected_prediction_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+    CompletionUsage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        completion_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        total_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        prompt_tokens_details:
+          anyOf:
+            - $ref: "#/components/schemas/PromptTokensDetails"
+            - type: "null"
+        completion_tokens_details:
+          anyOf:
+            - $ref: "#/components/schemas/CompletionTokensDetails"
+            - type: "null"
+      required:
+        - prompt_tokens
+        - completion_tokens
+        - total_tokens
+    ComputerCallOutputItemParam: {}
+    ComputerToolCall: {}
+    ContentBlock:
+      type: object
+      properties:
+        type:
+          type: string
+        text:
+          type: string
+        annotations:
+          anyOf:
+            - type: array
+              items: {}
+            - type: "null"
+        logprobs:
+          anyOf:
+            - $ref: "#/components/schemas/ContentBlockLogprobs"
+            - type: "null"
+      required:
+        - type
+        - text
+    ContentBlockLogprobs:
+      anyOf:
+        - type: array
+          items:
+            $ref: "#/components/schemas/LogProb"
+        - type: "null"
+    ConversationParam:
+      description: "`conversation` request parameter \u2014 either an id reference or an\ninline new-conversation spec."
+      anyOf:
+        - type: string
+        - {}
+    CreateChatCompletionRequest:
+      required:
+        - model
+        - messages
+      title: CreateChatCompletionRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestMessage"
+          minItems: 1
+        temperature:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_p:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_k:
+          anyOf:
+            - type: integer
+              description: "vLLM-extension: top-k sampling. `0` disables."
+              format: int32
+            - type: "null"
+        min_p:
+          anyOf:
+            - type: number
+              description: "vLLM-extension: minimum token probability relative to the top token."
+              format: float
+            - type: "null"
+        repetition_penalty:
+          anyOf:
+            - type: number
+              description: "vLLM-extension: repetition penalty (`1.0` = neutral)."
+              format: float
+            - type: "null"
+        max_completion_tokens:
+          anyOf:
+            - type: integer
+              description:
+                "Accepts the deprecated `max_tokens` JSON key as an alias. Sending
+
+                both keys in a single request is rejected at deserialize as a
+
+                duplicate field."
+              format: uint32
+              minimum: 0
+            - type: "null"
+        min_tokens:
+          anyOf:
+            - type: integer
+              description:
+                "vLLM-extension: minimum tokens to generate before EOS / stop can
+
+                end the response."
+              format: uint32
+              minimum: 0
+            - type: "null"
+        n:
+          anyOf:
+            - type: integer
+              description: "Number of completion choices to generate. OpenAI caps at 128;\n`u8` (max 255) is the soft upper bound \u2014 the backend enforces any\ntighter limit. `n = 0` is rejected at validation time."
+              format: uint8
+              minimum: 1
+              maximum: 255
+            - type: "null"
+        stop:
+          anyOf:
+            - $ref: "#/components/schemas/Stop"
+            - type: "null"
+        ignore_eos:
+          anyOf:
+            - type: boolean
+              description: "vLLM-extension: continue generating past EOS until
+
+                `max_completion_tokens` is reached."
+            - type: "null"
+        seed:
+          anyOf:
+            - type: integer
+              format: int64
+            - type: "null"
+        presence_penalty:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        frequency_penalty:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        stream:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        stream_options:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionStreamOptions"
+            - type: "null"
+        reasoning_effort:
+          anyOf:
+            - $ref: "#/components/schemas/ReasoningEffort"
+            - type: "null"
+        thinking_token_budget:
+          anyOf:
+            - type: integer
+              description: "vLLM-extension: cap on tokens emitted during the thinking phase."
+              format: uint32
+              minimum: 0
+            - type: "null"
+        tools:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ChatCompletionTool"
+            - type: "null"
+        tool_choice:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionToolChoiceOption"
+            - type: "null"
+        parallel_tool_calls:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        logprobs:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        top_logprobs:
+          anyOf:
+            - type: integer
+              format: uint8
+              minimum: 0
+              maximum: 255
+            - type: "null"
+        logit_bias:
+          anyOf:
+            - type: object
+              additionalProperties: true
+            - type: "null"
+        modalities:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ResponseModality"
+            - type: "null"
+        prediction:
+          anyOf:
+            - $ref: "#/components/schemas/PredictionContent"
+            - type: "null"
+        audio:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionAudio"
+            - type: "null"
+        response_format:
+          anyOf:
+            - $ref: "#/components/schemas/ResponseFormat"
+            - type: "null"
+        service_tier:
+          anyOf:
+            - $ref: "#/components/schemas/ServiceTier"
+            - type: "null"
+        metadata: {}
+        store:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        mm_processor_kwargs: {}
+        web_search_options:
+          anyOf:
+            - $ref: "#/components/schemas/WebSearchOptions"
+            - type: "null"
+        verbosity:
+          anyOf:
+            - $ref: "#/components/schemas/Verbosity"
+            - type: "null"
+        safety_identifier:
+          anyOf:
+            - type: string
+              description: "Safety identifier \u2014 opaque token threading user/session info for\nsafety telemetry on the backend."
+            - type: "null"
+        prompt_cache_key:
+          anyOf:
+            - type: string
+              description: "Prompt cache key \u2014 opaque token that pins prefix-cache lookups\nacross requests."
+            - type: "null"
+        prompt_cache_retention:
+          anyOf:
+            - type: string
+              description: Prompt cache retention hint (`5m`, `1h`, etc.).
+            - type: "null"
+        media_io_kwargs: {}
+        return_tokens_as_token_ids:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        prompt_logprobs:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        include_stop_str_in_output:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        guided_json: {}
+        guided_regex:
+          anyOf:
+            - type: string
+            - type: "null"
+        guided_grammar:
+          anyOf:
+            - type: string
+            - type: "null"
+        guided_choice:
+          anyOf:
+            - type: array
+              items:
                 type: string
-              object:
+            - type: "null"
+        guided_decoding_backend:
+          anyOf:
+            - type: string
+            - type: "null"
+        guided_whitespace_pattern:
+          anyOf:
+            - type: string
+            - type: "null"
+        skip_special_tokens:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        priority:
+          anyOf:
+            - type: integer
+              description:
+                "vLLM scheduler priority (lower = earlier). Requires the engine to
+
+                be launched with priority scheduling for any non-default value to
+
+                take effect."
+              format: int32
+            - type: "null"
+        user:
+          anyOf:
+            - type: string
+            - type: "null"
+        chat_template_kwargs:
+          anyOf:
+            - type: object
+              description:
+                "Extra keys forwarded to the chat template's Jinja render context.
+
+                `chat_template_args` is accepted as an alias."
+              additionalProperties: true
+            - type: "null"
+        function_call:
+          deprecated: true
+        functions:
+          deprecated: true
+    CreateChatCompletionResponse:
+      required:
+        - id
+        - object
+        - created
+        - model
+        - choices
+        - usage
+      title: CreateChatCompletionResponse
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Choice"
+        service_tier:
+          anyOf:
+            - $ref: "#/components/schemas/ServiceTierResponse"
+            - type: "null"
+          default: null
+        system_fingerprint:
+          anyOf:
+            - type: string
+            - type: "null"
+        usage:
+          $ref: "#/components/schemas/Usage"
+    CreateChatCompletionStreamResponse:
+      required:
+        - id
+        - object
+        - created
+        - model
+        - choices
+      title: CreateChatCompletionStreamResponse
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChunkChoice"
+        service_tier:
+          anyOf:
+            - $ref: "#/components/schemas/ServiceTierResponse"
+            - type: "null"
+        system_fingerprint:
+          anyOf:
+            - type: string
+            - type: "null"
+        usage:
+          anyOf:
+            - $ref: "#/components/schemas/Usage"
+            - type: "null"
+    CreateCompletionRequest:
+      required:
+        - model
+      title: CreateCompletionRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        prompt:
+          anyOf:
+            - $ref: "#/components/schemas/Prompt"
+            - type: "null"
+        suffix:
+          anyOf:
+            - type: string
+            - type: "null"
+        max_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        temperature:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_p:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        n:
+          anyOf:
+            - type: integer
+              format: uint8
+              minimum: 1
+              maximum: 255
+            - type: "null"
+        stream:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        stream_options:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionStreamOptions"
+            - type: "null"
+        logprobs:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+              maximum: 5
+            - type: "null"
+        echo:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        stop:
+          anyOf:
+            - $ref: "#/components/schemas/Stop"
+            - type: "null"
+        presence_penalty:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        frequency_penalty:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        best_of:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        logit_bias:
+          anyOf:
+            - type: object
+              additionalProperties: true
+            - type: "null"
+        user:
+          anyOf:
+            - type: string
+            - type: "null"
+        seed:
+          anyOf:
+            - type: integer
+              format: int64
+            - type: "null"
+        top_k:
+          anyOf:
+            - type: integer
+              format: int32
+            - type: "null"
+        min_p:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        repetition_penalty:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        ignore_eos:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        priority:
+          anyOf:
+            - type: integer
+              format: int32
+            - type: "null"
+    CreateCompletionResponse:
+      required:
+        - id
+        - object
+        - created
+        - model
+        - choices
+      title: CreateCompletionResponse
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompletionChoice"
+        usage:
+          anyOf:
+            - $ref: "#/components/schemas/CompletionUsage"
+            - type: "null"
+        system_fingerprint:
+          anyOf:
+            - type: string
+            - type: "null"
+    CreateResponseRequest:
+      required:
+        - model
+        - input
+      title: CreateResponseRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        input:
+          $ref: "#/components/schemas/ResponseInput"
+        instructions:
+          anyOf:
+            - type: string
+              default: null
+            - type: "null"
+        temperature:
+          anyOf:
+            - type: number
+              format: float
+              default: null
+            - type: "null"
+        top_p:
+          anyOf:
+            - type: number
+              format: float
+              default: null
+            - type: "null"
+        top_k:
+          anyOf:
+            - type: integer
+              description: "vLLM-extension: top-k sampling. `0` disables."
+              format: int32
+              default: null
+            - type: "null"
+        min_p:
+          anyOf:
+            - type: number
+              description: "vLLM-extension: minimum token probability relative to the top token."
+              format: float
+              default: null
+            - type: "null"
+        max_output_tokens:
+          anyOf:
+            - type: integer
+              description: OpenAI Responses-spec name for the upper bound on generated tokens.
+              format: uint32
+              minimum: 0
+              default: null
+            - type: "null"
+        min_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        presence_penalty:
+          anyOf:
+            - type: number
+              format: float
+              default: null
+            - type: "null"
+        frequency_penalty:
+          anyOf:
+            - type: number
+              format: float
+              default: null
+            - type: "null"
+        repetition_penalty:
+          anyOf:
+            - type: number
+              description: "vLLM-extension: repetition penalty (`1.0` = neutral)."
+              format: float
+              default: null
+            - type: "null"
+        seed:
+          anyOf:
+            - type: integer
+              format: uint64
+              minimum: 0
+              default: null
+            - type: "null"
+        stop:
+          anyOf:
+            - type: array
+              items:
                 type: string
-              created:
+              default: null
+            - type: "null"
+        ignore_eos:
+          anyOf:
+            - type: boolean
+            - type: "null"
+        stream:
+          anyOf:
+            - type: boolean
+              default: null
+            - type: "null"
+        stream_options:
+          anyOf:
+            - $ref: "#/components/schemas/ResponseStreamOptions"
+            - type: "null"
+          default: null
+        tools:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/Tool"
+              default: null
+            - type: "null"
+        tool_choice:
+          anyOf:
+            - $ref: "#/components/schemas/ToolChoiceParam"
+            - type: "null"
+          default: null
+        priority:
+          anyOf:
+            - type: integer
+              description:
+                "vLLM scheduler priority (lower = earlier). Requires the engine to be
+
+                launched with priority scheduling for any non-default value to take
+
+                effect."
+              format: int32
+              default: null
+            - type: "null"
+        user:
+          anyOf:
+            - type: string
+              default: null
+            - type: "null"
+        reasoning:
+          anyOf:
+            - $ref: "#/components/schemas/Reasoning"
+            - type: "null"
+          default: null
+        store:
+          anyOf:
+            - type: boolean
+              default: null
+            - type: "null"
+        previous_response_id:
+          anyOf:
+            - type: string
+              default: null
+            - type: "null"
+        background:
+          anyOf:
+            - type: boolean
+              default: null
+            - type: "null"
+        conversation:
+          anyOf:
+            - $ref: "#/components/schemas/ConversationParam"
+            - type: "null"
+          default: null
+        include:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/IncludeEnum"
+              default: null
+            - type: "null"
+        max_tool_calls:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+              default: null
+            - type: "null"
+        metadata:
+          anyOf:
+            - type: object
+              additionalProperties:
+                type: string
+              default: null
+            - type: "null"
+        parallel_tool_calls:
+          anyOf:
+            - type: boolean
+              default: null
+            - type: "null"
+        prompt:
+          anyOf:
+            - $ref: "#/components/schemas/Prompt"
+            - type: "null"
+          default: null
+        prompt_cache_key:
+          anyOf:
+            - type: string
+              default: null
+            - type: "null"
+        prompt_cache_retention:
+          anyOf:
+            - $ref: "#/components/schemas/PromptCacheRetention"
+            - type: "null"
+          default: null
+        safety_identifier:
+          anyOf:
+            - type: string
+              default: null
+            - type: "null"
+        service_tier:
+          anyOf:
+            - $ref: "#/components/schemas/ServiceTier"
+            - type: "null"
+          default: null
+        text:
+          anyOf:
+            - $ref: "#/components/schemas/ResponseTextParam"
+            - type: "null"
+          default: null
+        top_logprobs:
+          anyOf:
+            - type: integer
+              format: uint8
+              minimum: 0
+              maximum: 255
+              default: null
+            - type: "null"
+        truncation:
+          anyOf:
+            - $ref: "#/components/schemas/Truncation"
+            - type: "null"
+          default: null
+    CreateResponseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created_at:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        instructions:
+          anyOf:
+            - type: string
+            - type: "null"
+        max_output_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        max_tool_calls:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        previous_response_id:
+          anyOf:
+            - type: string
+            - type: "null"
+        temperature:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_p:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_logprobs:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tool"
+        tool_choice:
+          $ref: "#/components/schemas/ToolChoiceParam"
+        parallel_tool_calls:
+          type: boolean
+        background:
+          type: boolean
+        truncation:
+          type: string
+        service_tier:
+          type: string
+        metadata: {}
+        prompt: {}
+        reasoning: {}
+        text: {}
+        user:
+          anyOf:
+            - type: string
+            - type: "null"
+        status:
+          type: string
+        incomplete_details:
+          anyOf:
+            - $ref: "#/components/schemas/IncompleteDetails"
+            - type: "null"
+        output:
+          type: array
+          items:
+            $ref: "#/components/schemas/OutputItem"
+        usage:
+          $ref: "#/components/schemas/ResponseUsage"
+        billing:
+          description:
+            "Billing breakdown for the response. Always serialized; absent
+
+            fields render as `null`."
+          default: null
+        completed_at:
+          anyOf:
+            - type: integer
+              description: Unix timestamp the response transitioned to `completed`.
+              format: uint64
+              minimum: 0
+              default: null
+            - type: "null"
+        conversation:
+          description: "Conversation id, when the response is bound to a stored
+
+            conversation."
+          default: null
+        error:
+          description: Final error envelope when `status == "failed"`.
+          default: null
+        prompt_cache_key:
+          anyOf:
+            - type: string
+              description: Echo of the `prompt_cache_key` request hint.
+              default: null
+            - type: "null"
+        prompt_cache_retention:
+          anyOf:
+            - type: string
+              description: Echo of the `prompt_cache_retention` request hint.
+              default: null
+            - type: "null"
+        safety_identifier:
+          anyOf:
+            - type: string
+              description: Echo of the `safety_identifier` request hint.
+              default: null
+            - type: "null"
+        include:
+          anyOf:
+            - type: array
+              description: Echo of the request's `include` opt-in flags (see [`IncludeEnum`]).
+              items:
+                $ref: "#/components/schemas/IncludeEnum"
+            - type: "null"
+      required:
+        - id
+        - object
+        - created_at
+        - model
+        - tools
+        - tool_choice
+        - parallel_tool_calls
+        - background
+        - truncation
+        - service_tier
+        - status
+        - output
+        - usage
+    CreateResponseStreamResponse:
+      oneOf:
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            response:
+              $ref: "#/components/schemas/CreateResponseResponse"
+            type:
+              type: string
+              const: response.created
+          required:
+            - type
+            - sequence_number
+            - response
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            response:
+              $ref: "#/components/schemas/CreateResponseResponse"
+            type:
+              type: string
+              const: response.in_progress
+          required:
+            - type
+            - sequence_number
+            - response
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            response:
+              $ref: "#/components/schemas/CreateResponseResponse"
+            type:
+              type: string
+              const: response.completed
+          required:
+            - type
+            - sequence_number
+            - response
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            response:
+              $ref: "#/components/schemas/CreateResponseResponse"
+            type:
+              type: string
+              const: response.failed
+          required:
+            - type
+            - sequence_number
+            - response
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            response:
+              $ref: "#/components/schemas/CreateResponseResponse"
+            type:
+              type: string
+              const: response.incomplete
+          required:
+            - type
+            - sequence_number
+            - response
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            item:
+              $ref: "#/components/schemas/OutputItem"
+            type:
+              type: string
+              const: response.output_item.added
+          required:
+            - type
+            - sequence_number
+            - output_index
+            - item
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            item:
+              $ref: "#/components/schemas/OutputItem"
+            type:
+              type: string
+              const: response.output_item.done
+          required:
+            - type
+            - sequence_number
+            - output_index
+            - item
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            part:
+              $ref: "#/components/schemas/ContentBlock"
+            type:
+              type: string
+              const: response.content_part.added
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - part
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            part:
+              $ref: "#/components/schemas/ContentBlock"
+            type:
+              type: string
+              const: response.content_part.done
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - part
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            delta:
+              type: string
+            type:
+              type: string
+              const: response.output_text.delta
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - delta
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            text:
+              type: string
+            type:
+              type: string
+              const: response.output_text.done
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - text
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            delta:
+              type: string
+            type:
+              type: string
+              const: response.refusal.delta
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - delta
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            refusal:
+              type: string
+            type:
+              type: string
+              const: response.refusal.done
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - refusal
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            delta:
+              type: string
+            type:
+              type: string
+              const: response.function_call_arguments.delta
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - delta
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            arguments:
+              type: string
+            type:
+              type: string
+              const: response.function_call_arguments.done
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - arguments
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            delta:
+              type: string
+            type:
+              type: string
+              const: response.reasoning_text.delta
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - delta
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            item_id:
+              type: string
+            output_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_index:
+              type: integer
+              format: uint32
+              minimum: 0
+            text:
+              type: string
+            type:
+              type: string
+              const: response.reasoning_text.done
+          required:
+            - type
+            - sequence_number
+            - item_id
+            - output_index
+            - content_index
+            - text
+        - type: object
+          properties:
+            sequence_number:
+              type: integer
+              format: uint64
+              minimum: 0
+            code:
+              anyOf:
+                - type: string
+                - type: "null"
+            message:
+              type: string
+            param:
+              anyOf:
+                - type: string
+                - type: "null"
+            type:
+              type: string
+              const: error
+          required:
+            - type
+            - sequence_number
+            - message
+      title: CreateResponseStreamResponse
+      description:
+        'SSE event union for `POST /v1/responses` streaming responses.
+
+
+        Each variant serializes as `{"type": "response.<event>", ...}` with
+
+        a monotonic `sequence_number` field for client-side event ordering.
+
+        Lifecycle events (`response.created`, `response.in_progress`, etc.)
+
+        embed the full `CreateResponseResponse` snapshot; per-item / per-part
+
+        events carry `(item_id, output_index, content_index)` plus the
+
+        incremental payload.
+
+
+        Typical event order for a plain-text turn:
+
+
+        ```text
+
+        response.created
+
+        response.in_progress
+
+        response.output_item.added       (type: message)
+
+        response.content_part.added      (type: output_text)
+
+        response.output_text.delta       (repeated)
+
+        response.output_text.done
+
+        response.content_part.done
+
+        response.output_item.done
+
+        response.completed               (final usage)
+
+        ```
+
+
+        Out of scope: MCP tool calls, code interpreter, web/file search, image
+
+        generation, custom tool calls, queued background responses, and reasoning
+
+        summary parts.'
+    CustomToolCall: {}
+    CustomToolCallOutput: {}
+    Delta:
+      type: object
+      properties:
+        role:
+          anyOf:
+            - type: string
+            - type: "null"
+        content:
+          anyOf:
+            - type: string
+            - type: "null"
+        reasoning_content:
+          anyOf:
+            - type: string
+            - type: "null"
+        refusal:
+          anyOf:
+            - type: string
+            - type: "null"
+        function_call:
+          anyOf:
+            - $ref: "#/components/schemas/DeltaFunctionCall"
+            - type: "null"
+        tool_calls:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ToolCallChunk"
+            - type: "null"
+    DeltaFunctionCall:
+      description:
+        "Streaming deprecated-function-call delta. Carries the per-token slice
+
+        of name/arguments separately from the modern `tool_calls` stream."
+      type: object
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+        arguments:
+          anyOf:
+            - type: string
+            - type: "null"
+    EasyInputContent:
+      description: "Content of a simplified `EasyInputMessage` \u2014 flat string or content\nlist."
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/InputContent"
+    EasyInputMessage:
+      description: "Simplified message input \u2014 the spec-default shape when a client omits\nthe `type` discriminator."
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/MessageType"
+          default: message
+        role:
+          $ref: "#/components/schemas/EasyRole"
+        content:
+          $ref: "#/components/schemas/EasyInputContent"
+        phase:
+          anyOf:
+            - $ref: "#/components/schemas/MessagePhase"
+            - type: "null"
+      required:
+        - role
+        - content
+    EasyRole:
+      description: "Role on an `EasyInputMessage` \u2014 any of user/system/developer/assistant."
+      type: string
+      enum:
+        - user
+        - system
+        - developer
+        - assistant
+    FileCitation:
+      type: object
+      properties:
+        file_id:
+          type: string
+        index:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+      required:
+        - file_id
+    FileSearchToolCall: {}
+    FinishReason:
+      oneOf:
+        - type: string
+          enum:
+            - EoS
+            - Length
+            - Stop
+            - ToolCalls
+            - Cancelled
+            - ContentFilter
+        - type: object
+          properties:
+            Error:
+              type: string
+          required:
+            - Error
+          additionalProperties: false
+        - type: object
+          properties:
+            Unknown:
+              type: string
+          required:
+            - Unknown
+          additionalProperties: false
+    FunctionCall:
+      type: object
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+      required:
+        - name
+        - arguments
+    FunctionCallChunk:
+      type: object
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+        arguments:
+          anyOf:
+            - type: string
+            - type: "null"
+    FunctionCallOutputContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/InputContent"
+    FunctionCallOutputItemParam:
+      type: object
+      properties:
+        call_id:
+          type: string
+        output:
+          $ref: "#/components/schemas/FunctionCallOutputContent"
+        id:
+          anyOf:
+            - type: string
+            - type: "null"
+        status:
+          anyOf:
+            - $ref: "#/components/schemas/OutputStatus"
+            - type: "null"
+      required:
+        - call_id
+        - output
+    FunctionName:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    FunctionObject:
+      description: Function declaration body inside a [`ChatCompletionTool`] entry.
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          anyOf:
+            - type: string
+            - type: "null"
+        parameters: {}
+        strict:
+          anyOf:
+            - type: boolean
+            - type: "null"
+      required:
+        - name
+    FunctionShellCallItemParam: {}
+    FunctionShellCallOutputItemParam: {}
+    FunctionTool:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          anyOf:
+            - type: string
+            - type: "null"
+        parameters: {}
+        strict:
+          anyOf:
+            - type: boolean
+            - type: "null"
+      required:
+        - name
+    FunctionToolCall:
+      type: object
+      properties:
+        call_id:
+          type: string
+        name:
+          type: string
+        arguments:
+          type: string
+        id:
+          anyOf:
+            - type: string
+            - type: "null"
+        status:
+          anyOf:
+            - $ref: "#/components/schemas/OutputStatus"
+            - type: "null"
+      required:
+        - call_id
+        - name
+        - arguments
+    FunctionType:
+      description:
+        "Tool-call `type` discriminator. OpenAI currently defines only `function`;
+
+        kept as an enum for forward compatibility and to match Dynamo's
+
+        `FunctionType`. Derives `Default` so struct fields that use
+
+        `#[serde(default)]` with this type do not need a named default function."
+      type: string
+      enum:
+        - function
+    HostedToolType:
+      description: Hosted-tool kinds accepted bare in `tool_choice`.
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: file_search
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: web_search_preview
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: computer
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: computer_use_preview
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: computer_use
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: web_search_preview_2025_03_11
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: code_interpreter
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: image_generation
+          required:
+            - type
+    ImageDetail:
+      description: Image-URL detail hint mirrored from the Chat-Completions content part.
+      type: string
+      enum:
+        - auto
+        - low
+        - high
+    ImageGenToolCall: {}
+    ImageUrl:
+      description:
+        "`image_url` payload. `url` accepts a remote URL or `data:` URI; `uuid`
+
+        is a gateway extension used to track multimodal assets through the
+
+        pipeline without re-uploading raw bytes."
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        detail:
+          anyOf:
+            - $ref: "#/components/schemas/ImageDetail"
+            - type: "null"
+        uuid:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required:
+        - url
+    IncludeEnum:
+      description:
+        "`include` opt-in flags. The set is open-ended on OpenAI's side; we
+
+        type the well-known values and round-trip the rest."
+      anyOf:
+        - type: string
+          enum:
+            - file_search_call.results
+            - message.input_image.image_url
+            - computer_call_output.output.image_url
+            - reasoning.encrypted_content
+            - code_interpreter_call.outputs
+            - message.output_text.logprobs
+        - description: Forward-compatible catch-all (other `*.results` toggles, etc.).
+          type: string
+    IncompleteDetails:
+      type: object
+      properties:
+        reason:
+          type: string
+      required:
+        - reason
+    InputAudio:
+      description: "`input_audio` payload \u2014 base64-encoded audio data plus a format tag."
+      type: object
+      properties:
+        data:
+          type: string
+        format:
+          $ref: "#/components/schemas/InputAudioFormat"
+      required:
+        - data
+        - format
+    InputAudioFormat:
+      description: Audio format accepted on `input_audio` content parts.
+      type: string
+      enum:
+        - wav
+        - mp3
+    InputContent:
+      description: Content parts on input messages.
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: input_text
+          $ref: "#/components/schemas/InputTextContent"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: input_image
+          $ref: "#/components/schemas/InputImageContent"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: input_file
+          $ref: "#/components/schemas/InputFileContent"
+          required:
+            - type
+    InputFileContent:
+      description: "`{\"type\":\"input_file\", ...}` \u2014 file input. Either `file_id`,\n`file_url`, or inline `(file_data, filename)` is required."
+      type: object
+      properties:
+        file_id:
+          anyOf:
+            - type: string
+            - type: "null"
+        file_url:
+          anyOf:
+            - type: string
+              format: uri
+            - type: "null"
+        file_data:
+          anyOf:
+            - type: string
+            - type: "null"
+        filename:
+          anyOf:
+            - type: string
+            - type: "null"
+    InputImageContent:
+      description: "`{\"type\":\"input_image\", ...}` \u2014 image input. Accepts a `file_id` (for\nan uploaded asset) or `image_url` (remote URL / data URI);\n`detail` defaults to `auto` so spec-compliant clients that omit it\nround-trip."
+      type: object
+      properties:
+        detail:
+          $ref: "#/components/schemas/ImageDetail"
+          default: auto
+        file_id:
+          anyOf:
+            - type: string
+            - type: "null"
+        image_url:
+          anyOf:
+            - type: string
+              format: uri
+            - type: "null"
+    InputItem:
+      description: Single input item. Untagged; specific shapes first.
+      anyOf:
+        - $ref: "#/components/schemas/ItemReference"
+        - $ref: "#/components/schemas/Item"
+        - $ref: "#/components/schemas/EasyInputMessage"
+    InputMessage:
+      description: User / system / developer input message.
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/InputContent"
+        role:
+          $ref: "#/components/schemas/InputRole"
+        status:
+          anyOf:
+            - $ref: "#/components/schemas/OutputStatus"
+            - type: "null"
+      required:
+        - content
+        - role
+    InputOutputMessage:
+      description: "Echoed-back assistant message used as input on a subsequent turn.\n`id`, `status`, and `content` are all optional \u2014 relaxed vs the\ncanonical OutputMessage shape."
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/InputOutputMessageContent"
+          default: []
+        id:
+          anyOf:
+            - type: string
+            - type: "null"
+        role:
+          $ref: "#/components/schemas/AssistantRole"
+        phase:
+          anyOf:
+            - $ref: "#/components/schemas/MessagePhase"
+            - type: "null"
+        status:
+          anyOf:
+            - $ref: "#/components/schemas/OutputStatus"
+            - type: "null"
+      required:
+        - role
+    InputOutputMessageContent:
+      description: Content parts on a prior assistant message echoed back as input.
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: output_text
+          $ref: "#/components/schemas/InputOutputTextContent"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: refusal
+          $ref: "#/components/schemas/RefusalContent"
+          required:
+            - type
+    InputOutputTextContent:
+      description: "`{\"type\":\"output_text\", ...}` \u2014 text content part on an echoed\nassistant message. `annotations` defaults to empty so clients that omit\nit round-trip."
+      type: object
+      properties:
+        text:
+          type: string
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Annotation"
+        logprobs:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/LogProb"
+            - type: "null"
+      required:
+        - text
+    InputRole:
+      description: Roles permitted on a user/system/developer input message.
+      type: string
+      enum:
+        - user
+        - system
+        - developer
+    InputTextContent:
+      description: "`{\"type\":\"input_text\",\"text\":\"\u2026\"}` \u2014 plain text input part."
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+    Item:
+      description: "Structured input/output item, discriminated by `type`. Mirrors\nDynamo's `Item` variant-for-variant. Tag-based dispatch \u2014 unknown\n`type` values fail deserialization; new item kinds require a new\nvariant here."
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: message
+          $ref: "#/components/schemas/MessageItem"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: file_search_call
+          $ref: "#/components/schemas/FileSearchToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: computer_call
+          $ref: "#/components/schemas/ComputerToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: computer_call_output
+          $ref: "#/components/schemas/ComputerCallOutputItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: web_search_call
+          $ref: "#/components/schemas/WebSearchToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: function_call
+          $ref: "#/components/schemas/FunctionToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: function_call_output
+          $ref: "#/components/schemas/FunctionCallOutputItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: tool_search_call
+          $ref: "#/components/schemas/ToolSearchCallItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: tool_search_output
+          $ref: "#/components/schemas/ToolSearchOutputItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: reasoning
+          $ref: "#/components/schemas/ReasoningItem"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: compaction
+          $ref: "#/components/schemas/CompactionSummaryItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: image_generation_call
+          $ref: "#/components/schemas/ImageGenToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: code_interpreter_call
+          $ref: "#/components/schemas/CodeInterpreterToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: local_shell_call
+          $ref: "#/components/schemas/LocalShellToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: local_shell_call_output
+          $ref: "#/components/schemas/LocalShellToolCallOutput"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: shell_call
+          $ref: "#/components/schemas/FunctionShellCallItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: shell_call_output
+          $ref: "#/components/schemas/FunctionShellCallOutputItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: apply_patch_call
+          $ref: "#/components/schemas/ApplyPatchToolCallItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: apply_patch_call_output
+          $ref: "#/components/schemas/ApplyPatchToolCallOutputItemParam"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: mcp_list_tools
+          $ref: "#/components/schemas/MCPListTools"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: mcp_approval_request
+          $ref: "#/components/schemas/MCPApprovalRequest"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: mcp_approval_response
+          $ref: "#/components/schemas/MCPApprovalResponse"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: mcp_call
+          $ref: "#/components/schemas/MCPToolCall"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: custom_tool_call_output
+          $ref: "#/components/schemas/CustomToolCallOutput"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: custom_tool_call
+          $ref: "#/components/schemas/CustomToolCall"
+          required:
+            - type
+    ItemReference:
+      description: 'Reference to a stored prior item by id. Wire shape:
+
+        `{"type": "item_reference", "id": "..."}`. The typed `type` field
+
+        and `deny_unknown_fields` prevent this variant from accidentally
+
+        matching other item shapes that happen to carry an `id` (e.g.
+
+        echoed-back output messages from a previous turn).'
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: "#/components/schemas/ItemReferenceTag"
+      additionalProperties: false
+      required:
+        - id
+        - type
+    ItemReferenceTag:
+      type: string
+      enum:
+        - item_reference
+    KnownPromptCacheRetention:
+      type: string
+      enum:
+        - 5m
+        - 1h
+    LocalShellToolCall: {}
+    LocalShellToolCallOutput: {}
+    LogProb:
+      description: Per-token logprob entry on `InputOutputTextContent.logprobs`.
+      type: object
+      properties:
+        token:
+          type: string
+        logprob:
+          type: number
+          format: float
+        bytes:
+          anyOf:
+            - type: array
+              items:
                 type: integer
-              model:
+                format: uint8
+                minimum: 0
+                maximum: 255
+            - type: "null"
+        top_logprobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopLogProb"
+      required:
+        - token
+        - logprob
+    Logprobs:
+      type: object
+      properties:
+        text_offset:
+          type: array
+          items:
+            type: integer
+            format: uint32
+            minimum: 0
+        token_logprobs:
+          type: array
+          items:
+            anyOf:
+              - type: number
+                format: float
+              - type: "null"
+        tokens:
+          type: array
+          items:
+            type: string
+        top_logprobs:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: "null"
+      required:
+        - text_offset
+        - token_logprobs
+        - tokens
+        - top_logprobs
+    MCPApprovalRequest: {}
+    MCPApprovalResponse: {}
+    MCPListTools: {}
+    MCPToolCall: {}
+    MessageItem:
+      description:
+        'Message item inside `Item::Message`. Untagged; discriminated by `role`:
+
+        `Output` requires `"assistant"`, `Input` accepts `"user"`/`"system"`/
+
+        `"developer"`.'
+      anyOf:
+        - $ref: "#/components/schemas/InputOutputMessage"
+        - $ref: "#/components/schemas/InputMessage"
+    MessagePhase:
+      description: Reasoning / message phase hint forwarded by some clients.
+      type: string
+      enum:
+        - initial
+        - final
+    MessageType:
+      description:
+        'Item-type discriminator on `EasyInputMessage`. Spec-default `"message"`
+
+        is accepted when the `type` field is absent.'
+      type: string
+      enum:
+        - message
+    ModelObject:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        owned_by:
+          type: string
+        max_model_len:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+    ModelsResponse:
+      required:
+        - object
+        - data
+      title: ModelsResponse
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelObject"
+    OutputItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        role:
+          anyOf:
+            - type: string
+              description: Present on `message` items, absent on `reasoning` / tool-call items.
+            - type: "null"
+        status:
+          anyOf:
+            - type: string
+            - type: "null"
+        phase: {}
+        summary:
+          anyOf:
+            - type: array
+              description:
+                "Present on `reasoning` items (public-facing summary list); absent on
+
+                `message` items."
+              items:
+                $ref: "#/components/schemas/ContentBlock"
+            - type: "null"
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+        call_id:
+          anyOf:
+            - type: string
+              description: Tool-call id clients use to thread the follow-up `tool` role response.
+            - type: "null"
+        arguments:
+          anyOf:
+            - type: string
+            - type: "null"
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentBlock"
+      required:
+        - id
+        - type
+        - content
+    OutputStatus:
+      description:
+        "Lifecycle status echoed back on output items and accepted on relaxed
+
+        input messages."
+      type: string
+      enum:
+        - in_progress
+        - completed
+        - incomplete
+        - queued
+        - cancelled
+        - failed
+    PredictionContent:
+      description: "`prediction` configuration \u2014 a server-side prefix hint used for\npredicted outputs."
+      oneOf:
+        - type: object
+          properties:
+            content:
+              $ref: "#/components/schemas/PredictionContentValue"
+            type:
+              type: string
+              const: content
+          required:
+            - type
+            - content
+    PredictionContentValue:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+    Prompt:
+      description: Stored prompt template reference.
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          anyOf:
+            - type: string
+            - type: "null"
+        variables: {}
+      required:
+        - id
+    PromptCacheRetention:
+      description: "`prompt_cache_retention` hint \u2014 `\"5m\"` / `\"1h\"` / arbitrary string for\nforward compatibility."
+      anyOf:
+        - $ref: "#/components/schemas/KnownPromptCacheRetention"
+        - type: string
+    PromptTokensDetails:
+      type: object
+      properties:
+        cached_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        audio_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+    Reasoning:
+      description: "`reasoning` request parameter \u2014 full Dynamo shape with `effort`,\n`summary`, and `generate_summary` accepted as a serde alias."
+      type: object
+      properties:
+        effort:
+          anyOf:
+            - $ref: "#/components/schemas/ReasoningEffort"
+            - type: "null"
+        summary:
+          anyOf:
+            - $ref: "#/components/schemas/ReasoningSummary"
+            - type: "null"
+    ReasoningContent:
+      description:
+        "Echo of an assistant turn's reasoning content. Accepts a flat string
+
+        (legacy / single-block form) or an interleaved-segment array where
+
+        `segments[i]` precedes `tool_calls[i]`."
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+    ReasoningContentPart:
+      anyOf:
+        - type: object
+          properties:
+            text:
+              type: string
+            type:
+              type: string
+              const: reasoning_text
+          required:
+            - type
+            - text
+        - description: Forward-compatible catch-all.
+    ReasoningEffort:
+      description: Reasoning-effort hint. Shared by Chat and Responses.
+      type: string
+      enum:
+        - none
+        - minimal
+        - low
+        - medium
+        - high
+        - xhigh
+    ReasoningItem:
+      type: object
+      properties:
+        summary:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReasoningSummaryContent"
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReasoningContentPart"
+        id:
+          anyOf:
+            - type: string
+            - type: "null"
+        status:
+          anyOf:
+            - $ref: "#/components/schemas/OutputStatus"
+            - type: "null"
+        encrypted_content:
+          anyOf:
+            - type: string
+            - type: "null"
+    ReasoningSummary:
+      type: string
+      enum:
+        - auto
+        - concise
+        - detailed
+    ReasoningSummaryContent:
+      anyOf:
+        - type: object
+          properties:
+            text:
+              type: string
+            type:
+              type: string
+              const: summary_text
+          required:
+            - type
+            - text
+        - description: Forward-compatible catch-all.
+    RefusalContent:
+      description: "`{\"type\":\"refusal\",\"refusal\":\"\u2026\"}` \u2014 refusal content part on an\nassistant message."
+      type: object
+      properties:
+        refusal:
+          type: string
+      required:
+        - refusal
+    ResponseFormat:
+      description: "`response_format` configuration. OpenAI defines three modes:
+
+        `text` (default), `json_object`, and `json_schema`."
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: json_object
+          required:
+            - type
+        - type: object
+          properties:
+            json_schema:
+              $ref: "#/components/schemas/ResponseFormatJsonSchema"
+            type:
+              type: string
+              const: json_schema
+          required:
+            - type
+            - json_schema
+    ResponseFormatJsonSchema:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          anyOf:
+            - type: string
+            - type: "null"
+        schema: {}
+        strict:
+          anyOf:
+            - type: boolean
+            - type: "null"
+      required:
+        - name
+    ResponseInput:
+      description: "Input to a `POST /v1/responses` request \u2014 a flat string or an array\nof [`InputItem`]s (messages, function calls, reasoning, hosted-tool\nitems, ...). Mirrors Dynamo's `InputParam`."
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/InputItem"
+    ResponseInputTokensDetails:
+      type: object
+      properties:
+        cached_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+      required:
+        - cached_tokens
+    ResponseMessage:
+      type: object
+      properties:
+        role:
+          type: string
+        content:
+          anyOf:
+            - type: string
+            - type: "null"
+        refusal:
+          anyOf:
+            - type: string
+              default: null
+            - type: "null"
+        annotations:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ResponseMessageAnnotation"
+              default: null
+            - type: "null"
+        audio:
+          anyOf:
+            - $ref: "#/components/schemas/ChatCompletionResponseMessageAudio"
+            - type: "null"
+          default: null
+        function_call:
+          anyOf:
+            - $ref: "#/components/schemas/ResponseMessageFunctionCall"
+            - type: "null"
+          default: null
+        tool_calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolCall"
+          default: []
+        reasoning_content:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - role
+    ResponseMessageAnnotation:
+      description: "Annotation attached to assistant output \u2014 citation references for\nweb-search / file-search results."
+      anyOf:
+        - type: object
+          properties:
+            url_citation:
+              $ref: "#/components/schemas/UrlCitation"
+            type:
+              type: string
+              const: url_citation
+          required:
+            - type
+            - url_citation
+        - type: object
+          properties:
+            file_citation:
+              $ref: "#/components/schemas/FileCitation"
+            type:
+              type: string
+              const: file_citation
+          required:
+            - type
+            - file_citation
+        - description: Catch-all so future citation kinds round-trip without data loss.
+    ResponseMessageFunctionCall:
+      description:
+        "Deprecated `function_call` echo. OpenAI keeps it on the response for
+
+        backwards compatibility with pre-tools-API clients."
+      type: object
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+      required:
+        - name
+        - arguments
+    ResponseModality:
+      description:
+        "Output modalities the model may produce. OpenAI defines `text` and
+
+        `audio`; vLLM-side multimodal models accept the same set."
+      type: string
+      enum:
+        - text
+        - audio
+    ResponseOutputTokensDetails:
+      type: object
+      properties:
+        reasoning_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+      required:
+        - reasoning_tokens
+    ResponseStreamOptions:
+      description: "Streaming option \u2014 request that lifecycle event snapshots embed\n`obfuscation` tokens."
+      type: object
+      properties:
+        include_obfuscation:
+          anyOf:
+            - type: boolean
+            - type: "null"
+    ResponseTextParam:
+      description: "`text` request parameter \u2014 output format pin (`response_format`\nequivalent for the Responses API)."
+      type: object
+      properties:
+        format:
+          anyOf:
+            - $ref: "#/components/schemas/TextResponseFormatConfiguration"
+            - type: "null"
+        verbosity:
+          anyOf:
+            - $ref: "#/components/schemas/TextVerbosity"
+            - type: "null"
+    ResponseUsage:
+      type: object
+      properties:
+        input_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        input_tokens_details:
+          $ref: "#/components/schemas/ResponseInputTokensDetails"
+        output_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        output_tokens_details:
+          $ref: "#/components/schemas/ResponseOutputTokensDetails"
+        total_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+      required:
+        - input_tokens
+        - input_tokens_details
+        - output_tokens
+        - output_tokens_details
+        - total_tokens
+    ServiceTier:
+      description: "`service_tier` request hint."
+      type: string
+      enum:
+        - auto
+        - default
+        - flex
+        - scale
+        - priority
+    ServiceTierResponse:
+      description:
+        "Service tier the backend reports it used. vLLM has no concept of tiers
+
+        and always emits `None`; the field exists for spec completeness."
+      type: string
+      enum:
+        - scale
+        - default
+        - flex
+        - priority
+    Stop:
+      description: "OpenAI `stop` configuration. Accepts a single string, a string array,\nor \u2014 as a Dynamo / vLLM extension \u2014 an array of integer token IDs.\nConversion into the unified request drops the token-id form; unified\nexpresses stops as strings only."
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+        - type: array
+          items:
+            type: integer
+            format: uint32
+            minimum: 0
+    TextResponseFormatConfiguration:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: text
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: json_object
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: json_schema
+          $ref: "#/components/schemas/ResponseFormatJsonSchema"
+          required:
+            - type
+    TextVerbosity:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+    TokenLogprob:
+      description: Single-token logprob entry within a choice's logprobs payload.
+      type: object
+      properties:
+        token:
+          type: string
+        logprob:
+          type: number
+          format: float
+        bytes:
+          anyOf:
+            - type: array
+              items:
+                type: integer
+                format: uint8
+                minimum: 0
+                maximum: 255
+            - type: "null"
+        top_logprobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopLogprob"
+          default: []
+      required:
+        - token
+        - logprob
+    Tool:
+      description: "One entry in the Responses-API `tools` array. Variants beyond\n`function` are passthrough JSON because they evolve frequently on\nOpenAI's side; only function tools have a fixed shape we need to act\non. Tag-based dispatch \u2014 unknown `type` values fail deserialization,\nmatching Dynamo / async-openai. Tool kinds added to OpenAI's spec\nrequire a new variant here."
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: function
+          $ref: "#/components/schemas/FunctionTool"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: file_search
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: web_search
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: computer_use_preview
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: mcp
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: code_interpreter
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: image_generation
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: local_shell
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: custom
+          required:
+            - type
+    ToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: "#/components/schemas/FunctionType"
+        function:
+          $ref: "#/components/schemas/FunctionCall"
+      required:
+        - id
+        - type
+        - function
+    ToolCallChunk:
+      type: object
+      properties:
+        index:
+          type: integer
+          format: uint32
+          minimum: 0
+        id:
+          anyOf:
+            - type: string
+            - type: "null"
+        type:
+          anyOf:
+            - $ref: "#/components/schemas/FunctionType"
+            - type: "null"
+        function:
+          anyOf:
+            - $ref: "#/components/schemas/FunctionCallChunk"
+            - type: "null"
+      required:
+        - index
+    ToolChoiceAllowed:
+      type: object
+      properties:
+        mode:
+          $ref: "#/components/schemas/ToolChoiceAllowedMode"
+        tools:
+          type: array
+          items: {}
+      required:
+        - mode
+        - tools
+    ToolChoiceAllowedMode:
+      type: string
+      enum:
+        - auto
+        - required
+    ToolChoiceCustom:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    ToolChoiceFunction:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    ToolChoiceMCP:
+      type: object
+      properties:
+        name:
+          type: string
+        server_label:
+          type: string
+      required:
+        - name
+        - server_label
+    ToolChoiceMode:
+      type: string
+      enum:
+        - none
+        - auto
+        - required
+    ToolChoiceParam:
+      description: "`tool_choice` request parameter."
+      anyOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              const: allowed_tools
+          $ref: "#/components/schemas/ToolChoiceAllowed"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: function
+          $ref: "#/components/schemas/ToolChoiceFunction"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: mcp
+          $ref: "#/components/schemas/ToolChoiceMCP"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: custom
+          $ref: "#/components/schemas/ToolChoiceCustom"
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: apply_patch
+          required:
+            - type
+        - type: object
+          properties:
+            type:
+              type: string
+              const: shell
+          required:
+            - type
+        - $ref: "#/components/schemas/HostedToolType"
+        - $ref: "#/components/schemas/ToolChoiceMode"
+    ToolSearchCallItemParam: {}
+    ToolSearchOutputItemParam: {}
+    TopLogProb:
+      type: object
+      properties:
+        token:
+          type: string
+        logprob:
+          type: number
+          format: float
+        bytes:
+          anyOf:
+            - type: array
+              items:
+                type: integer
+                format: uint8
+                minimum: 0
+                maximum: 255
+            - type: "null"
+      required:
+        - token
+        - logprob
+    TopLogprob:
+      description: One of the top-k alternative tokens at a generation step.
+      type: object
+      properties:
+        token:
+          type: string
+        logprob:
+          type: number
+          format: float
+        bytes:
+          anyOf:
+            - type: array
+              items:
+                type: integer
+                format: uint8
+                minimum: 0
+                maximum: 255
+            - type: "null"
+      required:
+        - token
+        - logprob
+    Truncation:
+      description: "`truncation` policy."
+      type: string
+      enum:
+        - auto
+        - disabled
+    UrlCitation:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        title:
+          anyOf:
+            - type: string
+            - type: "null"
+        start_index:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        end_index:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+      required:
+        - url
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        total_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        completion_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        prompt_tokens_details:
+          description:
+            "Always serialized (as `null` when absent) to mirror vLLM's wire
+
+            shape, which clients pin against."
+          anyOf:
+            - $ref: "#/components/schemas/PromptTokensDetails"
+            - type: "null"
+          default: null
+        completion_tokens_details:
+          anyOf:
+            - $ref: "#/components/schemas/CompletionTokensDetails"
+            - type: "null"
+      required:
+        - prompt_tokens
+        - total_tokens
+        - completion_tokens
+    Verbosity:
+      description: Output-verbosity hint.
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+    VideoUrl:
+      description: "`video_url` payload (vLLM extension). Mirrors `ImageUrl` field-for-field."
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        detail:
+          anyOf:
+            - $ref: "#/components/schemas/ImageDetail"
+            - type: "null"
+        uuid:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required:
+        - url
+    WebSearchContextSize:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+    WebSearchLocation:
+      type: object
+      properties:
+        city:
+          anyOf:
+            - type: string
+            - type: "null"
+        country:
+          anyOf:
+            - type: string
+            - type: "null"
+        region:
+          anyOf:
+            - type: string
+            - type: "null"
+        timezone:
+          anyOf:
+            - type: string
+            - type: "null"
+    WebSearchOptions:
+      description: "`web_search_options` configuration."
+      type: object
+      properties:
+        search_context_size:
+          anyOf:
+            - $ref: "#/components/schemas/WebSearchContextSize"
+            - type: "null"
+        user_location:
+          anyOf:
+            - $ref: "#/components/schemas/WebSearchUserLocation"
+            - type: "null"
+    WebSearchToolCall: {}
+    WebSearchUserLocation:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/WebSearchUserLocationType"
+        approximate:
+          $ref: "#/components/schemas/WebSearchLocation"
+      required:
+        - type
+        - approximate
+    WebSearchUserLocationType:
+      type: string
+      enum:
+        - approximate
+    AnthropicCacheControl:
+      description:
+        'Anthropic-style cache control hint for prefix pinning with TTL.
+
+
+        `type` is currently always `"ephemeral"`; `ttl` accepts integer seconds
+
+        (`"600"`) or shorthand (`"5m"`, `"1h"`).'
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/AnthropicCacheControlType"
+        ttl:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - type
+    AnthropicCacheControlType:
+      type: string
+      enum:
+        - ephemeral
+        - unknown
+    AnthropicContentBlock:
+      description: "A single content block within a message.
+
+
+        Models the well-known Anthropic block types explicitly and captures
+
+        unknown / forward-compatible block types as `Other(Value)` so the proxy
+
+        can round-trip Claude features the gateway does not handle yet."
+      anyOf:
+        - type: object
+          properties:
+            text:
+              type: string
+            citations:
+              anyOf:
+                - type: array
+                  items: {}
+                - type: "null"
+            cache_control:
+              anyOf:
+                - $ref: "#/components/schemas/AnthropicCacheControl"
+                - type: "null"
+            type:
+              type: string
+              const: text
+          required:
+            - type
+            - text
+        - type: object
+          properties:
+            source:
+              $ref: "#/components/schemas/AnthropicImageSource"
+            cache_control:
+              anyOf:
+                - $ref: "#/components/schemas/AnthropicCacheControl"
+                - type: "null"
+            type:
+              type: string
+              const: image
+          required:
+            - type
+            - source
+        - type: object
+          properties:
+            source: {}
+            title:
+              anyOf:
+                - type: string
+                - type: "null"
+            context:
+              anyOf:
+                - type: string
+                - type: "null"
+            citations: {}
+            cache_control:
+              anyOf:
+                - $ref: "#/components/schemas/AnthropicCacheControl"
+                - type: "null"
+            type:
+              type: string
+              const: document
+          required:
+            - type
+            - source
+        - type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            input: {}
+            cache_control:
+              anyOf:
+                - $ref: "#/components/schemas/AnthropicCacheControl"
+                - type: "null"
+            type:
+              type: string
+              const: tool_use
+          required:
+            - type
+            - id
+            - name
+            - input
+        - type: object
+          properties:
+            tool_use_id:
+              type: string
+            content:
+              $ref: "#/components/schemas/AnthropicToolResultContent"
+            is_error:
+              type: boolean
+              default: false
+            cache_control:
+              anyOf:
+                - $ref: "#/components/schemas/AnthropicCacheControl"
+                - type: "null"
+            type:
+              type: string
+              const: tool_result
+          required:
+            - type
+            - tool_use_id
+            - content
+        - type: object
+          properties:
+            thinking:
+              type: string
+            signature:
+              type: string
+            cache_control:
+              anyOf:
+                - $ref: "#/components/schemas/AnthropicCacheControl"
+                - type: "null"
+            type:
+              type: string
+              const: thinking
+          required:
+            - type
+            - thinking
+            - signature
+        - type: object
+          properties:
+            data:
+              type: string
+            type:
+              type: string
+              const: redacted_thinking
+          required:
+            - type
+            - data
+        - description:
+            "Server-initiated tool use (e.g. web search). The model issues the
+
+            tool call and the server executes it; the result returns as a
+
+            `web_search_tool_result` (or sibling) block."
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            input:
+              default: null
+            type:
+              type: string
+              const: server_tool_use
+          required:
+            - type
+            - id
+            - name
+        - description: Result from a server-initiated web-search tool execution.
+          type: object
+          properties:
+            tool_use_id:
+              type: string
+            content:
+              default: null
+            type:
+              type: string
+              const: web_search_tool_result
+          required:
+            - type
+            - tool_use_id
+        - description:
+            "Catch-all for unrecognized block types so the proxy can preserve
+
+            blocks Claude has added but the gateway does not yet model."
+    AnthropicContentBlockDelta:
+      description: "Delta payload inside a `content_block_delta` SSE event. The variant tag\ndiscriminates on the chunked field \u2014 `text_delta` for plain text,\n`input_json_delta` for incremental tool-call JSON, `thinking_delta` and\n`signature_delta` for extended-reasoning blocks, `citations_delta` for\nstreamed citations attached to a text block."
+      oneOf:
+        - type: object
+          properties:
+            text:
+              type: string
+            type:
+              type: string
+              const: text_delta
+          required:
+            - type
+            - text
+        - type: object
+          properties:
+            partial_json:
+              type: string
+            type:
+              type: string
+              const: input_json_delta
+          required:
+            - type
+            - partial_json
+        - type: object
+          properties:
+            thinking:
+              type: string
+            type:
+              type: string
+              const: thinking_delta
+          required:
+            - type
+            - thinking
+        - type: object
+          properties:
+            signature:
+              type: string
+            type:
+              type: string
+              const: signature_delta
+          required:
+            - type
+            - signature
+        - type: object
+          properties:
+            citation: {}
+            type:
+              type: string
+              const: citations_delta
+          required:
+            - type
+            - citation
+    AnthropicCountTokensRequest:
+      required:
+        - model
+        - messages
+      title: CountTokensRequest
+      description: Request body for `POST /v1/messages/count_tokens`.
+      type: object
+      properties:
+        model:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicMessage"
+        system:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicSystemPrompt"
+            - type: "null"
+          default: null
+        tools:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/AnthropicTool"
+              default: null
+            - type: "null"
+        thinking:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicThinkingConfig"
+            - type: "null"
+          default: null
+        tool_choice:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicToolChoice"
+            - type: "null"
+          default: null
+    AnthropicCountTokensResponse:
+      required:
+        - input_tokens
+      title: CountTokensResponse
+      description: Response body for `POST /v1/messages/count_tokens`.
+      type: object
+      properties:
+        input_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+    CreateMessagesRequest:
+      required:
+        - model
+        - max_tokens
+      title: CreateMessagesRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicMessage"
+          minItems: 1
+          default: []
+        system:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicSystemPrompt"
+            - type: "null"
+          default: null
+        max_tokens:
+          type: integer
+          format: uint32
+          minimum: 1
+        temperature:
+          anyOf:
+            - type: number
+              format: float
+              default: null
+            - type: "null"
+        top_p:
+          anyOf:
+            - type: number
+              format: float
+              default: null
+            - type: "null"
+        top_k:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+              default: null
+            - type: "null"
+        stop_sequences:
+          anyOf:
+            - type: array
+              items:
                 type: string
-              choices:
-                type: array
-                items:
-                  type: object
-                  required:
-                    - index
-                    - message
-                  properties:
-                    index:
-                      type: integer
-                    message:
-                      type: object
-                      properties:
-                        role:
-                          type: string
-                        content:
-                          type: string
-                        tool_calls:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              id:
-                                type: string
-                              type:
-                                type: string
-                              function:
-                                type: object
-                                properties:
-                                  name:
-                                    type: string
-                                  arguments:
-                                    type: string
-                    finish_reason:
-                      type: string
-              usage:
-                type: object
-                properties:
-                  prompt_tokens:
-                    type: integer
-                  completion_tokens:
-                    type: integer
-                  total_tokens:
-                    type: integer
-                  prompt_tokens_details:
-                    type: object
-                    properties:
-                      cached_tokens:
-                        type: integer
-                      audio_tokens:
-                        type: integer
-  schemas: {}
+              default: null
+            - type: "null"
+        stream:
+          type: boolean
+          default: false
+        tools:
+          anyOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/AnthropicTool"
+              default: null
+            - type: "null"
+        tool_choice:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicToolChoice"
+            - type: "null"
+          default: null
+        metadata:
+          default: null
+        thinking:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicThinkingConfig"
+            - type: "null"
+          default: null
+        cache_control:
+          description: Top-level cache control for automatic prompt prefix caching.
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicCacheControl"
+            - type: "null"
+          default: null
+        service_tier:
+          anyOf:
+            - type: string
+              description: 'Service tier selection: `"auto"` or `"standard_only"`.'
+              default: null
+            - type: "null"
+        container:
+          anyOf:
+            - type: string
+              description: Container identifier for stateful sandbox sessions.
+              default: null
+            - type: "null"
+        output_config:
+          description: "Output configuration: effort level and optional JSON schema format."
+          default: null
+        anthropic_version:
+          anyOf:
+            - type: string
+              description: Anthropic-version header echo. Forwarded for round-trip parity.
+              default: null
+            - type: "null"
+        anthropic_beta:
+          anyOf:
+            - type: array
+              description: Beta-feature opt-ins.
+              items:
+                type: string
+              default: null
+            - type: "null"
+    CreateMessagesResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        role:
+          type: string
+        model:
+          type: string
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicOutputBlock"
+        stop_reason:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicStopReason"
+            - type: "null"
+        stop_sequence:
+          anyOf:
+            - type: string
+            - type: "null"
+        usage:
+          $ref: "#/components/schemas/AnthropicUsage"
+        anthropic_version:
+          anyOf:
+            - type: string
+              description:
+                "Anthropic-version header echo. Populated when the proxy mirrors it
+
+                onto the response body."
+            - type: "null"
+        container:
+          anyOf:
+            - type: string
+              description:
+                "Container identifier echoed back when the request used a stateful
+
+                sandbox session."
+            - type: "null"
+      required:
+        - id
+        - type
+        - role
+        - model
+        - content
+        - usage
+    AnthropicCreateMessagesStreamResponse:
+      oneOf:
+        - description:
+            "First event. Carries the initial message envelope (id, model, empty
+
+            `content`, initial `usage` with `input_tokens` populated)."
+          type: object
+          properties:
+            message:
+              $ref: "#/components/schemas/CreateMessagesResponse"
+            type:
+              type: string
+              const: message_start
+          required:
+            - type
+            - message
+        - description: "Final summary event. Carries `delta.stop_reason` /
+
+            `delta.stop_sequence` plus cumulative final `usage`."
+          type: object
+          properties:
+            delta:
+              $ref: "#/components/schemas/AnthropicMessageDeltaBody"
+            usage:
+              $ref: "#/components/schemas/AnthropicUsage"
+            type:
+              type: string
+              const: message_delta
+          required:
+            - type
+            - delta
+            - usage
+        - description:
+            "Terminal event. Empty payload; presence of this event closes the
+
+            stream from the protocol's perspective."
+          type: object
+          properties:
+            type:
+              type: string
+              const: message_stop
+          required:
+            - type
+        - description:
+            "Marks the start of an output content block at `index`. The
+
+            `content_block` is shape-only (empty text, empty input)."
+          type: object
+          properties:
+            index:
+              type: integer
+              format: uint32
+              minimum: 0
+            content_block:
+              $ref: "#/components/schemas/AnthropicOutputBlock"
+            type:
+              type: string
+              const: content_block_start
+          required:
+            - type
+            - index
+            - content_block
+        - description: Incremental update to the block at `index`.
+          type: object
+          properties:
+            index:
+              type: integer
+              format: uint32
+              minimum: 0
+            delta:
+              $ref: "#/components/schemas/AnthropicContentBlockDelta"
+            type:
+              type: string
+              const: content_block_delta
+          required:
+            - type
+            - index
+            - delta
+        - description: Marks the block at `index` as complete.
+          type: object
+          properties:
+            index:
+              type: integer
+              format: uint32
+              minimum: 0
+            type:
+              type: string
+              const: content_block_stop
+          required:
+            - type
+            - index
+        - description: Server-side keepalive. Carries no payload; safe to ignore.
+          type: object
+          properties:
+            type:
+              type: string
+              const: ping
+          required:
+            - type
+        - description: Stream-level error. Closes the stream.
+          type: object
+          properties:
+            error:
+              $ref: "#/components/schemas/AnthropicErrorBody"
+            type:
+              type: string
+              const: error
+          required:
+            - type
+            - error
+      title: CreateMessagesStreamResponse
+      description: 'SSE event union for `POST /v1/messages` streaming responses.
+
+
+        Wire shape: each variant serializes as `{"type": "<event>", ...}` and
+
+        is emitted as the JSON body of an SSE frame. The SSE `event:` line
+
+        matches the JSON `type` discriminator by convention; clients dispatch
+
+        on either independently.
+
+
+        Typical event order for a plain-text turn:
+
+
+        ```text
+
+        message_start
+
+        content_block_start  (index=0, type=text)
+
+        content_block_delta  (text_delta, repeated)
+
+        content_block_stop   (index=0)
+
+        message_delta        (stop_reason, final usage)
+
+        message_stop
+
+        ```'
+    AnthropicErrorBody:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+      required:
+        - type
+        - message
+    AnthropicErrorEnvelope:
+      required:
+        - type
+        - error
+      title: AnthropicErrorEnvelope
+      type: object
+      properties:
+        type:
+          type: string
+        error:
+          $ref: "#/components/schemas/AnthropicErrorBody"
+    AnthropicImageSource:
+      description: "Image source descriptor \u2014 base64-encoded inline data or a remote URL."
+      type: object
+      properties:
+        type:
+          type: string
+        media_type:
+          anyOf:
+            - type: string
+            - type: "null"
+        data:
+          anyOf:
+            - type: string
+            - type: "null"
+        url:
+          anyOf:
+            - type: string
+              format: uri
+            - type: "null"
+      required:
+        - type
+    AnthropicMessage:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/AnthropicRole"
+        content:
+          $ref: "#/components/schemas/AnthropicMessageContent"
+      required:
+        - role
+        - content
+    AnthropicMessageContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/AnthropicContentBlock"
+    AnthropicMessageDeltaBody:
+      description:
+        "Body of a `message_delta` SSE event. Carries the terminal `stop_reason`
+
+        plus the matched stop sequence (if any). Cumulative `usage` rides on
+
+        the parent `CreateMessagesStreamResponse::MessageDelta` event."
+      type: object
+      properties:
+        stop_reason:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicStopReason"
+            - type: "null"
+        stop_sequence:
+          anyOf:
+            - type: string
+            - type: "null"
+    AnthropicModelObject:
+      required:
+        - id
+        - type
+        - display_name
+        - created_at
+      title: AnthropicModelObject
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        display_name:
+          type: string
+        created_at:
+          type: string
+        max_input_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+    AnthropicModelsResponse:
+      required:
+        - data
+        - has_more
+      title: AnthropicModelsResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicModelObject"
+        has_more:
+          type: boolean
+        first_id:
+          anyOf:
+            - type: string
+            - type: "null"
+        last_id:
+          anyOf:
+            - type: string
+            - type: "null"
+    AnthropicOutputBlock:
+      description:
+        "Output content block for the non-streaming response. The streaming
+
+        `content_block_start` event reuses the same enum."
+      anyOf:
+        - type: object
+          properties:
+            text:
+              type: string
+            citations:
+              anyOf:
+                - type: array
+                  items: {}
+                - type: "null"
+            type:
+              type: string
+              const: text
+          required:
+            - type
+            - text
+        - type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            input: {}
+            type:
+              type: string
+              const: tool_use
+          required:
+            - type
+            - id
+            - name
+            - input
+        - type: object
+          properties:
+            thinking:
+              type: string
+            signature:
+              type: string
+            type:
+              type: string
+              const: thinking
+          required:
+            - type
+            - thinking
+            - signature
+        - type: object
+          properties:
+            data:
+              type: string
+            type:
+              type: string
+              const: redacted_thinking
+          required:
+            - type
+            - data
+        - description:
+            "Server-initiated tool call (e.g. web_search). The matching result
+
+            arrives as `web_search_tool_result` or a sibling block."
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            input:
+              default: null
+            type:
+              type: string
+              const: server_tool_use
+          required:
+            - type
+            - id
+            - name
+        - description: Result of a server-initiated web_search tool call.
+          type: object
+          properties:
+            tool_use_id:
+              type: string
+            content:
+              default: null
+            type:
+              type: string
+              const: web_search_tool_result
+          required:
+            - type
+            - tool_use_id
+        - description:
+            "Catch-all for response blocks the gateway does not yet model
+
+            (`web_fetch_tool_result`, `code_execution_tool_result`, etc.) so
+
+            they round-trip unchanged."
+    AnthropicRole:
+      oneOf:
+        - type: string
+          enum:
+            - user
+            - assistant
+        - description:
+            "Compatibility for clients (e.g. Claude Code) that place system
+
+            instructions in `messages[]` instead of the top-level `system` field."
+          type: string
+          const: system
+    AnthropicStopReason:
+      oneOf:
+        - type: string
+          enum:
+            - end_turn
+            - max_tokens
+            - stop_sequence
+            - tool_use
+        - description:
+            "Model paused mid-turn intending to continue (extended thinking /
+
+            tool-use loops)."
+          type: string
+          const: pause_turn
+        - description: "Safety refusal \u2014 model declined to generate content."
+          type: string
+          const: refusal
+    AnthropicSystemPrompt:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/AnthropicSystemTextBlock"
+    AnthropicSystemTextBlock:
+      type: object
+      properties:
+        type:
+          type: string
+        text:
+          type: string
+        cache_control:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicCacheControl"
+            - type: "null"
+        citations:
+          anyOf:
+            - type: array
+              items: {}
+            - type: "null"
+      required:
+        - type
+        - text
+    AnthropicThinkingConfig:
+      type: object
+      properties:
+        type:
+          type: string
+        budget_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+      required:
+        - type
+    AnthropicTool:
+      description:
+        "Tool declaration. Client tools require `name` + `input_schema`; server
+
+        tools (web_search, code_execution, ...) are discriminated by `type` and
+
+        may omit `input_schema`. All non-`name` fields stay optional so both
+
+        kinds deserialize."
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          anyOf:
+            - type: string
+            - type: "null"
+        description:
+          anyOf:
+            - type: string
+            - type: "null"
+        input_schema: {}
+        cache_control:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicCacheControl"
+            - type: "null"
+      required:
+        - name
+    AnthropicToolChoice:
+      oneOf:
+        - type: object
+          properties:
+            disable_parallel_tool_use:
+              anyOf:
+                - type: boolean
+                - type: "null"
+            type:
+              type: string
+              const: auto
+          required:
+            - type
+        - type: object
+          properties:
+            disable_parallel_tool_use:
+              anyOf:
+                - type: boolean
+                - type: "null"
+            type:
+              type: string
+              const: any
+          required:
+            - type
+        - type: object
+          properties:
+            name:
+              type: string
+            disable_parallel_tool_use:
+              anyOf:
+                - type: boolean
+                - type: "null"
+            type:
+              type: string
+              const: tool
+          required:
+            - type
+            - name
+        - type: object
+          properties:
+            type:
+              type: string
+              const: none
+          required:
+            - type
+    AnthropicToolResultBlock:
+      oneOf:
+        - type: object
+          properties:
+            text:
+              type: string
+            type:
+              type: string
+              const: text
+          required:
+            - type
+            - text
+        - type: object
+          properties:
+            source: {}
+            type:
+              type: string
+              const: image
+          required:
+            - type
+            - source
+    AnthropicToolResultContent:
+      anyOf:
+        - type: string
+        - type: array
+          items:
+            $ref: "#/components/schemas/AnthropicToolResultBlock"
+    AnthropicUsage:
+      type: object
+      properties:
+        input_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        output_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        cache_creation_input_tokens:
+          anyOf:
+            - type: integer
+              description: Number of input tokens used to create a new cache entry.
+              format: uint32
+              minimum: 0
+            - type: "null"
+        cache_read_input_tokens:
+          anyOf:
+            - type: integer
+              description: Number of input tokens read from the prompt cache (prefix cache hits).
+              format: uint32
+              minimum: 0
+            - type: "null"
+        cache_creation:
+          description: Breakdown of `cache_creation_input_tokens` by cache TTL bucket.
+        service_tier:
+          anyOf:
+            - type: string
+              description:
+                'Service tier that actually served the request (`"standard"` /
+
+                `"priority"` / `"batch"`).'
+            - type: "null"
+        server_tool_use:
+          description: Per-server-tool token counts (e.g. web_search requests).
+      required:
+        - input_tokens
+        - output_tokens
 tags:
   - name: models
     description: models for OpenAI/Anthropic compatible Models API.
