@@ -363,22 +363,24 @@ components:
             $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
     ChatCompletionRequestAssistantMessageContentPart:
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: text
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: refusal
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: text
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: refusal
+              required:
+                - type
     ChatCompletionRequestDeveloperMessage:
       type: object
       properties:
@@ -398,56 +400,62 @@ components:
             $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessageContentPart"
     ChatCompletionRequestDeveloperMessageContentPart:
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: text
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: text
+              required:
+                - type
     ChatCompletionRequestMessage:
       oneOf:
-        - type: object
-          properties:
-            role:
-              type: string
-              const: system
-          $ref: "#/components/schemas/ChatCompletionRequestSystemMessage"
-          required:
-            - role
-        - type: object
-          properties:
-            role:
-              type: string
-              const: developer
-          $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessage"
-          required:
-            - role
-        - type: object
-          properties:
-            role:
-              type: string
-              const: user
-          $ref: "#/components/schemas/ChatCompletionRequestUserMessage"
-          required:
-            - role
-        - type: object
-          properties:
-            role:
-              type: string
-              const: assistant
-          $ref: "#/components/schemas/ChatCompletionRequestAssistantMessage"
-          required:
-            - role
-        - type: object
-          properties:
-            role:
-              type: string
-              const: tool
-          $ref: "#/components/schemas/ChatCompletionRequestToolMessage"
-          required:
-            - role
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestSystemMessage"
+            - type: object
+              properties:
+                role:
+                  type: string
+                  const: system
+              required:
+                - role
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessage"
+            - type: object
+              properties:
+                role:
+                  type: string
+                  const: developer
+              required:
+                - role
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestUserMessage"
+            - type: object
+              properties:
+                role:
+                  type: string
+                  const: user
+              required:
+                - role
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestAssistantMessage"
+            - type: object
+              properties:
+                role:
+                  type: string
+                  const: assistant
+              required:
+                - role
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestToolMessage"
+            - type: object
+              properties:
+                role:
+                  type: string
+                  const: tool
+              required:
+                - role
     ChatCompletionRequestMessageContentPartAudio:
       description: '`{"type":"input_audio","input_audio":{...}}` content part.'
       type: object
@@ -527,14 +535,15 @@ components:
             $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
     ChatCompletionRequestSystemMessageContentPart:
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: text
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: text
+              required:
+                - type
     ChatCompletionRequestToolMessage:
       type: object
       properties:
@@ -553,14 +562,15 @@ components:
             $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
     ChatCompletionRequestToolMessageContentPart:
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: text
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: text
+              required:
+                - type
     ChatCompletionRequestUserMessage:
       type: object
       properties:
@@ -580,59 +590,65 @@ components:
             $ref: "#/components/schemas/ChatCompletionRequestUserMessageContentPart"
     ChatCompletionRequestUserMessageContentPart:
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: text
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: image_url
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: input_audio
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: text
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: image_url
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: input_audio
+              required:
+                - type
         - description: "vLLM extension: video reference passed by URL."
-          type: object
-          properties:
-            type:
-              type: string
-              const: video_url
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartVideo"
-          required:
-            - type
+          allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartVideo"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: video_url
+              required:
+                - type
         - description:
             "vLLM extension: audio reference passed by URL (distinct from base64
 
             `input_audio`)."
-          type: object
-          properties:
-            type:
-              type: string
-              const: audio_url
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudioUrl"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: file
-          $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartFile"
-          required:
-            - type
+          allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudioUrl"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: audio_url
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartFile"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: file
+              required:
+                - type
     ChatCompletionResponseMessageAudio:
       description:
         "Audio reference returned on assistant messages when the response
@@ -2519,30 +2535,33 @@ components:
     InputContent:
       description: Content parts on input messages.
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: input_text
-          $ref: "#/components/schemas/InputTextContent"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: input_image
-          $ref: "#/components/schemas/InputImageContent"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: input_file
-          $ref: "#/components/schemas/InputFileContent"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/InputTextContent"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: input_text
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/InputImageContent"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: input_image
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/InputFileContent"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: input_file
+              required:
+                - type
     InputFileContent:
       description: "`{\"type\":\"input_file\", ...}` \u2014 file input. Either `file_id`,\n`file_url`, or inline `(file_data, filename)` is required."
       type: object
@@ -2631,22 +2650,24 @@ components:
     InputOutputMessageContent:
       description: Content parts on a prior assistant message echoed back as input.
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: output_text
-          $ref: "#/components/schemas/InputOutputTextContent"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: refusal
-          $ref: "#/components/schemas/RefusalContent"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/InputOutputTextContent"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: output_text
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/RefusalContent"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: refusal
+              required:
+                - type
     InputOutputTextContent:
       description: "`{\"type\":\"output_text\", ...}` \u2014 text content part on an echoed\nassistant message. `annotations` defaults to empty so clients that omit\nit round-trip."
       type: object
@@ -2683,206 +2704,231 @@ components:
     Item:
       description: "Structured input/output item, discriminated by `type`. Mirrors\nDynamo's `Item` variant-for-variant. Tag-based dispatch \u2014 unknown\n`type` values fail deserialization; new item kinds require a new\nvariant here."
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: message
-          $ref: "#/components/schemas/MessageItem"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: file_search_call
-          $ref: "#/components/schemas/FileSearchToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: computer_call
-          $ref: "#/components/schemas/ComputerToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: computer_call_output
-          $ref: "#/components/schemas/ComputerCallOutputItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: web_search_call
-          $ref: "#/components/schemas/WebSearchToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: function_call
-          $ref: "#/components/schemas/FunctionToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: function_call_output
-          $ref: "#/components/schemas/FunctionCallOutputItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: tool_search_call
-          $ref: "#/components/schemas/ToolSearchCallItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: tool_search_output
-          $ref: "#/components/schemas/ToolSearchOutputItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: reasoning
-          $ref: "#/components/schemas/ReasoningItem"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: compaction
-          $ref: "#/components/schemas/CompactionSummaryItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: image_generation_call
-          $ref: "#/components/schemas/ImageGenToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: code_interpreter_call
-          $ref: "#/components/schemas/CodeInterpreterToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: local_shell_call
-          $ref: "#/components/schemas/LocalShellToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: local_shell_call_output
-          $ref: "#/components/schemas/LocalShellToolCallOutput"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: shell_call
-          $ref: "#/components/schemas/FunctionShellCallItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: shell_call_output
-          $ref: "#/components/schemas/FunctionShellCallOutputItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: apply_patch_call
-          $ref: "#/components/schemas/ApplyPatchToolCallItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: apply_patch_call_output
-          $ref: "#/components/schemas/ApplyPatchToolCallOutputItemParam"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: mcp_list_tools
-          $ref: "#/components/schemas/MCPListTools"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: mcp_approval_request
-          $ref: "#/components/schemas/MCPApprovalRequest"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: mcp_approval_response
-          $ref: "#/components/schemas/MCPApprovalResponse"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: mcp_call
-          $ref: "#/components/schemas/MCPToolCall"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: custom_tool_call_output
-          $ref: "#/components/schemas/CustomToolCallOutput"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: custom_tool_call
-          $ref: "#/components/schemas/CustomToolCall"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/MessageItem"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: message
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/FileSearchToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: file_search_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ComputerToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: computer_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ComputerCallOutputItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: computer_call_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/WebSearchToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: web_search_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/FunctionToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: function_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/FunctionCallOutputItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: function_call_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ToolSearchCallItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: tool_search_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ToolSearchOutputItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: tool_search_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ReasoningItem"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: reasoning
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/CompactionSummaryItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: compaction
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ImageGenToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: image_generation_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/CodeInterpreterToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: code_interpreter_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/LocalShellToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: local_shell_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/LocalShellToolCallOutput"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: local_shell_call_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/FunctionShellCallItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: shell_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/FunctionShellCallOutputItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: shell_call_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ApplyPatchToolCallItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: apply_patch_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ApplyPatchToolCallOutputItemParam"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: apply_patch_call_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/MCPListTools"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: mcp_list_tools
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/MCPApprovalRequest"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: mcp_approval_request
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/MCPApprovalResponse"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: mcp_approval_response
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/MCPToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: mcp_call
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/CustomToolCallOutput"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: custom_tool_call_output
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/CustomToolCall"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: custom_tool_call
+              required:
+                - type
     ItemReference:
       description: 'Reference to a stored prior item by id. Wire shape:
 
@@ -3509,14 +3555,15 @@ components:
               const: json_object
           required:
             - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: json_schema
-          $ref: "#/components/schemas/ResponseFormatJsonSchema"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: json_schema
+              required:
+                - type
     TextVerbosity:
       type: string
       enum:
@@ -3552,14 +3599,15 @@ components:
     Tool:
       description: "One entry in the Responses-API `tools` array. Variants beyond\n`function` are passthrough JSON because they evolve frequently on\nOpenAI's side; only function tools have a fixed shape we need to act\non. Tag-based dispatch \u2014 unknown `type` values fail deserialization,\nmatching Dynamo / async-openai. Tool kinds added to OpenAI's spec\nrequire a new variant here."
       oneOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: function
-          $ref: "#/components/schemas/FunctionTool"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/FunctionTool"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: function
+              required:
+                - type
         - type: object
           properties:
             type:
@@ -3699,38 +3747,42 @@ components:
     ToolChoiceParam:
       description: "`tool_choice` request parameter."
       anyOf:
-        - type: object
-          properties:
-            type:
-              type: string
-              const: allowed_tools
-          $ref: "#/components/schemas/ToolChoiceAllowed"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: function
-          $ref: "#/components/schemas/ToolChoiceFunction"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: mcp
-          $ref: "#/components/schemas/ToolChoiceMCP"
-          required:
-            - type
-        - type: object
-          properties:
-            type:
-              type: string
-              const: custom
-          $ref: "#/components/schemas/ToolChoiceCustom"
-          required:
-            - type
+        - allOf:
+            - $ref: "#/components/schemas/ToolChoiceAllowed"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: allowed_tools
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ToolChoiceFunction"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: function
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ToolChoiceMCP"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: mcp
+              required:
+                - type
+        - allOf:
+            - $ref: "#/components/schemas/ToolChoiceCustom"
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: custom
+              required:
+                - type
         - type: object
           properties:
             type:
