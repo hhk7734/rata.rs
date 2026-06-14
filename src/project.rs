@@ -252,6 +252,27 @@ impl RataProject {
         }
     }
 
+    fn format_json_pointer(path: &str) -> String {
+        if path.is_empty() || path == "/" {
+            return "root".to_string();
+        }
+        
+        let mut result = String::new();
+        for (i, part) in path.split('/').skip(1).enumerate() {
+            let unescaped = part.replace("~1", "/").replace("~0", "~");
+            
+            if let Ok(index) = unescaped.parse::<usize>() {
+                result.push_str(&format!("[{}]", index));
+            } else {
+                if i > 0 {
+                    result.push('.');
+                }
+                result.push_str(&unescaped);
+            }
+        }
+        result
+    }
+
     pub fn validate_request_body(&self, method: HttpMethod, path: &str, body: &str) -> anyhow::Result<Vec<String>> {
         if body.trim().is_empty() {
             return Ok(Vec::new());
@@ -281,7 +302,9 @@ impl RataProject {
             let mut errors: Vec<String> = Vec::new();
             if !validator.is_valid(&body_value) {
                 for error in validator.iter_errors(&body_value) {
-                    errors.push(error.to_string());
+                    let path = error.instance_path().to_string();
+                    let path_str = Self::format_json_pointer(&path);
+                    errors.push(format!("{}: {}", path_str, error.to_string()));
                 }
             }
             return Ok(errors);
@@ -323,7 +346,9 @@ impl RataProject {
             let mut errors: Vec<String> = Vec::new();
             if !validator.is_valid(&body_value) {
                 for error in validator.iter_errors(&body_value) {
-                    errors.push(error.to_string());
+                    let path = error.instance_path().to_string();
+                    let path_str = Self::format_json_pointer(&path);
+                    errors.push(format!("{}: {}", path_str, error.to_string()));
                 }
             }
             return Ok(errors);
