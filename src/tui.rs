@@ -690,6 +690,28 @@ impl TuiApp {
                 self.ensure_cursor_visible();
                 Ok(AppAction::Continue)
             }
+            KeyCode::End => {
+                self.text_cursor = if self.active_block == ActiveBlock::Params
+                    && self.active_request_tab == RequestTab::Body
+                {
+                    move_cursor_to_line_end(&self.draft.body, self.text_cursor)
+                } else {
+                    self.get_current_text_len(project)
+                };
+                self.ensure_cursor_visible();
+                Ok(AppAction::Continue)
+            }
+            KeyCode::Home => {
+                self.text_cursor = if self.active_block == ActiveBlock::Params
+                    && self.active_request_tab == RequestTab::Body
+                {
+                    move_cursor_to_line_start(&self.draft.body, self.text_cursor)
+                } else {
+                    0
+                };
+                self.ensure_cursor_visible();
+                Ok(AppAction::Continue)
+            }
             KeyCode::Up => {
                 if self.active_block == ActiveBlock::Response {
                     self.scroll_response_up(1);
@@ -1171,10 +1193,10 @@ impl TuiApp {
                         let v_line = mouse.row.saturating_sub(inner_y) as usize;
                         let v_col = mouse.column.saturating_sub(inner_x) as usize;
                         let width = self.error_popup_area.width.saturating_sub(2) as usize;
-                        
+
                         let char_idx = visual_to_char_index(&error, v_line, v_col, width, true);
                         let logical_pos = char_index_to_logical(&error, char_idx);
-                        
+
                         self.text_selection = Some(Selection {
                             start: logical_pos,
                             end: logical_pos,
@@ -1189,7 +1211,7 @@ impl TuiApp {
                             let v_line = mouse.row.saturating_sub(inner_y) as usize;
                             let v_col = mouse.column.saturating_sub(inner_x) as usize;
                             let width = self.error_popup_area.width.saturating_sub(2) as usize;
-                            
+
                             let char_idx = visual_to_char_index(&error, v_line, v_col, width, true);
                             sel.end = char_index_to_logical(&error, char_idx);
                         }
@@ -3018,6 +3040,40 @@ mod tests {
             Some(Color::Rgb(255, 123, 114))
         );
     }
+
+    #[test]
+    fn end_key_moves_body_cursor_to_end_of_current_line() {
+        let mut app = TuiApp::new(None);
+        app.active_block = ActiveBlock::Params;
+        app.active_request_tab = RequestTab::Body;
+        app.draft.body = "first\n     asdf   \nthird".to_string();
+        app.text_cursor = 8;
+
+        app.handle_key(
+            KeyEvent::new(KeyCode::End, crossterm::event::KeyModifiers::NONE),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(app.text_cursor, "first\n     asdf".chars().count());
+    }
+
+    #[test]
+    fn home_key_moves_body_cursor_to_start_of_current_line() {
+        let mut app = TuiApp::new(None);
+        app.active_block = ActiveBlock::Params;
+        app.active_request_tab = RequestTab::Body;
+        app.draft.body = "first\n     asdf\nthird".to_string();
+        app.text_cursor = 14;
+
+        app.handle_key(
+            KeyEvent::new(KeyCode::Home, crossterm::event::KeyModifiers::NONE),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(app.text_cursor, "first\n     ".chars().count());
+    }
 }
 
 fn insert_char_at(s: &mut String, idx: usize, ch: char) {
@@ -3139,6 +3195,65 @@ fn move_cursor_down(s: &str, cursor: usize) -> usize {
     }
 
     next_line_start + col.min(next_line_len)
+}
+
+fn move_cursor_to_line_end(s: &str, cursor: usize) -> usize {
+    let (line_start, line_end) = current_line_bounds(s, cursor);
+    let mut text_end = line_start;
+
+    for (i, c) in s
+        .chars()
+        .enumerate()
+        .skip(line_start)
+        .take(line_end - line_start)
+    {
+        if !c.is_whitespace() {
+            text_end = i + 1;
+        }
+    }
+
+    if text_end == line_start {
+        line_end
+    } else {
+        text_end
+    }
+}
+
+fn move_cursor_to_line_start(s: &str, cursor: usize) -> usize {
+    let (line_start, line_end) = current_line_bounds(s, cursor);
+
+    for (i, c) in s
+        .chars()
+        .enumerate()
+        .skip(line_start)
+        .take(line_end - line_start)
+    {
+        if !c.is_whitespace() {
+            return i;
+        }
+    }
+
+    line_start
+}
+
+fn current_line_bounds(s: &str, cursor: usize) -> (usize, usize) {
+    let char_len = s.chars().count();
+    let cursor = cursor.min(char_len);
+    let mut line_start = 0;
+    let mut line_end = char_len;
+
+    for (i, c) in s.chars().enumerate() {
+        if c == '\n' {
+            if i < cursor {
+                line_start = i + 1;
+            } else {
+                line_end = i;
+                break;
+            }
+        }
+    }
+
+    (line_start, line_end)
 }
 
 fn render_error_popup(frame: &mut ratatui::Frame, error: &str, popup_area: ratatui::layout::Rect, text_selection: Option<Selection>) {
