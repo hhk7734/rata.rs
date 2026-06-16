@@ -81,7 +81,7 @@ paths:
       description: Returns the health status of the gateway.
       responses:
         "200":
-          $ref: "#/components/responses/HealthResponse"
+          $ref: "#/components/responses/GetHealthResponse"
   /metrics:
     get:
       tags:
@@ -172,7 +172,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateResponseResponse"
-    HealthResponse:
+    GetHealthResponse:
       description: Gateway is healthy
     MetricsResponse:
       description: Prometheus metrics payload
