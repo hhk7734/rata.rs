@@ -630,6 +630,8 @@ components:
                       type: string
                     default: null
                   - type: "null"
+              context_management:
+                type: object
             additionalProperties: false
     CreateResponseRequest:
       required: true
@@ -4533,6 +4535,10 @@ components:
           format: uint32
           minimum: 0
         output_tokens:
+          type: integer
+          format: uint32
+          minimum: 0
+        total_tokens:
           type: integer
           format: uint32
           minimum: 0
