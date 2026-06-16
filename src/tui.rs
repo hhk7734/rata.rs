@@ -162,6 +162,7 @@ pub struct TuiApp {
     pub sending_frame: usize,
     pub error_popup: Option<String>,
     pub error_popup_area: Rect,
+    pub last_cursor_activity: std::time::Instant,
 }
 
 const METHODS: [HttpMethod; 5] = [
@@ -445,7 +446,12 @@ impl TuiApp {
             sending_frame: 0,
             error_popup: None,
             error_popup_area: Rect::default(),
+            last_cursor_activity: std::time::Instant::now(),
         }
+    }
+
+    pub fn cursor_visible(&self) -> bool {
+        self.last_cursor_activity.elapsed().as_millis() % 1000 < 500
     }
 
     pub fn scroll_response_up(&mut self, amount: u16) {
@@ -2253,7 +2259,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     if app.active_block == ActiveBlock::Request {
         spans.extend(render_with_cursor_spans(
             &url,
-            app.text_cursor,
+            if app.cursor_visible() { Some(app.text_cursor) } else { None },
             Style::default().fg(TEXT).bg(SELECTED_BG),
         ));
     } else {
@@ -2457,6 +2463,7 @@ fn render_request_block(
             };
             let cursor = if app.active_block == ActiveBlock::Params
                 && app.active_request_tab == RequestTab::Body
+                && app.cursor_visible()
             {
                 Some(app.text_cursor)
             } else {
@@ -2484,7 +2491,7 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.key,
-                        app.text_cursor,
+                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
                         Style::default(),
                     ))
                 } else {
@@ -2496,7 +2503,7 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.value,
-                        app.text_cursor,
+                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
                         Style::default(),
                     ))
                 } else {
@@ -2563,7 +2570,7 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.key,
-                        app.text_cursor,
+                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
                         Style::default(),
                     ))
                 } else {
@@ -2575,7 +2582,7 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.value,
-                        app.text_cursor,
+                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
                         Style::default(),
                     ))
                 } else {
@@ -2774,7 +2781,7 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
                 app.response_scroll,
                 app.wrap_body,
                 app.text_selection,
-                if app.active_block == ActiveBlock::Response {
+                if app.active_block == ActiveBlock::Response && app.cursor_visible() {
                     Some(app.text_cursor)
                 } else {
                     None
@@ -3117,29 +3124,33 @@ fn remove_char_at(s: &mut String, idx: usize) {
     s.remove(byte_idx);
 }
 
-fn render_with_cursor_spans(s: &str, cursor: usize, base_style: Style) -> Vec<Span<'static>> {
-    let char_len = s.chars().count();
-    let idx = cursor.min(char_len);
+fn render_with_cursor_spans(s: &str, cursor: Option<usize>, base_style: Style) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
+    if let Some(cursor) = cursor {
+        let char_len = s.chars().count();
+        let idx = cursor.min(char_len);
 
-    if idx == char_len {
-        spans.push(Span::styled(s.to_string(), base_style));
-        spans.push(Span::styled(
-            " ",
-            base_style.add_modifier(Modifier::REVERSED),
-        ));
+        if idx == char_len {
+            spans.push(Span::styled(s.to_string(), base_style));
+            spans.push(Span::styled(
+                " ",
+                base_style.add_modifier(Modifier::REVERSED),
+            ));
+        } else {
+            let byte_idx = s.char_indices().nth(idx).unwrap().0;
+            let (left, right) = s.split_at(byte_idx);
+            let first_char = right.chars().next().unwrap();
+            let rest = &right[first_char.len_utf8()..];
+
+            spans.push(Span::styled(left.to_string(), base_style));
+            spans.push(Span::styled(
+                first_char.to_string(),
+                base_style.add_modifier(Modifier::REVERSED),
+            ));
+            spans.push(Span::styled(rest.to_string(), base_style));
+        }
     } else {
-        let byte_idx = s.char_indices().nth(idx).unwrap().0;
-        let (left, right) = s.split_at(byte_idx);
-        let first_char = right.chars().next().unwrap();
-        let rest = &right[first_char.len_utf8()..];
-
-        spans.push(Span::styled(left.to_string(), base_style));
-        spans.push(Span::styled(
-            first_char.to_string(),
-            base_style.add_modifier(Modifier::REVERSED),
-        ));
-        spans.push(Span::styled(rest.to_string(), base_style));
+        spans.push(Span::styled(s.to_string(), base_style));
     }
     spans
 }
