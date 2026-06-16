@@ -15,7 +15,7 @@ paths:
       description: Returns a list of available models.
       responses:
         "200":
-          $ref: "#/components/responses/GetModelsResponse"
+          $ref: "#/components/responses/ListModelsResponse"
   /v1/models/{model_id}:
     get:
       tags:
@@ -148,12 +148,24 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateCompletionResponse"
-    GetModelsResponse:
+    ListModelsResponse:
       description: A list of models
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ModelsResponse"
+            required:
+              - object
+              - data
+            title: ModelsResponse
+            type: object
+            properties:
+              object:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModelObject"
+            additionalProperties: false
     GetModelResponse:
       description: Model details
       content:
@@ -3169,20 +3181,7 @@ components:
         - created
         - owned_by
       additionalProperties: false
-    ModelsResponse:
-      required:
-        - object
-        - data
-      title: ModelsResponse
-      type: object
-      properties:
-        object:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/ModelObject"
-      additionalProperties: false
+
     OutputItem:
       type: object
       properties:
