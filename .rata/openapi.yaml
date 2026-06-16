@@ -15,7 +15,7 @@ paths:
       description: Returns a list of available models.
       responses:
         "200":
-          $ref: "#/components/responses/ModelsResponse"
+          $ref: "#/components/responses/GetModelsResponse"
   /v1/models/{model_id}:
     get:
       tags:
@@ -30,7 +30,7 @@ paths:
             type: string
       responses:
         "200":
-          $ref: "#/components/responses/ModelResponse"
+          $ref: "#/components/responses/GetModelResponse"
   /v1/chat/completions:
     post:
       tags:
@@ -90,7 +90,7 @@ paths:
       description: Prometheus metrics endpoint.
       responses:
         "200":
-          $ref: "#/components/responses/MetricsResponse"
+          $ref: "#/components/responses/GetMetricsResponse"
   /debug/metrics-store:
     get:
       tags:
@@ -99,7 +99,7 @@ paths:
       description: Returns internal metrics store state for debugging.
       responses:
         "200":
-          $ref: "#/components/responses/DebugMetricsStoreResponse"
+          $ref: "#/components/responses/GetDebugMetricsStoreResponse"
   /debug/reset-prefix-cache:
     post:
       tags:
@@ -108,7 +108,7 @@ paths:
       description: Resets the prefix cache for debugging purposes.
       responses:
         "200":
-          $ref: "#/components/responses/DebugResetPrefixCacheResponse"
+          $ref: "#/components/responses/ResetPrefixCacheResponse"
 components:
   requestBodies:
     CreateChatCompletionRequest:
@@ -148,13 +148,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateCompletionResponse"
-    ModelsResponse:
+    GetModelsResponse:
       description: A list of models
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ModelsResponse"
-    ModelResponse:
+    GetModelResponse:
       description: Model details
       content:
         application/json:
@@ -174,15 +174,15 @@ components:
             $ref: "#/components/schemas/CreateResponseResponse"
     GetHealthResponse:
       description: Gateway is healthy
-    MetricsResponse:
+    GetMetricsResponse:
       description: Prometheus metrics payload
       content:
         text/plain:
           schema:
             type: string
-    DebugMetricsStoreResponse:
+    GetDebugMetricsStoreResponse:
       description: Debug info
-    DebugResetPrefixCacheResponse:
+    ResetPrefixCacheResponse:
       description: Cache reset successful
   schemas:
     Annotation:
