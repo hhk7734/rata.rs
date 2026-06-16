@@ -149,7 +149,8 @@ components:
               min_p:
                 anyOf:
                   - type: number
-                    description: "vLLM-extension: minimum token probability relative
+                    description:
+                      "vLLM-extension: minimum token probability relative
                       to the top token."
                     format: float
                   - type: "null"
@@ -162,7 +163,8 @@ components:
               max_completion_tokens:
                 anyOf:
                   - type: integer
-                    description: "Accepts the deprecated `max_tokens` JSON key as
+                    description:
+                      "Accepts the deprecated `max_tokens` JSON key as
                       an alias. Sending\nboth keys in a single request is rejected
                       at deserialize as a\nduplicate field."
                     format: uint32
@@ -171,7 +173,8 @@ components:
               min_tokens:
                 anyOf:
                   - type: integer
-                    description: "vLLM-extension: minimum tokens to generate before
+                    description:
+                      "vLLM-extension: minimum tokens to generate before
                       EOS / stop can\nend the response."
                     format: uint32
                     minimum: 0
@@ -179,7 +182,8 @@ components:
               n:
                 anyOf:
                   - type: integer
-                    description: "Number of completion choices to generate. OpenAI
+                    description:
+                      "Number of completion choices to generate. OpenAI
                       caps at 128;\n`u8` (max 255) is the soft upper bound — the backend
                       enforces any\ntighter limit. `n = 0` is rejected at validation
                       time."
@@ -194,7 +198,8 @@ components:
               ignore_eos:
                 anyOf:
                   - type: boolean
-                    description: "vLLM-extension: continue generating past EOS until\n\
+                    description:
+                      "vLLM-extension: continue generating past EOS until\n\
                       `max_completion_tokens` is reached."
                   - type: "null"
               seed:
@@ -227,7 +232,8 @@ components:
               thinking_token_budget:
                 anyOf:
                   - type: integer
-                    description: "vLLM-extension: cap on tokens emitted during the
+                    description:
+                      "vLLM-extension: cap on tokens emitted during the
                       thinking phase."
                     format: uint32
                     minimum: 0
@@ -301,13 +307,15 @@ components:
               safety_identifier:
                 anyOf:
                   - type: string
-                    description: "Safety identifier — opaque token threading user/session
+                    description:
+                      "Safety identifier — opaque token threading user/session
                       info for\nsafety telemetry on the backend."
                   - type: "null"
               prompt_cache_key:
                 anyOf:
                   - type: string
-                    description: "Prompt cache key — opaque token that pins prefix-cache
+                    description:
+                      "Prompt cache key — opaque token that pins prefix-cache
                       lookups\nacross requests."
                   - type: "null"
               prompt_cache_retention:
@@ -360,7 +368,8 @@ components:
               priority:
                 anyOf:
                   - type: integer
-                    description: "vLLM scheduler priority (lower = earlier). Requires
+                    description:
+                      "vLLM scheduler priority (lower = earlier). Requires
                       the engine to\nbe launched with priority scheduling for any
                       non-default value to\ntake effect."
                     format: int32
@@ -372,7 +381,8 @@ components:
               chat_template_kwargs:
                 anyOf:
                   - type: object
-                    description: "Extra keys forwarded to the chat template's Jinja
+                    description:
+                      "Extra keys forwarded to the chat template's Jinja
                       render context.\n`chat_template_args` is accepted as an alias."
                     additionalProperties: true
                   - type: "null"
@@ -596,18 +606,19 @@ components:
               container:
                 anyOf:
                   - type: string
-                    description: Container identifier for stateful sandbox 
+                    description: Container identifier for stateful sandbox
                       sessions.
                     default: null
                   - type: "null"
               output_config:
-                description: "Output configuration: effort level and optional JSON
+                description:
+                  "Output configuration: effort level and optional JSON
                   schema format."
                 default: null
               anthropic_version:
                 anyOf:
                   - type: string
-                    description: Anthropic-version header echo. Forwarded for 
+                    description: Anthropic-version header echo. Forwarded for
                       round-trip parity.
                     default: null
                   - type: "null"
@@ -663,7 +674,8 @@ components:
               min_p:
                 anyOf:
                   - type: number
-                    description: "vLLM-extension: minimum token probability relative
+                    description:
+                      "vLLM-extension: minimum token probability relative
                       to the top token."
                     format: float
                     default: null
@@ -671,7 +683,7 @@ components:
               max_output_tokens:
                 anyOf:
                   - type: integer
-                    description: OpenAI Responses-spec name for the upper bound 
+                    description: OpenAI Responses-spec name for the upper bound
                       on generated tokens.
                     format: uint32
                     minimum: 0
@@ -745,7 +757,8 @@ components:
               priority:
                 anyOf:
                   - type: integer
-                    description: "vLLM scheduler priority (lower = earlier). Requires
+                    description:
+                      "vLLM scheduler priority (lower = earlier). Requires
                       the engine to be\nlaunched with priority scheduling for any
                       non-default value to take\neffect."
                     format: int32
@@ -947,8 +960,8 @@ components:
                 type: array
                 items:
                   oneOf:
-                    - $ref: '#/components/schemas/OpenAIModel'
-                    - $ref: '#/components/schemas/AnthropicModel'
+                    - $ref: "#/components/schemas/OpenAIModel"
+                    - $ref: "#/components/schemas/AnthropicModel"
             additionalProperties: false
     GetModelResponse:
       description: Model details
@@ -991,13 +1004,15 @@ components:
               anthropic_version:
                 anyOf:
                   - type: string
-                    description: "Anthropic-version header echo. Populated when the
+                    description:
+                      "Anthropic-version header echo. Populated when the
                       proxy mirrors it\nonto the response body."
                   - type: "null"
               container:
                 anyOf:
                   - type: string
-                    description: "Container identifier echoed back when the request
+                    description:
+                      "Container identifier echoed back when the request
                       used a stateful\nsandbox session."
                   - type: "null"
             required:
@@ -1096,20 +1111,22 @@ components:
               usage:
                 $ref: "#/components/schemas/ResponseUsage"
               billing:
-                description: "Billing breakdown for the response. Always serialized;
+                description:
+                  "Billing breakdown for the response. Always serialized;
                   absent\n fields render as `null`."
                 default: null
               completed_at:
                 anyOf:
                   - type: integer
-                    description: Unix timestamp the response transitioned to 
+                    description: Unix timestamp the response transitioned to
                       `completed`.
                     format: uint64
                     minimum: 0
                     default: null
                   - type: "null"
               conversation:
-                description: "Conversation id, when the response is bound to a stored\n\
+                description:
+                  "Conversation id, when the response is bound to a stored\n\
                   conversation."
                 default: null
               error:
@@ -1124,7 +1141,7 @@ components:
               prompt_cache_retention:
                 anyOf:
                   - type: string
-                    description: Echo of the `prompt_cache_retention` request 
+                    description: Echo of the `prompt_cache_retention` request
                       hint.
                     default: null
                   - type: "null"
@@ -1137,7 +1154,7 @@ components:
               include:
                 anyOf:
                   - type: array
-                    description: Echo of the request's `include` opt-in flags 
+                    description: Echo of the request's `include` opt-in flags
                       (see [`IncludeEnum`]).
                     items:
                       $ref: "#/components/schemas/IncludeEnum"
@@ -1240,14 +1257,16 @@ components:
     ApplyPatchToolCallItemParam: {}
     ApplyPatchToolCallOutputItemParam: {}
     AssistantRole:
-      description: 'Single-variant role enum used to constrain `InputOutputMessage.role`
+      description:
+        'Single-variant role enum used to constrain `InputOutputMessage.role`
 
         to `"assistant"` only.'
       type: string
       enum:
         - assistant
     AudioUrl:
-      description: "`audio_url` payload (vLLM extension). Distinct from OpenAI's base64\n\
+      description:
+        "`audio_url` payload (vLLM extension). Distinct from OpenAI's base64\n\
         \ `input_audio` shape."
       type: object
       properties:
@@ -1263,7 +1282,8 @@ components:
         - url
       additionalProperties: false
     ChatChoiceLogprobs:
-      description: "Per-choice logprobs payload. `content` carries assistant-content
+      description:
+        "Per-choice logprobs payload. `content` carries assistant-content
         tokens;\n`refusal` carries refusal-content tokens (kept for spec parity)."
       type: object
       properties:
@@ -1281,7 +1301,8 @@ components:
             - type: "null"
       additionalProperties: false
     ChatCompletionAudio:
-      description: "`audio` request configuration — voice + output format for audio\n\
+      description:
+        "`audio` request configuration — voice + output format for audio\n\
         \ modality responses."
       type: object
       properties:
@@ -1357,7 +1378,7 @@ components:
                 $ref: "#/components/schemas/ToolCall"
             - type: "null"
     ChatCompletionRequestAssistantMessageAudio:
-      description: Assistant-side audio reference echoed back in multi-turn 
+      description: Assistant-side audio reference echoed back in multi-turn
         audio threads.
       type: object
       properties:
@@ -1484,7 +1505,8 @@ components:
       required:
         - audio_url
     ChatCompletionRequestMessageContentPartFile:
-      description: '`{"type":"file","file":{...}}` content part. `file` is left typed
+      description:
+        '`{"type":"file","file":{...}}` content part. `file` is left typed
         as
 
         `serde_json::Value` because OpenAI accepts multiple sub-shapes
@@ -1504,7 +1526,8 @@ components:
       required:
         - image_url
     ChatCompletionRequestMessageContentPartRefusal:
-      description: "Body for `{\"type\":\"refusal\",\"refusal\":\"…\"}` content parts.
+      description:
+        "Body for `{\"type\":\"refusal\",\"refusal\":\"…\"}` content parts.
         Only valid\non assistant turns echoed back as input — refusal text from a
         prior\nresponse."
       type: object
@@ -1640,7 +1663,8 @@ components:
                   const: video_url
               required:
                 - type
-        - description: "vLLM extension: audio reference passed by URL (distinct from
+        - description:
+            "vLLM extension: audio reference passed by URL (distinct from
             base64\n`input_audio`)."
           allOf:
             - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudioUrl"
@@ -1661,7 +1685,8 @@ components:
               required:
                 - type
     ChatCompletionResponseMessageAudio:
-      description: "Audio reference returned on assistant messages when the response\n\
+      description:
+        "Audio reference returned on assistant messages when the response\n\
         \ includes the `audio` modality."
       type: object
       properties:
@@ -1685,7 +1710,8 @@ components:
         - id
       additionalProperties: false
     ChatCompletionStreamOptions:
-      description: "Streaming options. Extends OpenAI's spec with vLLM / SGLang's\n\
+      description:
+        "Streaming options. Extends OpenAI's spec with vLLM / SGLang's\n\
         \ `continuous_usage_stats` flag (per-chunk usage instead of trailing-only).\n\
         \ \nBoth fields default to `false` when absent so an empty object\n(`\"stream_options\"\
         : {}`) deserializes as a no-op — matching the\npre-Dynamo-mirror behavior
@@ -1712,7 +1738,8 @@ components:
         - function
       additionalProperties: false
     ChatCompletionToolChoiceOption:
-      description: "Tool-choice policy. The lowercase string variants (`none` / `auto`
+      description:
+        "Tool-choice policy. The lowercase string variants (`none` / `auto`
         /\n`required`) match OpenAI's spec; a specific named tool deserializes\nfrom
         the struct form `{ \"type\": \"function\", \"function\": { \"name\": \"…\"\
         \ } }`."
@@ -1724,7 +1751,7 @@ components:
             - required
         - $ref: "#/components/schemas/ChatCompletionNamedToolChoice"
     ChatCompletionToolType:
-      description: Tool-type discriminator. OpenAI currently defines only 
+      description: Tool-type discriminator. OpenAI currently defines only
         `function`.
       type: string
       enum:
@@ -1747,6 +1774,9 @@ components:
           oneOf:
             - $ref: "#/components/schemas/FinishReason"
             - type: "null"
+        provider_specific_fields:
+          type: object
+          description: "LiteLLM-specific extension"
       required:
         - index
         - message
@@ -1880,7 +1910,8 @@ components:
             $ref: "#/components/schemas/LogProb"
         - type: "null"
     ConversationParam:
-      description: "`conversation` request parameter — either an id reference or an\n\
+      description:
+        "`conversation` request parameter — either an id reference or an\n\
         \ inline new-conversation spec."
       anyOf:
         - type: string
@@ -1969,20 +2000,22 @@ components:
         usage:
           $ref: "#/components/schemas/ResponseUsage"
         billing:
-          description: "Billing breakdown for the response. Always serialized; absent\n\
+          description:
+            "Billing breakdown for the response. Always serialized; absent\n\
             \ fields render as `null`."
           default: null
         completed_at:
           anyOf:
             - type: integer
-              description: Unix timestamp the response transitioned to 
+              description: Unix timestamp the response transitioned to
                 `completed`.
               format: uint64
               minimum: 0
               default: null
             - type: "null"
         conversation:
-          description: "Conversation id, when the response is bound to a stored\n\
+          description:
+            "Conversation id, when the response is bound to a stored\n\
             conversation."
           default: null
         error:
@@ -2009,7 +2042,7 @@ components:
         include:
           anyOf:
             - type: array
-              description: Echo of the request's `include` opt-in flags (see 
+              description: Echo of the request's `include` opt-in flags (see
                 [`IncludeEnum`]).
               items:
                 $ref: "#/components/schemas/IncludeEnum"
@@ -2062,7 +2095,8 @@ components:
             - type: "null"
       additionalProperties: false
     DeltaFunctionCall:
-      description: "Streaming deprecated-function-call delta. Carries the per-token
+      description:
+        "Streaming deprecated-function-call delta. Carries the per-token
         slice\nof name/arguments separately from the modern `tool_calls` stream."
       type: object
       properties:
@@ -2076,7 +2110,8 @@ components:
             - type: "null"
       additionalProperties: false
     EasyInputContent:
-      description: "Content of a simplified `EasyInputMessage` — flat string or content\n\
+      description:
+        "Content of a simplified `EasyInputMessage` — flat string or content\n\
         list."
       anyOf:
         - type: string
@@ -2084,7 +2119,8 @@ components:
           items:
             $ref: "#/components/schemas/InputContent"
     EasyInputMessage:
-      description: "Simplified message input — the spec-default shape when a client
+      description:
+        "Simplified message input — the spec-default shape when a client
         omits\nthe `type` discriminator."
       type: object
       properties:
@@ -2193,7 +2229,7 @@ components:
         - name
       additionalProperties: false
     FunctionObject:
-      description: Function declaration body inside a [`ChatCompletionTool`] 
+      description: Function declaration body inside a [`ChatCompletionTool`]
         entry.
       type: object
       properties:
@@ -2251,7 +2287,8 @@ components:
         - name
         - arguments
     FunctionType:
-      description: "Tool-call `type` discriminator. OpenAI currently defines only
+      description:
+        "Tool-call `type` discriminator. OpenAI currently defines only
         `function`;\nkept as an enum for forward compatibility and to match Dynamo's\n\
         \ `FunctionType`. Derives `Default` so struct fields that use\n`#[serde(default)]`
         with this type do not need a named default function."
@@ -2318,7 +2355,7 @@ components:
           required:
             - type
     ImageDetail:
-      description: Image-URL detail hint mirrored from the Chat-Completions 
+      description: Image-URL detail hint mirrored from the Chat-Completions
         content part.
       type: string
       enum:
@@ -2327,7 +2364,8 @@ components:
         - high
     ImageGenToolCall: {}
     ImageUrl:
-      description: "`image_url` payload. `url` accepts a remote URL or `data:` URI;
+      description:
+        "`image_url` payload. `url` accepts a remote URL or `data:` URI;
         `uuid`\nis a gateway extension used to track multimodal assets through the\n\
         \ pipeline without re-uploading raw bytes."
       type: object
@@ -2348,7 +2386,8 @@ components:
         - url
       additionalProperties: false
     IncludeEnum:
-      description: "`include` opt-in flags. The set is open-ended on OpenAI's side;
+      description:
+        "`include` opt-in flags. The set is open-ended on OpenAI's side;
         we\ntype the well-known values and round-trip the rest."
       anyOf:
         - type: string
@@ -2359,7 +2398,7 @@ components:
             - reasoning.encrypted_content
             - code_interpreter_call.outputs
             - message.output_text.logprobs
-        - description: Forward-compatible catch-all (other `*.results` toggles, 
+        - description: Forward-compatible catch-all (other `*.results` toggles,
             etc.).
           type: string
     IncompleteDetails:
@@ -2371,7 +2410,8 @@ components:
         - reason
       additionalProperties: false
     InputAudio:
-      description: "`input_audio` payload — base64-encoded audio data plus a format
+      description:
+        "`input_audio` payload — base64-encoded audio data plus a format
         tag."
       type: object
       properties:
@@ -2420,7 +2460,8 @@ components:
               required:
                 - type
     InputFileContent:
-      description: "`{\"type\":\"input_file\", ...}` — file input. Either `file_id`,\n\
+      description:
+        "`{\"type\":\"input_file\", ...}` — file input. Either `file_id`,\n\
         \ `file_url`, or inline `(file_data, filename)` is required."
       type: object
       properties:
@@ -2442,7 +2483,8 @@ components:
             - type: string
             - type: "null"
     InputImageContent:
-      description: "`{\"type\":\"input_image\", ...}` — image input. Accepts a `file_id`
+      description:
+        "`{\"type\":\"input_image\", ...}` — image input. Accepts a `file_id`
         (for\nan uploaded asset) or `image_url` (remote URL / data URI);\n`detail`
         defaults to `auto` so spec-compliant clients that omit it\nround-trip."
       type: object
@@ -2484,7 +2526,8 @@ components:
         - role
       additionalProperties: false
     InputOutputMessage:
-      description: "Echoed-back assistant message used as input on a subsequent turn.\n\
+      description:
+        "Echoed-back assistant message used as input on a subsequent turn.\n\
         \ `id`, `status`, and `content` are all optional — relaxed vs the\ncanonical
         OutputMessage shape."
       type: object
@@ -2512,7 +2555,7 @@ components:
         - role
       additionalProperties: false
     InputOutputMessageContent:
-      description: Content parts on a prior assistant message echoed back as 
+      description: Content parts on a prior assistant message echoed back as
         input.
       oneOf:
         - allOf:
@@ -2534,7 +2577,8 @@ components:
               required:
                 - type
     InputOutputTextContent:
-      description: "`{\"type\":\"output_text\", ...}` — text content part on an echoed\n\
+      description:
+        "`{\"type\":\"output_text\", ...}` — text content part on an echoed\n\
         \ assistant message. `annotations` defaults to empty so clients that omit\n\
         \ it round-trip."
       type: object
@@ -2569,7 +2613,8 @@ components:
       required:
         - text
     Item:
-      description: "Structured input/output item, discriminated by `type`. Mirrors\n\
+      description:
+        "Structured input/output item, discriminated by `type`. Mirrors\n\
         Dynamo's `Item` variant-for-variant. Tag-based dispatch — unknown\n`type`
         values fail deserialization; new item kinds require a new\nvariant here."
       oneOf:
@@ -2893,7 +2938,8 @@ components:
     MCPListTools: {}
     MCPToolCall: {}
     MessageItem:
-      description: 'Message item inside `Item::Message`. Untagged; discriminated by
+      description:
+        'Message item inside `Item::Message`. Untagged; discriminated by
         `role`:
 
         `Output` requires `"assistant"`, `Input` accepts `"user"`/`"system"`/
@@ -2909,7 +2955,8 @@ components:
         - initial
         - final
     MessageType:
-      description: 'Item-type discriminator on `EasyInputMessage`. Spec-default `"message"`
+      description:
+        'Item-type discriminator on `EasyInputMessage`. Spec-default `"message"`
 
         is accepted when the `type` field is absent.'
       type: string
@@ -2925,7 +2972,7 @@ components:
         role:
           anyOf:
             - type: string
-              description: Present on `message` items, absent on `reasoning` / 
+              description: Present on `message` items, absent on `reasoning` /
                 tool-call items.
             - type: "null"
         status:
@@ -2936,7 +2983,8 @@ components:
         summary:
           anyOf:
             - type: array
-              description: "Present on `reasoning` items (public-facing summary list);
+              description:
+                "Present on `reasoning` items (public-facing summary list);
                 absent on\n`message` items."
               items:
                 $ref: "#/components/schemas/ContentBlock"
@@ -2948,7 +2996,7 @@ components:
         call_id:
           anyOf:
             - type: string
-              description: Tool-call id clients use to thread the follow-up 
+              description: Tool-call id clients use to thread the follow-up
                 `tool` role response.
             - type: "null"
         arguments:
@@ -2965,7 +3013,8 @@ components:
         - content
       additionalProperties: false
     OutputStatus:
-      description: "Lifecycle status echoed back on output items and accepted on relaxed\n\
+      description:
+        "Lifecycle status echoed back on output items and accepted on relaxed\n\
         \ input messages."
       type: string
       enum:
@@ -2976,7 +3025,8 @@ components:
         - cancelled
         - failed
     PredictionContent:
-      description: "`prediction` configuration — a server-side prefix hint used for\n\
+      description:
+        "`prediction` configuration — a server-side prefix hint used for\n\
         \ predicted outputs."
       oneOf:
         - type: object
@@ -3021,7 +3071,8 @@ components:
               - type: integer
                 format: uint32
     PromptCacheRetention:
-      description: "`prompt_cache_retention` hint — `\"5m\"` / `\"1h\"` / arbitrary
+      description:
+        "`prompt_cache_retention` hint — `\"5m\"` / `\"1h\"` / arbitrary
         string for\nforward compatibility."
       anyOf:
         - $ref: "#/components/schemas/KnownPromptCacheRetention"
@@ -3043,7 +3094,8 @@ components:
             - type: "null"
       additionalProperties: false
     Reasoning:
-      description: "`reasoning` request parameter — full Dynamo shape with `effort`,\n\
+      description:
+        "`reasoning` request parameter — full Dynamo shape with `effort`,\n\
         \ `summary`, and `generate_summary` accepted as a serde alias."
       type: object
       properties:
@@ -3057,7 +3109,8 @@ components:
             - type: "null"
       additionalProperties: false
     ReasoningContent:
-      description: "Echo of an assistant turn's reasoning content. Accepts a flat
+      description:
+        "Echo of an assistant turn's reasoning content. Accepts a flat
         string\n(legacy / single-block form) or an interleaved-segment array where\n\
         \ `segments[i]` precedes `tool_calls[i]`."
       anyOf:
@@ -3131,7 +3184,8 @@ components:
             - text
         - description: Forward-compatible catch-all.
     RefusalContent:
-      description: "`{\"type\":\"refusal\",\"refusal\":\"…\"}` — refusal content part
+      description:
+        "`{\"type\":\"refusal\",\"refusal\":\"…\"}` — refusal content part
         on an\nassistant message."
       type: object
       properties:
@@ -3140,7 +3194,8 @@ components:
       required:
         - refusal
     ResponseFormat:
-      description: "`response_format` configuration. OpenAI defines three modes:\n\
+      description:
+        "`response_format` configuration. OpenAI defines three modes:\n\
         \ `text` (default), `json_object`, and `json_schema`."
       oneOf:
         - type: object
@@ -3184,7 +3239,8 @@ components:
       required:
         - name
     ResponseInput:
-      description: "Input to a `POST /v1/responses` request — a flat string or an
+      description:
+        "Input to a `POST /v1/responses` request — a flat string or an
         array\nof [`InputItem`]s (messages, function calls, reasoning, hosted-tool\n\
         \ items, ...). Mirrors Dynamo's `InputParam`."
       anyOf:
@@ -3242,11 +3298,15 @@ components:
           anyOf:
             - type: string
             - type: "null"
+        provider_specific_fields:
+          type: object
+          description: "LiteLLM-specific extension"
       required:
         - role
       additionalProperties: false
     ResponseMessageAnnotation:
-      description: "Annotation attached to assistant output — citation references
+      description:
+        "Annotation attached to assistant output — citation references
         for\nweb-search / file-search results."
       anyOf:
         - type: object
@@ -3269,10 +3329,11 @@ components:
           required:
             - type
             - file_citation
-        - description: Catch-all so future citation kinds round-trip without 
+        - description: Catch-all so future citation kinds round-trip without
             data loss.
     ResponseMessageFunctionCall:
-      description: "Deprecated `function_call` echo. OpenAI keeps it on the response
+      description:
+        "Deprecated `function_call` echo. OpenAI keeps it on the response
         for\nbackwards compatibility with pre-tools-API clients."
       type: object
       properties:
@@ -3285,7 +3346,8 @@ components:
         - arguments
       additionalProperties: false
     ResponseModality:
-      description: "Output modalities the model may produce. OpenAI defines `text`
+      description:
+        "Output modalities the model may produce. OpenAI defines `text`
         and\n`audio`; vLLM-side multimodal models accept the same set."
       type: string
       enum:
@@ -3302,7 +3364,8 @@ components:
         - reasoning_tokens
       additionalProperties: false
     ResponseStreamOptions:
-      description: "Streaming option — request that lifecycle event snapshots embed\n\
+      description:
+        "Streaming option — request that lifecycle event snapshots embed\n\
         \ `obfuscation` tokens."
       type: object
       properties:
@@ -3312,7 +3375,8 @@ components:
             - type: "null"
       additionalProperties: false
     ResponseTextParam:
-      description: "`text` request parameter — output format pin (`response_format`\n\
+      description:
+        "`text` request parameter — output format pin (`response_format`\n\
         \ equivalent for the Responses API)."
       type: object
       properties:
@@ -3361,7 +3425,8 @@ components:
         - scale
         - priority
     ServiceTierResponse:
-      description: "Service tier the backend reports it used. vLLM has no concept
+      description:
+        "Service tier the backend reports it used. vLLM has no concept
         of tiers\nand always emits `None`; the field exists for spec completeness."
       type: string
       enum:
@@ -3370,7 +3435,8 @@ components:
         - flex
         - priority
     Stop:
-      description: "OpenAI `stop` configuration. Accepts a single string, a string
+      description:
+        "OpenAI `stop` configuration. Accepts a single string, a string
         array,\nor — as a Dynamo / vLLM extension — an array of integer token IDs.\n\
         \ Conversion into the unified request drops the token-id form; unified\nexpresses
         stops as strings only."
@@ -3416,7 +3482,7 @@ components:
         - medium
         - high
     TokenLogprob:
-      description: Single-token logprob entry within a choice's logprobs 
+      description: Single-token logprob entry within a choice's logprobs
         payload.
       type: object
       properties:
@@ -3444,7 +3510,8 @@ components:
         - logprob
       additionalProperties: false
     Tool:
-      description: "One entry in the Responses-API `tools` array. Variants beyond\n\
+      description:
+        "One entry in the Responses-API `tools` array. Variants beyond\n\
         \ `function` are passthrough JSON because they evolve frequently on\nOpenAI's
         side; only function tools have a fixed shape we need to act\non. Tag-based
         dispatch — unknown `type` values fail deserialization,\nmatching Dynamo /
@@ -3744,7 +3811,8 @@ components:
           format: uint32
           minimum: 0
         prompt_tokens_details:
-          description: "Always serialized (as `null` when absent) to mirror vLLM's
+          description:
+            "Always serialized (as `null` when absent) to mirror vLLM's
             wire\nshape, which clients pin against."
           anyOf:
             - $ref: "#/components/schemas/PromptTokensDetails"
@@ -3841,7 +3909,8 @@ components:
       enum:
         - approximate
     AnthropicCacheControl:
-      description: 'Anthropic-style cache control hint for prefix pinning with TTL.
+      description:
+        'Anthropic-style cache control hint for prefix pinning with TTL.
 
 
         `type` is currently always `"ephemeral"`; `ttl` accepts integer seconds
@@ -3864,7 +3933,8 @@ components:
         - ephemeral
         - unknown
     AnthropicContentBlock:
-      description: "A single content block within a message.\n\nModels the well-known
+      description:
+        "A single content block within a message.\n\nModels the well-known
         Anthropic block types explicitly and captures\nunknown / forward-compatible
         block types as `Other(Value)` so the proxy\ncan round-trip Claude features
         the gateway does not handle yet."
@@ -3990,7 +4060,8 @@ components:
           required:
             - type
             - data
-        - description: "Server-initiated tool use (e.g. web search). The model issues
+        - description:
+            "Server-initiated tool use (e.g. web search). The model issues
             the\ntool call and the server executes it; the result returns as a\n`web_search_tool_result`
             (or sibling) block."
           type: object
@@ -4021,10 +4092,12 @@ components:
           required:
             - type
             - tool_use_id
-        - description: "Catch-all for unrecognized block types so the proxy can preserve\n\
+        - description:
+            "Catch-all for unrecognized block types so the proxy can preserve\n\
             \ blocks Claude has added but the gateway does not yet model."
     AnthropicContentBlockDelta:
-      description: "Delta payload inside a `content_block_delta` SSE event. The variant
+      description:
+        "Delta payload inside a `content_block_delta` SSE event. The variant
         tag\ndiscriminates on the chunked field — `text_delta` for plain text,\n`input_json_delta`
         for incremental tool-call JSON, `thinking_delta` and\n`signature_delta` for
         extended-reasoning blocks, `citations_delta` for\nstreamed citations attached
@@ -4107,13 +4180,15 @@ components:
         anthropic_version:
           anyOf:
             - type: string
-              description: "Anthropic-version header echo. Populated when the proxy
+              description:
+                "Anthropic-version header echo. Populated when the proxy
                 mirrors it\nonto the response body."
             - type: "null"
         container:
           anyOf:
             - type: string
-              description: "Container identifier echoed back when the request used
+              description:
+                "Container identifier echoed back when the request used
                 a stateful\nsandbox session."
             - type: "null"
       required:
@@ -4136,7 +4211,8 @@ components:
         - message
       additionalProperties: false
     AnthropicImageSource:
-      description: "Image source descriptor — base64-encoded inline data or a remote
+      description:
+        "Image source descriptor — base64-encoded inline data or a remote
         URL."
       type: object
       properties:
@@ -4176,7 +4252,8 @@ components:
           items:
             $ref: "#/components/schemas/AnthropicContentBlock"
     AnthropicMessageDeltaBody:
-      description: "Body of a `message_delta` SSE event. Carries the terminal `stop_reason`\n\
+      description:
+        "Body of a `message_delta` SSE event. Carries the terminal `stop_reason`\n\
         \ plus the matched stop sequence (if any). Cumulative `usage` rides on\nthe
         parent `CreateMessagesStreamResponse::MessageDelta` event."
       type: object
@@ -4191,7 +4268,8 @@ components:
             - type: "null"
       additionalProperties: false
     AnthropicOutputBlock:
-      description: "Output content block for the non-streaming response. The streaming\n\
+      description:
+        "Output content block for the non-streaming response. The streaming\n\
         \ `content_block_start` event reuses the same enum."
       anyOf:
         - type: object
@@ -4247,7 +4325,8 @@ components:
           required:
             - type
             - data
-        - description: "Server-initiated tool call (e.g. web_search). The matching
+        - description:
+            "Server-initiated tool call (e.g. web_search). The matching
             result\narrives as `web_search_tool_result` or a sibling block."
           type: object
           properties:
@@ -4277,7 +4356,8 @@ components:
           required:
             - type
             - tool_use_id
-        - description: "Catch-all for response blocks the gateway does not yet model\n\
+        - description:
+            "Catch-all for response blocks the gateway does not yet model\n\
             \ (`web_fetch_tool_result`, `code_execution_tool_result`, etc.) so\nthey
             round-trip unchanged."
     AnthropicRole:
@@ -4286,7 +4366,8 @@ components:
           enum:
             - user
             - assistant
-        - description: "Compatibility for clients (e.g. Claude Code) that place system\n\
+        - description:
+            "Compatibility for clients (e.g. Claude Code) that place system\n\
             \ instructions in `messages[]` instead of the top-level `system` field."
           type: string
           const: system
@@ -4298,7 +4379,8 @@ components:
             - max_tokens
             - stop_sequence
             - tool_use
-        - description: "Model paused mid-turn intending to continue (extended thinking
+        - description:
+            "Model paused mid-turn intending to continue (extended thinking
             /\ntool-use loops)."
           type: string
           const: pause_turn
@@ -4346,7 +4428,8 @@ components:
         - type
       additionalProperties: false
     AnthropicTool:
-      description: "Tool declaration. Client tools require `name` + `input_schema`;
+      description:
+        "Tool declaration. Client tools require `name` + `input_schema`;
         server\ntools (web_search, code_execution, ...) are discriminated by `type`
         and\nmay omit `input_schema`. All non-`name` fields stay optional so both\n\
         \ kinds deserialize."
@@ -4456,7 +4539,7 @@ components:
         cache_creation_input_tokens:
           anyOf:
             - type: integer
-              description: Number of input tokens used to create a new cache 
+              description: Number of input tokens used to create a new cache
                 entry.
               format: uint32
               minimum: 0
@@ -4464,18 +4547,19 @@ components:
         cache_read_input_tokens:
           anyOf:
             - type: integer
-              description: Number of input tokens read from the prompt cache 
+              description: Number of input tokens read from the prompt cache
                 (prefix cache hits).
               format: uint32
               minimum: 0
             - type: "null"
         cache_creation:
-          description: Breakdown of `cache_creation_input_tokens` by cache TTL 
+          description: Breakdown of `cache_creation_input_tokens` by cache TTL
             bucket.
         service_tier:
           anyOf:
             - type: string
-              description: 'Service tier that actually served the request (`"standard"`
+              description:
+                'Service tier that actually served the request (`"standard"`
                 /
 
                 `"priority"` / `"batch"`).'
