@@ -955,30 +955,9 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              id:
-                type: string
-              object:
-                type: string
-              created:
-                type: integer
-                format: uint64
-                minimum: 0
-              owned_by:
-                type: string
-              max_model_len:
-                anyOf:
-                  - type: integer
-                    format: uint32
-                    minimum: 0
-                  - type: "null"
-            required:
-              - id
-              - object
-              - created
-              - owned_by
-            additionalProperties: false
+            oneOf:
+              - $ref: "#/components/schemas/OpenAIModel"
+              - $ref: "#/components/schemas/AnthropicModel"
 
     CreateMessagesResponse:
       description: A message response
