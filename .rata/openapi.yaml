@@ -15,11 +15,7 @@ paths:
       description: Returns a list of available models.
       responses:
         "200":
-          description: A list of models
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ModelsResponse"
+          $ref: "#/components/responses/ModelsResponse"
   /v1/models/{model_id}:
     get:
       tags:
@@ -34,11 +30,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Model details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ModelObject"
+          $ref: "#/components/responses/ModelResponse"
   /v1/chat/completions:
     post:
       tags:
@@ -68,18 +60,10 @@ paths:
       summary: Create a Message
       description: Creates a message using the Anthropic API format.
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateMessagesRequest"
+        $ref: "#/components/requestBodies/CreateMessagesRequest"
       responses:
         "200":
-          description: A message response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateMessagesResponse"
+          $ref: "#/components/responses/CreateMessagesResponse"
   /v1/responses:
     post:
       tags:
@@ -88,24 +72,16 @@ paths:
       description: Responses endpoint.
       responses:
         "200":
-          description: A response object
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateResponseResponse"
+          $ref: "#/components/responses/CreateResponseResponse"
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateResponseRequest"
+        $ref: "#/components/requestBodies/CreateResponseRequest"
   /health:
     get:
       summary: Get Health
       description: Returns the health status of the gateway.
       responses:
         "200":
-          description: Gateway is healthy
+          $ref: "#/components/responses/HealthResponse"
   /metrics:
     get:
       tags:
@@ -114,11 +90,7 @@ paths:
       description: Prometheus metrics endpoint.
       responses:
         "200":
-          description: Prometheus metrics payload
-          content:
-            text/plain:
-              schema:
-                type: string
+          $ref: "#/components/responses/MetricsResponse"
   /debug/metrics-store:
     get:
       tags:
@@ -127,7 +99,7 @@ paths:
       description: Returns internal metrics store state for debugging.
       responses:
         "200":
-          description: Debug info
+          $ref: "#/components/responses/DebugMetricsStoreResponse"
   /debug/reset-prefix-cache:
     post:
       tags:
@@ -136,7 +108,7 @@ paths:
       description: Resets the prefix cache for debugging purposes.
       responses:
         "200":
-          description: Cache reset successful
+          $ref: "#/components/responses/DebugResetPrefixCacheResponse"
 components:
   requestBodies:
     CreateChatCompletionRequest:
@@ -151,6 +123,18 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateCompletionRequest"
+    CreateMessagesRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateMessagesRequest"
+    CreateResponseRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateResponseRequest"
   responses:
     CreateChatCompletionResponse:
       description: A chat completion response
@@ -164,6 +148,42 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateCompletionResponse"
+    ModelsResponse:
+      description: A list of models
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ModelsResponse"
+    ModelResponse:
+      description: Model details
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ModelObject"
+    CreateMessagesResponse:
+      description: A message response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateMessagesResponse"
+    CreateResponseResponse:
+      description: A response object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateResponseResponse"
+    HealthResponse:
+      description: Gateway is healthy
+    MetricsResponse:
+      description: Prometheus metrics payload
+      content:
+        text/plain:
+          schema:
+            type: string
+    DebugMetricsStoreResponse:
+      description: Debug info
+    DebugResetPrefixCacheResponse:
+      description: Cache reset successful
   schemas:
     Annotation:
       description: Citation / annotation attached to an `output_text` part.
