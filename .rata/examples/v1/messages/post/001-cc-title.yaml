@@ -54,4 +54,4 @@ body:
         required:
           - title
         additionalProperties: false
-  stream: true
+  stream: false

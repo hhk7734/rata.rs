@@ -274,4 +274,4 @@ body:
         keep: all
   output_config:
     effort: xhigh
-  stream: true
+  stream: false
