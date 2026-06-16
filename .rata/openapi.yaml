@@ -946,7 +946,9 @@ components:
               data:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ModelObject"
+                  oneOf:
+                    - $ref: '#/components/schemas/OpenAIModel'
+                    - $ref: '#/components/schemas/AnthropicModel'
             additionalProperties: false
     GetModelResponse:
       description: Model details
@@ -2934,32 +2936,6 @@ components:
       type: string
       enum:
         - message
-    ModelObject:
-      type: object
-      properties:
-        id:
-          type: string
-        object:
-          type: string
-        created:
-          type: integer
-          format: uint64
-          minimum: 0
-        owned_by:
-          type: string
-        max_model_len:
-          anyOf:
-            - type: integer
-              format: uint32
-              minimum: 0
-            - type: "null"
-      required:
-        - id
-        - object
-        - created
-        - owned_by
-      additionalProperties: false
-
     OutputItem:
       type: object
       properties:
@@ -4235,30 +4211,6 @@ components:
             - type: string
             - type: "null"
       additionalProperties: false
-    AnthropicModelObject:
-      required:
-        - id
-        - type
-        - display_name
-        - created_at
-      title: AnthropicModelObject
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-        display_name:
-          type: string
-        created_at:
-          type: string
-        max_input_tokens:
-          anyOf:
-            - type: integer
-              format: uint32
-              minimum: 0
-            - type: "null"
-      additionalProperties: false
     AnthropicOutputBlock:
       description: "Output content block for the non-streaming response. The streaming\n\
         \ `content_block_start` event reuses the same enum."
@@ -4554,6 +4506,56 @@ components:
       required:
         - input_tokens
         - output_tokens
+      additionalProperties: false
+    OpenAIModel:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        owned_by:
+          type: string
+        max_model_len:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+      additionalProperties: false
+
+    AnthropicModel:
+      required:
+        - id
+        - type
+        - display_name
+        - created_at
+      title: AnthropicModel
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        display_name:
+          type: string
+        created_at:
+          type: string
+        max_input_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
       additionalProperties: false
 tags:
   - name: models
