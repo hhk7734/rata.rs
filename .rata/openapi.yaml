@@ -70,11 +70,11 @@ paths:
         - responses
       summary: Create a Response
       description: Responses endpoint.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateResponseRequest"
       responses:
         "200":
           $ref: "#/components/responses/CreateResponseResponse"
-      requestBody:
-        $ref: "#/components/requestBodies/CreateResponseRequest"
   /health:
     get:
       summary: Get Health
@@ -527,7 +527,7 @@ components:
                 anyOf:
                   - $ref: "#/components/schemas/AnthropicSystemPrompt"
                   - type: "null"
-                default:
+                default: null
               max_tokens:
                 type: integer
                 format: uint32
@@ -536,27 +536,27 @@ components:
                 anyOf:
                   - type: number
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               top_p:
                 anyOf:
                   - type: number
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               top_k:
                 anyOf:
                   - type: integer
                     format: uint32
                     minimum: 0
-                    default:
+                    default: null
                   - type: "null"
               stop_sequences:
                 anyOf:
                   - type: array
                     items:
                       type: string
-                    default:
+                    default: null
                   - type: "null"
               stream:
                 type: boolean
@@ -566,50 +566,50 @@ components:
                   - type: array
                     items:
                       $ref: "#/components/schemas/AnthropicTool"
-                    default:
+                    default: null
                   - type: "null"
               tool_choice:
                 anyOf:
                   - $ref: "#/components/schemas/AnthropicToolChoice"
                   - type: "null"
-                default:
+                default: null
               metadata:
-                default:
+                default: null
               thinking:
                 anyOf:
                   - $ref: "#/components/schemas/AnthropicThinkingConfig"
                   - type: "null"
-                default:
+                default: null
               cache_control:
                 description: Top-level cache control for automatic prompt prefix
                   caching.
                 anyOf:
                   - $ref: "#/components/schemas/AnthropicCacheControl"
                   - type: "null"
-                default:
+                default: null
               service_tier:
                 anyOf:
                   - type: string
                     description: 'Service tier selection: `"auto"` or `"standard_only"`.'
-                    default:
+                    default: null
                   - type: "null"
               container:
                 anyOf:
                   - type: string
                     description: Container identifier for stateful sandbox 
                       sessions.
-                    default:
+                    default: null
                   - type: "null"
               output_config:
                 description: "Output configuration: effort level and optional JSON
                   schema format."
-                default:
+                default: null
               anthropic_version:
                 anyOf:
                   - type: string
                     description: Anthropic-version header echo. Forwarded for 
                       round-trip parity.
-                    default:
+                    default: null
                   - type: "null"
               anthropic_beta:
                 anyOf:
@@ -617,7 +617,7 @@ components:
                     description: Beta-feature opt-ins.
                     items:
                       type: string
-                    default:
+                    default: null
                   - type: "null"
             additionalProperties: false
     CreateResponseRequest:
@@ -639,26 +639,26 @@ components:
               instructions:
                 anyOf:
                   - type: string
-                    default:
+                    default: null
                   - type: "null"
               temperature:
                 anyOf:
                   - type: number
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               top_p:
                 anyOf:
                   - type: number
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               top_k:
                 anyOf:
                   - type: integer
                     description: "vLLM-extension: top-k sampling. `0` disables."
                     format: int32
-                    default:
+                    default: null
                   - type: "null"
               min_p:
                 anyOf:
@@ -666,7 +666,7 @@ components:
                     description: "vLLM-extension: minimum token probability relative
                       to the top token."
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               max_output_tokens:
                 anyOf:
@@ -675,7 +675,7 @@ components:
                       on generated tokens.
                     format: uint32
                     minimum: 0
-                    default:
+                    default: null
                   - type: "null"
               min_tokens:
                 anyOf:
@@ -687,34 +687,34 @@ components:
                 anyOf:
                   - type: number
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               frequency_penalty:
                 anyOf:
                   - type: number
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               repetition_penalty:
                 anyOf:
                   - type: number
                     description: "vLLM-extension: repetition penalty (`1.0` = neutral)."
                     format: float
-                    default:
+                    default: null
                   - type: "null"
               seed:
                 anyOf:
                   - type: integer
                     format: uint64
                     minimum: 0
-                    default:
+                    default: null
                   - type: "null"
               stop:
                 anyOf:
                   - type: array
                     items:
                       type: string
-                    default:
+                    default: null
                   - type: "null"
               ignore_eos:
                 anyOf:
@@ -723,25 +723,25 @@ components:
               stream:
                 anyOf:
                   - type: boolean
-                    default:
+                    default: null
                   - type: "null"
               stream_options:
                 anyOf:
                   - $ref: "#/components/schemas/ResponseStreamOptions"
                   - type: "null"
-                default:
+                default: null
               tools:
                 anyOf:
                   - type: array
                     items:
                       $ref: "#/components/schemas/Tool"
-                    default:
+                    default: null
                   - type: "null"
               tool_choice:
                 anyOf:
                   - $ref: "#/components/schemas/ToolChoiceParam"
                   - type: "null"
-                default:
+                default: null
               priority:
                 anyOf:
                   - type: integer
@@ -749,107 +749,107 @@ components:
                       the engine to be\nlaunched with priority scheduling for any
                       non-default value to take\neffect."
                     format: int32
-                    default:
+                    default: null
                   - type: "null"
               user:
                 anyOf:
                   - type: string
-                    default:
+                    default: null
                   - type: "null"
               reasoning:
                 anyOf:
                   - $ref: "#/components/schemas/Reasoning"
                   - type: "null"
-                default:
+                default: null
               store:
                 anyOf:
                   - type: boolean
-                    default:
+                    default: null
                   - type: "null"
               previous_response_id:
                 anyOf:
                   - type: string
-                    default:
+                    default: null
                   - type: "null"
               background:
                 anyOf:
                   - type: boolean
-                    default:
+                    default: null
                   - type: "null"
               conversation:
                 anyOf:
                   - $ref: "#/components/schemas/ConversationParam"
                   - type: "null"
-                default:
+                default: null
               include:
                 anyOf:
                   - type: array
                     items:
                       $ref: "#/components/schemas/IncludeEnum"
-                    default:
+                    default: null
                   - type: "null"
               max_tool_calls:
                 anyOf:
                   - type: integer
                     format: uint32
                     minimum: 0
-                    default:
+                    default: null
                   - type: "null"
               metadata:
                 anyOf:
                   - type: object
                     additionalProperties:
                       type: string
-                    default:
+                    default: null
                   - type: "null"
               parallel_tool_calls:
                 anyOf:
                   - type: boolean
-                    default:
+                    default: null
                   - type: "null"
               prompt:
                 anyOf:
                   - $ref: "#/components/schemas/CreateResponseRequestPrompt"
                   - type: "null"
-                default:
+                default: null
               prompt_cache_key:
                 anyOf:
                   - type: string
-                    default:
+                    default: null
                   - type: "null"
               prompt_cache_retention:
                 anyOf:
                   - $ref: "#/components/schemas/PromptCacheRetention"
                   - type: "null"
-                default:
+                default: null
               safety_identifier:
                 anyOf:
                   - type: string
-                    default:
+                    default: null
                   - type: "null"
               service_tier:
                 anyOf:
                   - $ref: "#/components/schemas/ServiceTier"
                   - type: "null"
-                default:
+                default: null
               text:
                 anyOf:
                   - $ref: "#/components/schemas/ResponseTextParam"
                   - type: "null"
-                default:
+                default: null
               top_logprobs:
                 anyOf:
                   - type: integer
                     format: uint8
                     minimum: 0
                     maximum: 255
-                    default:
+                    default: null
                   - type: "null"
               truncation:
                 anyOf:
                   - $ref: "#/components/schemas/Truncation"
                   - type: "null"
-                default:
+                default: null
             additionalProperties: false
   responses:
     CreateChatCompletionResponse:
@@ -885,7 +885,7 @@ components:
                 anyOf:
                   - $ref: "#/components/schemas/ServiceTierResponse"
                   - type: "null"
-                default:
+                default: null
               system_fingerprint:
                 anyOf:
                   - type: string
@@ -952,7 +952,7 @@ components:
       description: Model details
       content:
         application/json:
-          schema: &id002
+          schema:
             type: object
             properties:
               id:
@@ -982,7 +982,7 @@ components:
       description: A message response
       content:
         application/json:
-          schema: &id003
+          schema:
             type: object
             properties:
               id:
@@ -1031,7 +1031,7 @@ components:
       description: A response object
       content:
         application/json:
-          schema: &id001
+          schema:
             type: object
             properties:
               id:
@@ -1117,7 +1117,7 @@ components:
               billing:
                 description: "Billing breakdown for the response. Always serialized;
                   absent\n fields render as `null`."
-                default:
+                default: null
               completed_at:
                 anyOf:
                   - type: integer
@@ -1125,33 +1125,33 @@ components:
                       `completed`.
                     format: uint64
                     minimum: 0
-                    default:
+                    default: null
                   - type: "null"
               conversation:
                 description: "Conversation id, when the response is bound to a stored\n\
                   conversation."
-                default:
+                default: null
               error:
                 description: Final error envelope when `status == "failed"`.
-                default:
+                default: null
               prompt_cache_key:
                 anyOf:
                   - type: string
                     description: Echo of the `prompt_cache_key` request hint.
-                    default:
+                    default: null
                   - type: "null"
               prompt_cache_retention:
                 anyOf:
                   - type: string
                     description: Echo of the `prompt_cache_retention` request 
                       hint.
-                    default:
+                    default: null
                   - type: "null"
               safety_identifier:
                 anyOf:
                   - type: string
                     description: Echo of the `safety_identifier` request hint.
-                    default:
+                    default: null
                   - type: "null"
               include:
                 anyOf:
@@ -1761,7 +1761,7 @@ components:
           anyOf:
             - $ref: "#/components/schemas/ChatChoiceLogprobs"
             - type: "null"
-          default:
+          default: null
         finish_reason:
           oneOf:
             - $ref: "#/components/schemas/FinishReason"
@@ -1904,7 +1904,150 @@ components:
       anyOf:
         - type: string
         - {}
-    CreateResponseResponse: *id001
+    CreateResponseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created_at:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        instructions:
+          anyOf:
+            - type: string
+            - type: "null"
+        max_output_tokens:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        max_tool_calls:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        previous_response_id:
+          anyOf:
+            - type: string
+            - type: "null"
+        temperature:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_p:
+          anyOf:
+            - type: number
+              format: float
+            - type: "null"
+        top_logprobs:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tool"
+        tool_choice:
+          $ref: "#/components/schemas/ToolChoiceParam"
+        parallel_tool_calls:
+          type: boolean
+        background:
+          type: boolean
+        truncation:
+          type: string
+        service_tier:
+          type: string
+        metadata: {}
+        prompt: {}
+        reasoning: {}
+        text: {}
+        user:
+          anyOf:
+            - type: string
+            - type: "null"
+        status:
+          type: string
+        incomplete_details:
+          anyOf:
+            - $ref: "#/components/schemas/IncompleteDetails"
+            - type: "null"
+        output:
+          type: array
+          items:
+            $ref: "#/components/schemas/OutputItem"
+        usage:
+          $ref: "#/components/schemas/ResponseUsage"
+        billing:
+          description: "Billing breakdown for the response. Always serialized; absent\n\
+            \ fields render as `null`."
+          default: null
+        completed_at:
+          anyOf:
+            - type: integer
+              description: Unix timestamp the response transitioned to 
+                `completed`.
+              format: uint64
+              minimum: 0
+              default: null
+            - type: "null"
+        conversation:
+          description: "Conversation id, when the response is bound to a stored\n\
+            conversation."
+          default: null
+        error:
+          description: Final error envelope when `status == "failed"`.
+          default: null
+        prompt_cache_key:
+          anyOf:
+            - type: string
+              description: Echo of the `prompt_cache_key` request hint.
+              default: null
+            - type: "null"
+        prompt_cache_retention:
+          anyOf:
+            - type: string
+              description: Echo of the `prompt_cache_retention` request hint.
+              default: null
+            - type: "null"
+        safety_identifier:
+          anyOf:
+            - type: string
+              description: Echo of the `safety_identifier` request hint.
+              default: null
+            - type: "null"
+        include:
+          anyOf:
+            - type: array
+              description: Echo of the request's `include` opt-in flags (see 
+                [`IncludeEnum`]).
+              items:
+                $ref: "#/components/schemas/IncludeEnum"
+            - type: "null"
+      required:
+        - id
+        - object
+        - created_at
+        - model
+        - tools
+        - tool_choice
+        - parallel_tool_calls
+        - background
+        - truncation
+        - service_tier
+        - status
+        - output
+        - usage
+      additionalProperties: false
     CustomToolCall: {}
     CustomToolCallOutput: {}
     Delta:
@@ -2791,7 +2934,32 @@ components:
       type: string
       enum:
         - message
-    ModelObject: *id002
+    ModelObject:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        owned_by:
+          type: string
+        max_model_len:
+          anyOf:
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+      additionalProperties: false
+
     OutputItem:
       type: object
       properties:
@@ -3091,25 +3259,25 @@ components:
         refusal:
           anyOf:
             - type: string
-              default:
+              default: null
             - type: "null"
         annotations:
           anyOf:
             - type: array
               items:
                 $ref: "#/components/schemas/ResponseMessageAnnotation"
-              default:
+              default: null
             - type: "null"
         audio:
           anyOf:
             - $ref: "#/components/schemas/ChatCompletionResponseMessageAudio"
             - type: "null"
-          default:
+          default: null
         function_call:
           anyOf:
             - $ref: "#/components/schemas/ResponseMessageFunctionCall"
             - type: "null"
-          default:
+          default: null
         tool_calls:
           type: array
           items:
@@ -3626,7 +3794,7 @@ components:
           anyOf:
             - $ref: "#/components/schemas/PromptTokensDetails"
             - type: "null"
-          default:
+          default: null
         completion_tokens_details:
           anyOf:
             - $ref: "#/components/schemas/CompletionTokensDetails"
@@ -3877,7 +4045,7 @@ components:
             name:
               type: string
             input:
-              default:
+              default: null
             type:
               type: string
               const: server_tool_use
@@ -3891,7 +4059,7 @@ components:
             tool_use_id:
               type: string
             content:
-              default:
+              default: null
             type:
               type: string
               const: web_search_tool_result
@@ -3956,7 +4124,51 @@ components:
           required:
             - type
             - citation
-    CreateMessagesResponse: *id003
+    CreateMessagesResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        role:
+          type: string
+        model:
+          type: string
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicOutputBlock"
+        stop_reason:
+          anyOf:
+            - $ref: "#/components/schemas/AnthropicStopReason"
+            - type: "null"
+        stop_sequence:
+          anyOf:
+            - type: string
+            - type: "null"
+        usage:
+          $ref: "#/components/schemas/AnthropicUsage"
+        anthropic_version:
+          anyOf:
+            - type: string
+              description: "Anthropic-version header echo. Populated when the proxy
+                mirrors it\nonto the response body."
+            - type: "null"
+        container:
+          anyOf:
+            - type: string
+              description: "Container identifier echoed back when the request used
+                a stateful\nsandbox session."
+            - type: "null"
+      required:
+        - id
+        - type
+        - role
+        - model
+        - content
+        - usage
+      additionalProperties: false
     AnthropicErrorBody:
       type: object
       properties:
@@ -4113,7 +4325,7 @@ components:
             name:
               type: string
             input:
-              default:
+              default: null
             type:
               type: string
               const: server_tool_use
@@ -4127,7 +4339,7 @@ components:
             tool_use_id:
               type: string
             content:
-              default:
+              default: null
             type:
               type: string
               const: web_search_tool_result
