@@ -22,7 +22,7 @@ pub fn render_body_with_scrollbar<'a>(
 
     text = apply_selection(text, selection);
     if let Some(c) = cursor {
-        text = apply_cursor_to_text(text, c);
+        text = apply_cursor_to_text(text, c, selection);
     }
     let mut p = Paragraph::new(text)
         .style(Style::default().fg(TEXT))

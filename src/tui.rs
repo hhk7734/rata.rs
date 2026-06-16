@@ -2963,12 +2963,13 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
     Text::from(new_lines)
 }
 
-pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'static> {
+pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize, selection: Option<Selection>) -> Text<'static> {
     let mut char_count = 0;
     let mut cursor_applied = false;
 
-    for line in &mut text.lines {
+    for (line_idx, line) in text.lines.iter_mut().enumerate() {
         let mut new_spans = Vec::new();
+        let mut current_col = 0;
         for span in line.spans.drain(..) {
             if cursor_applied {
                 new_spans.push(span);
@@ -2977,6 +2978,17 @@ pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'sta
             let span_chars = span.content.chars().count();
             if char_count <= cursor && cursor < char_count + span_chars {
                 let local_idx = cursor - char_count;
+                let col = current_col + local_idx;
+
+                let is_selected = if let Some(sel) = selection {
+                    let start = std::cmp::min(sel.start, sel.end);
+                    let end = std::cmp::max(sel.start, sel.end);
+                    let pos = (line_idx, col);
+                    pos >= start && pos <= end
+                } else {
+                    false
+                };
+
                 let byte_idx = span.content.char_indices().nth(local_idx).unwrap().0;
                 let (left, right) = span.content.split_at(byte_idx);
                 let cursor_char = right.chars().next().unwrap();
@@ -2985,9 +2997,16 @@ pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'sta
                 if !left.is_empty() {
                     new_spans.push(Span::styled(left.to_string(), span.style));
                 }
+
+                let cursor_style = if is_selected {
+                    span.style.remove_modifier(Modifier::REVERSED)
+                } else {
+                    span.style.add_modifier(Modifier::REVERSED)
+                };
+
                 new_spans.push(Span::styled(
                     cursor_char.to_string(),
-                    span.style.add_modifier(Modifier::REVERSED),
+                    cursor_style,
                 ));
                 if !rest.is_empty() {
                     new_spans.push(Span::styled(rest.to_string(), span.style));
@@ -2997,6 +3016,7 @@ pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize) -> Text<'sta
                 new_spans.push(span);
             }
             char_count += span_chars;
+            current_col += span_chars;
         }
 
         if !cursor_applied && char_count == cursor {
