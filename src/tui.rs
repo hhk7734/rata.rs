@@ -641,6 +641,19 @@ impl TuiApp {
             return Ok(AppAction::Continue);
         }
 
+        if matches!(
+            key.code,
+            KeyCode::Left
+                | KeyCode::Right
+                | KeyCode::Up
+                | KeyCode::Down
+                | KeyCode::Home
+                | KeyCode::End
+        ) {
+            self.text_selection = None;
+            self.request_selection = None;
+        }
+
         match key.code {
             KeyCode::Esc => {
                 if self.param_edit_mode != ParamEditMode::None {
@@ -1330,6 +1343,7 @@ impl TuiApp {
                             let char_idx =
                                 visual_to_char_index(&text_str, v_line, v_col, width, wrap);
                             sel.end = char_index_to_logical(&text_str, char_idx);
+                            self.text_cursor = char_idx;
                         }
                     }
                     DragTarget::RequestSelection => {
@@ -1360,6 +1374,8 @@ impl TuiApp {
                             let char_idx =
                                 visual_to_char_index(&text_str, v_line, v_col, width, wrap);
                             sel.end = char_index_to_logical(&text_str, char_idx);
+                            self.text_cursor = char_idx;
+                            self.ensure_cursor_visible();
                         }
                     }
                     DragTarget::None | DragTarget::ErrorPopupSelection => {}
@@ -2758,7 +2774,11 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
                 app.response_scroll,
                 app.wrap_body,
                 app.text_selection,
-                None,
+                if app.active_block == ActiveBlock::Response {
+                    Some(app.text_cursor)
+                } else {
+                    None
+                },
             );
         } else {
             let mut text = ratatui::text::Text::raw(raw_string.clone());
