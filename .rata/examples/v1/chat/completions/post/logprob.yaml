@@ -1,0 +1,10 @@
+body:
+  model: "{{model}}"
+  messages:
+    - role: system
+      content: "You are a helpful assistant."
+    - role: user
+      content: "What is Ceph?"
+  max_completion_tokens: 20
+  logprobs: true
+  top_logprobs: 3
