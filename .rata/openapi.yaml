@@ -46,10 +46,10 @@ paths:
       summary: Create a Chat Completion
       description: Creates a model response for the given chat conversation.
       requestBody:
-        $ref: "#/components/requestBodies/createChatCompletionRequest"
+        $ref: "#/components/requestBodies/CreateChatCompletionRequest"
       responses:
         "200":
-          $ref: "#/components/responses/createChatCompletionResponse"
+          $ref: "#/components/responses/CreateChatCompletionResponse"
   /v1/completions:
     post:
       tags:
@@ -57,18 +57,10 @@ paths:
       summary: Create a Completion
       description: Creates a completion for the provided prompt and parameters.
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateCompletionRequest"
+        $ref: "#/components/requestBodies/CreateCompletionRequest"
       responses:
         "200":
-          description: A completion response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateCompletionResponse"
+          $ref: "#/components/responses/CreateCompletionResponse"
   /v1/messages:
     post:
       tags:
@@ -147,19 +139,31 @@ paths:
           description: Cache reset successful
 components:
   requestBodies:
-    createChatCompletionRequest:
+    CreateChatCompletionRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateChatCompletionRequest"
+    CreateCompletionRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateCompletionRequest"
   responses:
-    createChatCompletionResponse:
+    CreateChatCompletionResponse:
       description: A chat completion response
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/CreateChatCompletionResponse"
+    CreateCompletionResponse:
+      description: A completion response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateCompletionResponse"
   schemas:
     Annotation:
       description: Citation / annotation attached to an `output_text` part.
