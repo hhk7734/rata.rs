@@ -1006,6 +1006,9 @@ impl TuiApp {
                 self.draft.body.clear();
             }
 
+            self.text_cursor = 0;
+            self.request_scroll = 0;
+
             self.update_request_tab();
         }
     }
