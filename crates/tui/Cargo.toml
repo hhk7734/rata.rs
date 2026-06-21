@@ -1,0 +1,21 @@
+[package]
+name = "rata"
+version.workspace = true
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+arboard = "3.6.1"
+clap = { version = "4", features = ["derive"] }
+crossterm = "0.28"
+jsonschema = "0.46.5"
+openapiv3 = "2"
+ratatui = "0.29"
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+url = "2"
+
+[dev-dependencies]
+tempfile = "3"
