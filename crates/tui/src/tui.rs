@@ -540,7 +540,8 @@ impl TuiApp {
                 match proj.validate_request_body(*method, path, &self.draft.body) {
                     Ok(errors) => {
                         if !errors.is_empty() {
-                            self.error_popup = Some(format!("Request Validation Failed:\n{}", errors.join("\n")));
+                            self.error_popup =
+                                Some(format!("Request Validation Failed:\n{}", errors.join("\n")));
                             return;
                         }
                     }
@@ -1016,7 +1017,11 @@ impl TuiApp {
     }
 
     fn update_request_tab(&mut self) {
-        let query_empty = self.draft.params.iter().all(|p| !p.enabled || p.value.is_empty());
+        let query_empty = self
+            .draft
+            .params
+            .iter()
+            .all(|p| !p.enabled || p.value.is_empty());
         let body_empty = self.draft.body.trim().is_empty();
 
         if query_empty && !body_empty {
@@ -1240,22 +1245,27 @@ impl TuiApp {
     ) -> anyhow::Result<AppAction> {
         let contains = rect_contains;
 
-        if mouse.row == self.shortcut_bar_area.y && mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+        if mouse.row == self.shortcut_bar_area.y
+            && mouse.kind == MouseEventKind::Down(MouseButton::Left)
+        {
             let mut current_x = self.shortcut_bar_area.x;
             current_x += 6; // " Ctrl "
             current_x += 2; // "\u{E0B0} "
-            
+
             for (key, desc) in self.get_shortcuts() {
                 let key_len = key.chars().count() as u16;
                 let desc_len = desc.chars().count() as u16 + 2; // " DESC "
                 let arrow_len = 2; // "\u{E0B0} "
-                
+
                 let button_width = key_len + desc_len + arrow_len;
                 if mouse.column >= current_x && mouse.column < current_x + button_width {
                     if let Some(c) = key.chars().next() {
                         let code = crossterm::event::KeyCode::Char(c);
                         let modifiers = crossterm::event::KeyModifiers::CONTROL;
-                        let action = self.handle_key(crossterm::event::KeyEvent::new(code, modifiers), project)?;
+                        let action = self.handle_key(
+                            crossterm::event::KeyEvent::new(code, modifiers),
+                            project,
+                        )?;
                         return Ok(action);
                     }
                 }
@@ -1356,8 +1366,8 @@ impl TuiApp {
                         self.collections_width = mouse.column.max(10).min(120);
                     }
                     DragTarget::Request => {
-                        self.request_height =
-                            mouse.row.saturating_sub(self.request_area.y).max(3).min(20);
+                        self.examples_height =
+                            mouse.row.saturating_sub(self.examples_area.y).max(3);
                     }
                     DragTarget::Response => {
                         let main_rest_y = self.params_area.y;
@@ -1483,8 +1493,9 @@ impl TuiApp {
                 return Ok(AppAction::Continue);
             }
             MouseEventKind::Down(MouseButton::Left) => {
-                let method_str_len =
-                    format!(" {:<5} ▾ ", self.draft.method.label()).chars().count() as u16;
+                let method_str_len = format!(" {:<5} ▾ ", self.draft.method.label())
+                    .chars()
+                    .count() as u16;
                 let clicked_method_dropdown = mouse.row == self.request_area.y + 1
                     && mouse.column >= self.request_area.x + 1
                     && mouse.column < self.request_area.x + 1 + method_str_len;
@@ -1568,7 +1579,9 @@ impl TuiApp {
                                             .collections()
                                             .iter()
                                             .flat_map(|c| &c.operations)
-                                            .find(|o| o.method == selected.0 && o.path == selected.1)
+                                            .find(|o| {
+                                                o.method == selected.0 && o.path == selected.1
+                                            })
                                         {
                                             if let Some(example_file) = project
                                                 .examples_for(op)
@@ -1588,7 +1601,6 @@ impl TuiApp {
                     return Ok(AppAction::Continue);
                 }
 
-
                 if contains(self.request_area, mouse.column, mouse.row) {
                     if contains(self.send_button_area, mouse.column, mouse.row) {
                         self.send(project);
@@ -1600,9 +1612,10 @@ impl TuiApp {
                     } else {
                         "▾"
                     };
-                    let method_str_len = format!(" {:<5} {} ", self.draft.method.label(), method_icon)
-                        .chars()
-                        .count() as u16;
+                    let method_str_len =
+                        format!(" {:<5} {} ", self.draft.method.label(), method_icon)
+                            .chars()
+                            .count() as u16;
                     let url_start_x = self.request_area.x + 1 + method_str_len + 2;
                     if mouse.column >= url_start_x {
                         let clicked_col = (mouse.column - url_start_x) as usize;
@@ -2038,8 +2051,12 @@ fn run_loop(
     app: &mut TuiApp,
 ) -> anyhow::Result<()> {
     let mut last_mouse_pos: Option<(u16, u16)> = None;
-    let mut last_modified = project.as_ref()
-        .and_then(|p| p.tracked_files().iter().filter_map(|f| std::fs::metadata(f).ok()?.modified().ok()).max());
+    let mut last_modified = project.as_ref().and_then(|p| {
+        p.tracked_files()
+            .iter()
+            .filter_map(|f| std::fs::metadata(f).ok()?.modified().ok())
+            .max()
+    });
 
     loop {
         terminal.draw(|frame| {
@@ -2069,7 +2086,7 @@ fn run_loop(
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Length(app.examples_height), Constraint::Min(0)])
                 .split(body[1]);
-            
+
             app.examples_area = examples_and_rest[0];
 
             let main_rest = Layout::default()
@@ -2100,7 +2117,11 @@ fn run_loop(
             frame.render_widget(collections(project.as_ref(), app), body[0]);
             let mut examples_state = ratatui::widgets::ListState::default()
                 .with_selected(Some(app.selected_example_row));
-            frame.render_stateful_widget(examples(project.as_ref(), app), app.examples_area, &mut examples_state);
+            frame.render_stateful_widget(
+                examples(project.as_ref(), app),
+                app.examples_area,
+                &mut examples_state,
+            );
             app.examples_offset = examples_state.offset();
 
             let examples_len = app.model.examples.len().max(1);
@@ -2170,14 +2191,23 @@ fn run_loop(
                         if let Some(proj) = project.as_ref() {
                             if let Some((method, path)) = &app.selected_operation {
                                 if let Some(status) = app.response.status {
-                                    match proj.validate_response_body(*method, path, status, &app.response.body) {
+                                    match proj.validate_response_body(
+                                        *method,
+                                        path,
+                                        status,
+                                        &app.response.body,
+                                    ) {
                                         Ok(errors) => {
                                             if !errors.is_empty() {
-                                                app.error_popup = Some(format!("Response Validation Failed:\n{}", errors.join("\n")));
+                                                app.error_popup = Some(format!(
+                                                    "Response Validation Failed:\n{}",
+                                                    errors.join("\n")
+                                                ));
                                             }
                                         }
                                         Err(e) => {
-                                            app.error_popup = Some(format!("Response Schema Error:\n{}", e));
+                                            app.error_popup =
+                                                Some(format!("Response Schema Error:\n{}", e));
                                         }
                                     }
                                 }
@@ -2210,9 +2240,16 @@ fn run_loop(
             }
         } else {
             if let Some(p) = project.as_ref() {
-                if let Some(current_modified) = p.tracked_files().iter().filter_map(|f| std::fs::metadata(f).ok()?.modified().ok()).max() {
+                if let Some(current_modified) = p
+                    .tracked_files()
+                    .iter()
+                    .filter_map(|f| std::fs::metadata(f).ok()?.modified().ok())
+                    .max()
+                {
                     if Some(current_modified) != last_modified {
-                        if let Ok(Some(new_project)) = crate::RataProject::discover(std::env::current_dir().unwrap_or_default()) {
+                        if let Ok(Some(new_project)) = crate::RataProject::discover(
+                            std::env::current_dir().unwrap_or_default(),
+                        ) {
                             *project = Some(new_project);
                         }
                         last_modified = Some(current_modified);
@@ -2317,7 +2354,6 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         Style::default().fg(BORDER)
     };
 
-
     let method_icon = if app.method_dropdown_open {
         "▴"
     } else {
@@ -2352,11 +2388,12 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     let method_str_len = format!(" {:<5} {} ", app.draft.method.label(), method_icon)
         .chars()
         .count();
-    let url_rendered_len = if app.active_block == ActiveBlock::Request && app.text_cursor >= url.chars().count() {
-        url.chars().count() + 1
-    } else {
-        url.chars().count()
-    };
+    let url_rendered_len =
+        if app.active_block == ActiveBlock::Request && app.text_cursor >= url.chars().count() {
+            url.chars().count() + 1
+        } else {
+            url.chars().count()
+        };
     let occupied = method_str_len + 1 + 1 + url_rendered_len + 1;
     let remaining = app
         .request_area
@@ -2652,7 +2689,13 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
     let view_height = inner.height as usize;
 
     if app.active_response_tab == ResponseTab::Headers {
-        crate::components::headers::render_response_headers_tab(frame, app, area, inner, view_height);
+        crate::components::headers::render_response_headers_tab(
+            frame,
+            app,
+            area,
+            inner,
+            view_height,
+        );
     } else {
         let raw_string = app.active_response_string();
 
@@ -2672,7 +2715,13 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
                 },
             );
         } else if app.active_response_tab == ResponseTab::Cookies {
-            crate::components::cookies::render_response_cookies_tab(frame, app, area, inner, view_height);
+            crate::components::cookies::render_response_cookies_tab(
+                frame,
+                app,
+                area,
+                inner,
+                view_height,
+            );
         } else {
             let mut text = ratatui::text::Text::raw(raw_string.clone());
             text = apply_selection(text, app.text_selection);
@@ -2849,7 +2898,11 @@ pub fn apply_selection<'a>(text: Text<'a>, selection: Option<Selection>) -> Text
     Text::from(new_lines)
 }
 
-pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize, selection: Option<Selection>) -> Text<'static> {
+pub fn apply_cursor_to_text(
+    mut text: Text<'static>,
+    cursor: usize,
+    selection: Option<Selection>,
+) -> Text<'static> {
     let mut char_count = 0;
     let mut cursor_applied = false;
 
@@ -2890,10 +2943,7 @@ pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize, selection: O
                     span.style.add_modifier(Modifier::REVERSED)
                 };
 
-                new_spans.push(Span::styled(
-                    cursor_char.to_string(),
-                    cursor_style,
-                ));
+                new_spans.push(Span::styled(cursor_char.to_string(), cursor_style));
                 if !rest.is_empty() {
                     new_spans.push(Span::styled(rest.to_string(), span.style));
                 }
@@ -3031,8 +3081,11 @@ mod tests {
     fn request_resize_drag_handles_the_border_above_request_panel() {
         let mut app = app_with_mouse_areas();
 
-        app.handle_mouse(left_down(app.params_area.x + 1, app.params_area.y - 1), None)
-            .unwrap();
+        app.handle_mouse(
+            left_down(app.params_area.x + 1, app.params_area.y - 1),
+            None,
+        )
+        .unwrap();
 
         assert_eq!(app.drag_target, DragTarget::Request);
         assert_eq!(app.active_block, ActiveBlock::Params);
@@ -3134,7 +3187,12 @@ fn remove_char_at(s: &mut String, idx: usize) {
     s.remove(byte_idx);
 }
 
-pub fn render_with_cursor_spans(s: &str, cursor: usize, cursor_visible: bool, base_style: Style) -> Vec<Span<'static>> {
+pub fn render_with_cursor_spans(
+    s: &str,
+    cursor: usize,
+    cursor_visible: bool,
+    base_style: Style,
+) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
     let char_len = s.chars().count();
     let idx = cursor.min(char_len);
@@ -3142,7 +3200,10 @@ pub fn render_with_cursor_spans(s: &str, cursor: usize, cursor_visible: bool, ba
     if idx == char_len {
         spans.push(Span::styled(s.to_string(), base_style));
         if cursor_visible {
-            spans.push(Span::styled(" ", base_style.add_modifier(Modifier::REVERSED)));
+            spans.push(Span::styled(
+                " ",
+                base_style.add_modifier(Modifier::REVERSED),
+            ));
         } else {
             spans.push(Span::styled(" ", base_style));
         }
@@ -3159,10 +3220,7 @@ pub fn render_with_cursor_spans(s: &str, cursor: usize, cursor_visible: bool, ba
                 base_style.add_modifier(Modifier::REVERSED),
             ));
         } else {
-            spans.push(Span::styled(
-                first_char.to_string(),
-                base_style,
-            ));
+            spans.push(Span::styled(first_char.to_string(), base_style));
         }
         spans.push(Span::styled(rest.to_string(), base_style));
     }
@@ -3301,16 +3359,21 @@ fn current_line_bounds(s: &str, cursor: usize) -> (usize, usize) {
     (line_start, line_end)
 }
 
-fn render_error_popup(frame: &mut ratatui::Frame, error: &str, popup_area: ratatui::layout::Rect, text_selection: Option<Selection>) {
-    use ratatui::widgets::{Block, Borders, Paragraph, Wrap, Clear};
-    use ratatui::style::{Style, Color};
+fn render_error_popup(
+    frame: &mut ratatui::Frame,
+    error: &str,
+    popup_area: ratatui::layout::Rect,
+    text_selection: Option<Selection>,
+) {
+    use ratatui::style::{Color, Style};
     use ratatui::text::Text;
+    use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
 
     let block = Block::default()
         .title(" Validation Error ")
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::Red));
-        
+
     let mut text = Text::from(error);
     text = apply_selection(text, text_selection);
 
