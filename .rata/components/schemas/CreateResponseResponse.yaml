@@ -1,0 +1,140 @@
+type: object
+properties:
+  id:
+    type: string
+  object:
+    type: string
+  created_at:
+    type: integer
+    format: uint64
+    minimum: 0
+  model:
+    type: string
+  instructions:
+    anyOf:
+    - type: string
+    - type: "null"
+  max_output_tokens:
+    anyOf:
+    - type: integer
+      format: uint32
+      minimum: 0
+    - type: "null"
+  max_tool_calls:
+    anyOf:
+    - type: integer
+      format: uint32
+      minimum: 0
+    - type: "null"
+  previous_response_id:
+    anyOf:
+    - type: string
+    - type: "null"
+  temperature:
+    anyOf:
+    - type: number
+      format: float
+    - type: "null"
+  top_p:
+    anyOf:
+    - type: number
+      format: float
+    - type: "null"
+  top_logprobs:
+    anyOf:
+    - type: integer
+      format: uint32
+      minimum: 0
+    - type: "null"
+  tools:
+    type: array
+    items:
+      $ref: "../schemas/Tool.yaml"
+  tool_choice:
+    $ref: "../schemas/ToolChoiceParam.yaml"
+  parallel_tool_calls:
+    type: boolean
+  background:
+    type: boolean
+  truncation:
+    type: string
+  service_tier:
+    type: string
+  metadata: {}
+  prompt: {}
+  reasoning: {}
+  text: {}
+  user:
+    anyOf:
+    - type: string
+    - type: "null"
+  status:
+    type: string
+  incomplete_details:
+    anyOf:
+    - $ref: "../schemas/IncompleteDetails.yaml"
+    - type: "null"
+  output:
+    type: array
+    items:
+      $ref: "../schemas/OutputItem.yaml"
+  usage:
+    $ref: "../schemas/ResponseUsage.yaml"
+  billing:
+    description: "Billing breakdown for the response. Always serialized; absent\n
+      fields render as `null`."
+    default:
+  completed_at:
+    anyOf:
+    - type: integer
+      description: Unix timestamp the response transitioned to `completed`.
+      format: uint64
+      minimum: 0
+      default:
+    - type: "null"
+  conversation:
+    description: "Conversation id, when the response is bound to a stored\nconversation."
+    default:
+  error:
+    description: Final error envelope when `status == "failed"`.
+    default:
+  prompt_cache_key:
+    anyOf:
+    - type: string
+      description: Echo of the `prompt_cache_key` request hint.
+      default:
+    - type: "null"
+  prompt_cache_retention:
+    anyOf:
+    - type: string
+      description: Echo of the `prompt_cache_retention` request hint.
+      default:
+    - type: "null"
+  safety_identifier:
+    anyOf:
+    - type: string
+      description: Echo of the `safety_identifier` request hint.
+      default:
+    - type: "null"
+  include:
+    anyOf:
+    - type: array
+      description: Echo of the request's `include` opt-in flags (see [`IncludeEnum`]).
+      items:
+        $ref: "../schemas/IncludeEnum.yaml"
+    - type: "null"
+required:
+- id
+- object
+- created_at
+- model
+- tools
+- tool_choice
+- parallel_tool_calls
+- background
+- truncation
+- service_tier
+- status
+- output
+- usage
+additionalProperties: false

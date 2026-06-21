@@ -1,0 +1,58 @@
+description: Hosted-tool kinds accepted bare in `tool_choice`.
+oneOf:
+- type: object
+  properties:
+    type:
+      type: string
+      const: file_search
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: web_search_preview
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: computer
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: computer_use_preview
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: computer_use
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: web_search_preview_2025_03_11
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: code_interpreter
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: image_generation
+  required:
+  - type

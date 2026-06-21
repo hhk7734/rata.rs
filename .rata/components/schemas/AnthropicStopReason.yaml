@@ -1,0 +1,14 @@
+oneOf:
+- type: string
+  enum:
+  - end_turn
+  - max_tokens
+  - stop_sequence
+  - tool_use
+- description: "Model paused mid-turn intending to continue (extended thinking /\n
+    tool-use loops)."
+  type: string
+  const: pause_turn
+- description: "Safety refusal — model declined to generate content."
+  type: string
+  const: refusal

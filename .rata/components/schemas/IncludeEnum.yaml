@@ -1,0 +1,13 @@
+description: "`include` opt-in flags. The set is open-ended on OpenAI's side; we\n
+  type the well-known values and round-trip the rest."
+anyOf:
+- type: string
+  enum:
+  - file_search_call.results
+  - message.input_image.image_url
+  - computer_call_output.output.image_url
+  - reasoning.encrypted_content
+  - code_interpreter_call.outputs
+  - message.output_text.logprobs
+- description: Forward-compatible catch-all (other `*.results` toggles, etc.).
+  type: string

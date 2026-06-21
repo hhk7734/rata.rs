@@ -1,0 +1,20 @@
+oneOf:
+- type: object
+  properties:
+    text:
+      type: string
+    type:
+      type: string
+      const: text
+  required:
+  - type
+  - text
+- type: object
+  properties:
+    source: {}
+    type:
+      type: string
+      const: image
+  required:
+  - type
+  - source

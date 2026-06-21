@@ -1,0 +1,5 @@
+description: Reasoning / message phase hint forwarded by some clients.
+type: string
+enum:
+- initial
+- final

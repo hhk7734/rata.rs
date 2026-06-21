@@ -1,0 +1,8 @@
+type: string
+enum:
+- wav
+- aac
+- mp3
+- flac
+- opus
+- pcm16

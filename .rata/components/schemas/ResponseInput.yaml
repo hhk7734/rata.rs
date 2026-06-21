@@ -1,0 +1,8 @@
+description: "Input to a `POST /v1/responses` request — a flat string or an array\n
+  of [`InputItem`]s (messages, function calls, reasoning, hosted-tool\n items, ...).
+  Mirrors Dynamo's `InputParam`."
+anyOf:
+- type: string
+- type: array
+  items:
+    $ref: "../schemas/InputItem.yaml"

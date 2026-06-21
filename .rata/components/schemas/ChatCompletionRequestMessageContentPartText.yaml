@@ -1,0 +1,7 @@
+description: 'Shared body for every `{"type":"text","text":"…"}` content part.'
+type: object
+properties:
+  text:
+    type: string
+required:
+- text

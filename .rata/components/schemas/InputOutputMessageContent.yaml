@@ -1,0 +1,20 @@
+description: Content parts on a prior assistant message echoed back as input.
+oneOf:
+- allOf:
+  - $ref: "../schemas/InputOutputTextContent.yaml"
+  - type: object
+    properties:
+      type:
+        type: string
+        const: output_text
+    required:
+    - type
+- allOf:
+  - $ref: "../schemas/RefusalContent.yaml"
+  - type: object
+    properties:
+      type:
+        type: string
+        const: refusal
+    required:
+    - type

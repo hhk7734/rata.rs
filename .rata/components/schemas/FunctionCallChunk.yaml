@@ -1,0 +1,11 @@
+type: object
+properties:
+  name:
+    anyOf:
+    - type: string
+    - type: "null"
+  arguments:
+    anyOf:
+    - type: string
+    - type: "null"
+additionalProperties: false

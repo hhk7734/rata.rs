@@ -1,0 +1,7 @@
+description: '`{"type":"image_url","image_url":{...}}` content part.'
+type: object
+properties:
+  image_url:
+    $ref: "../schemas/ImageUrl.yaml"
+required:
+- image_url

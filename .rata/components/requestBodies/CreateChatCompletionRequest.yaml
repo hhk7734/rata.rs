@@ -1,0 +1,268 @@
+required: true
+content:
+  application/json:
+    schema:
+      required:
+      - model
+      - messages
+      title: CreateChatCompletionRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        messages:
+          type: array
+          items:
+            $ref: "../schemas/ChatCompletionRequestMessage.yaml"
+          minItems: 1
+        temperature:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        top_p:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        top_k:
+          anyOf:
+          - type: integer
+            description: "vLLM-extension: top-k sampling. `0` disables."
+            format: int32
+          - type: "null"
+        min_p:
+          anyOf:
+          - type: number
+            description: "vLLM-extension: minimum token probability relative to the
+              top token."
+            format: float
+          - type: "null"
+        repetition_penalty:
+          anyOf:
+          - type: number
+            description: "vLLM-extension: repetition penalty (`1.0` = neutral)."
+            format: float
+          - type: "null"
+        max_completion_tokens:
+          anyOf:
+          - type: integer
+            description: "Accepts the deprecated `max_tokens` JSON key as an alias.
+              Sending\nboth keys in a single request is rejected at deserialize as
+              a\nduplicate field."
+            format: uint32
+            minimum: 0
+          - type: "null"
+        min_tokens:
+          anyOf:
+          - type: integer
+            description: "vLLM-extension: minimum tokens to generate before EOS /
+              stop can\nend the response."
+            format: uint32
+            minimum: 0
+          - type: "null"
+        n:
+          anyOf:
+          - type: integer
+            description: "Number of completion choices to generate. OpenAI caps at
+              128;\n`u8` (max 255) is the soft upper bound — the backend enforces
+              any\ntighter limit. `n = 0` is rejected at validation time."
+            format: uint8
+            minimum: 1
+            maximum: 255
+          - type: "null"
+        stop:
+          anyOf:
+          - $ref: "../schemas/Stop.yaml"
+          - type: "null"
+        ignore_eos:
+          anyOf:
+          - type: boolean
+            description: "vLLM-extension: continue generating past EOS until\n`max_completion_tokens`
+              is reached."
+          - type: "null"
+        seed:
+          anyOf:
+          - type: integer
+            format: int64
+          - type: "null"
+        presence_penalty:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        frequency_penalty:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        stream:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        stream_options:
+          anyOf:
+          - $ref: "../schemas/ChatCompletionStreamOptions.yaml"
+          - type: "null"
+        reasoning_effort:
+          anyOf:
+          - $ref: "../schemas/ReasoningEffort.yaml"
+          - type: "null"
+        thinking_token_budget:
+          anyOf:
+          - type: integer
+            description: "vLLM-extension: cap on tokens emitted during the thinking
+              phase."
+            format: uint32
+            minimum: 0
+          - type: "null"
+        tools:
+          anyOf:
+          - type: array
+            items:
+              $ref: "../schemas/ChatCompletionTool.yaml"
+          - type: "null"
+        tool_choice:
+          anyOf:
+          - $ref: "../schemas/ChatCompletionToolChoiceOption.yaml"
+          - type: "null"
+        parallel_tool_calls:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        logprobs:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        top_logprobs:
+          anyOf:
+          - type: integer
+            format: uint8
+            minimum: 0
+            maximum: 255
+          - type: "null"
+        logit_bias:
+          anyOf:
+          - type: object
+            additionalProperties: true
+          - type: "null"
+        modalities:
+          anyOf:
+          - type: array
+            items:
+              $ref: "../schemas/ResponseModality.yaml"
+          - type: "null"
+        prediction:
+          anyOf:
+          - $ref: "../schemas/PredictionContent.yaml"
+          - type: "null"
+        audio:
+          anyOf:
+          - $ref: "../schemas/ChatCompletionAudio.yaml"
+          - type: "null"
+        response_format:
+          anyOf:
+          - $ref: "../schemas/ResponseFormat.yaml"
+          - type: "null"
+        service_tier:
+          anyOf:
+          - $ref: "../schemas/ServiceTier.yaml"
+          - type: "null"
+        metadata: {}
+        store:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        mm_processor_kwargs: {}
+        web_search_options:
+          anyOf:
+          - $ref: "../schemas/WebSearchOptions.yaml"
+          - type: "null"
+        verbosity:
+          anyOf:
+          - $ref: "../schemas/Verbosity.yaml"
+          - type: "null"
+        safety_identifier:
+          anyOf:
+          - type: string
+            description: "Safety identifier — opaque token threading user/session
+              info for\nsafety telemetry on the backend."
+          - type: "null"
+        prompt_cache_key:
+          anyOf:
+          - type: string
+            description: "Prompt cache key — opaque token that pins prefix-cache lookups\n
+              across requests."
+          - type: "null"
+        prompt_cache_retention:
+          anyOf:
+          - type: string
+            description: Prompt cache retention hint (`5m`, `1h`, etc.).
+          - type: "null"
+        media_io_kwargs: {}
+        return_tokens_as_token_ids:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        prompt_logprobs:
+          anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+        include_stop_str_in_output:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        guided_json: {}
+        guided_regex:
+          anyOf:
+          - type: string
+          - type: "null"
+        guided_grammar:
+          anyOf:
+          - type: string
+          - type: "null"
+        guided_choice:
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: "null"
+        guided_decoding_backend:
+          anyOf:
+          - type: string
+          - type: "null"
+        guided_whitespace_pattern:
+          anyOf:
+          - type: string
+          - type: "null"
+        skip_special_tokens:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        priority:
+          anyOf:
+          - type: integer
+            description: "vLLM scheduler priority (lower = earlier). Requires the
+              engine to\nbe launched with priority scheduling for any non-default
+              value to\ntake effect."
+            format: int32
+          - type: "null"
+        user:
+          anyOf:
+          - type: string
+          - type: "null"
+        chat_template_kwargs:
+          anyOf:
+          - type: object
+            description: "Extra keys forwarded to the chat template's Jinja render
+              context.\n`chat_template_args` is accepted as an alias."
+            additionalProperties: true
+          - type: "null"
+        function_call:
+          deprecated: true
+        functions:
+          deprecated: true
+      additionalProperties: false

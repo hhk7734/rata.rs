@@ -1,0 +1,121 @@
+required: true
+content:
+  application/json:
+    schema:
+      required:
+      - model
+      title: CreateCompletionRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        prompt:
+          anyOf:
+          - $ref: "../schemas/CreateCompletionRequestPrompt.yaml"
+          - type: "null"
+        suffix:
+          anyOf:
+          - type: string
+          - type: "null"
+        max_tokens:
+          anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+        temperature:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        top_p:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        n:
+          anyOf:
+          - type: integer
+            format: uint8
+            minimum: 1
+            maximum: 255
+          - type: "null"
+        stream:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        stream_options:
+          anyOf:
+          - $ref: "../schemas/ChatCompletionStreamOptions.yaml"
+          - type: "null"
+        logprobs:
+          anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+            maximum: 5
+          - type: "null"
+        echo:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        stop:
+          anyOf:
+          - $ref: "../schemas/Stop.yaml"
+          - type: "null"
+        presence_penalty:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        frequency_penalty:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        best_of:
+          anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+        logit_bias:
+          anyOf:
+          - type: object
+            additionalProperties: true
+          - type: "null"
+        user:
+          anyOf:
+          - type: string
+          - type: "null"
+        seed:
+          anyOf:
+          - type: integer
+            format: int64
+          - type: "null"
+        top_k:
+          anyOf:
+          - type: integer
+            format: int32
+          - type: "null"
+        min_p:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        repetition_penalty:
+          anyOf:
+          - type: number
+            format: float
+          - type: "null"
+        ignore_eos:
+          anyOf:
+          - type: boolean
+          - type: "null"
+        priority:
+          anyOf:
+          - type: integer
+            format: int32
+          - type: "null"
+      additionalProperties: false

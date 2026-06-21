@@ -1,0 +1,19 @@
+description: 'Reference to a stored prior item by id. Wire shape:
+
+  `{"type": "item_reference", "id": "..."}`. The typed `type` field
+
+  and `deny_unknown_fields` prevent this variant from accidentally
+
+  matching other item shapes that happen to carry an `id` (e.g.
+
+  echoed-back output messages from a previous turn).'
+type: object
+properties:
+  id:
+    type: string
+  type:
+    $ref: "../schemas/ItemReferenceTag.yaml"
+additionalProperties: false
+required:
+- id
+- type

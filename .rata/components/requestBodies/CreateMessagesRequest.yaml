@@ -1,0 +1,115 @@
+required: true
+content:
+  application/json:
+    schema:
+      required:
+      - model
+      - max_tokens
+      title: CreateMessagesRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+        messages:
+          type: array
+          items:
+            $ref: "../schemas/AnthropicMessage.yaml"
+          minItems: 1
+          default: []
+        system:
+          anyOf:
+          - $ref: "../schemas/AnthropicSystemPrompt.yaml"
+          - type: "null"
+          default:
+        max_tokens:
+          type: integer
+          format: uint32
+          minimum: 1
+        temperature:
+          anyOf:
+          - type: number
+            format: float
+            default:
+          - type: "null"
+        top_p:
+          anyOf:
+          - type: number
+            format: float
+            default:
+          - type: "null"
+        top_k:
+          anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+            default:
+          - type: "null"
+        stop_sequences:
+          anyOf:
+          - type: array
+            items:
+              type: string
+            default:
+          - type: "null"
+        stream:
+          type: boolean
+          default: false
+        tools:
+          anyOf:
+          - type: array
+            items:
+              $ref: "../schemas/AnthropicTool.yaml"
+            default:
+          - type: "null"
+        tool_choice:
+          anyOf:
+          - $ref: "../schemas/AnthropicToolChoice.yaml"
+          - type: "null"
+          default:
+        metadata:
+          default:
+        thinking:
+          anyOf:
+          - $ref: "../schemas/AnthropicThinkingConfig.yaml"
+          - type: "null"
+          default:
+        cache_control:
+          description: Top-level cache control for automatic prompt prefix caching.
+          anyOf:
+          - $ref: "../schemas/AnthropicCacheControl.yaml"
+          - type: "null"
+          default:
+        service_tier:
+          anyOf:
+          - type: string
+            description: 'Service tier selection: `"auto"` or `"standard_only"`.'
+            default:
+          - type: "null"
+        container:
+          anyOf:
+          - type: string
+            description: Container identifier for stateful sandbox sessions.
+            default:
+          - type: "null"
+        output_config:
+          description: "Output configuration: effort level and optional JSON schema
+            format."
+          default:
+        anthropic_version:
+          anyOf:
+          - type: string
+            description: Anthropic-version header echo. Forwarded for round-trip parity.
+            default:
+          - type: "null"
+        anthropic_beta:
+          anyOf:
+          - type: array
+            description: Beta-feature opt-ins.
+            items:
+              type: string
+            default:
+          - type: "null"
+        context_management:
+          type: object
+      additionalProperties: false

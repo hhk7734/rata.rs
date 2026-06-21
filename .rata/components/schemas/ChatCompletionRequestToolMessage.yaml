@@ -1,0 +1,9 @@
+type: object
+properties:
+  content:
+    $ref: "../schemas/ChatCompletionRequestToolMessageContent.yaml"
+  tool_call_id:
+    type: string
+required:
+- content
+- tool_call_id

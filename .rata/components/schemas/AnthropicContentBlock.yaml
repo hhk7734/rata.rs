@@ -1,0 +1,159 @@
+description: "A single content block within a message.\n\nModels the well-known Anthropic
+  block types explicitly and captures\nunknown / forward-compatible block types as
+  `Other(Value)` so the proxy\ncan round-trip Claude features the gateway does not
+  handle yet."
+anyOf:
+- type: object
+  properties:
+    text:
+      type: string
+    citations:
+      anyOf:
+      - type: array
+        items: {}
+      - type: "null"
+    cache_control:
+      anyOf:
+      - $ref: "../schemas/AnthropicCacheControl.yaml"
+      - type: "null"
+    type:
+      type: string
+      const: text
+  required:
+  - type
+  - text
+- type: object
+  properties:
+    source:
+      $ref: "../schemas/AnthropicImageSource.yaml"
+    cache_control:
+      anyOf:
+      - $ref: "../schemas/AnthropicCacheControl.yaml"
+      - type: "null"
+    type:
+      type: string
+      const: image
+  required:
+  - type
+  - source
+- type: object
+  properties:
+    source: {}
+    title:
+      anyOf:
+      - type: string
+      - type: "null"
+    context:
+      anyOf:
+      - type: string
+      - type: "null"
+    citations: {}
+    cache_control:
+      anyOf:
+      - $ref: "../schemas/AnthropicCacheControl.yaml"
+      - type: "null"
+    type:
+      type: string
+      const: document
+  required:
+  - type
+  - source
+- type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    input: {}
+    cache_control:
+      anyOf:
+      - $ref: "../schemas/AnthropicCacheControl.yaml"
+      - type: "null"
+    type:
+      type: string
+      const: tool_use
+  required:
+  - type
+  - id
+  - name
+  - input
+- type: object
+  properties:
+    tool_use_id:
+      type: string
+    content:
+      $ref: "../schemas/AnthropicToolResultContent.yaml"
+    is_error:
+      type: boolean
+      default: false
+    cache_control:
+      anyOf:
+      - $ref: "../schemas/AnthropicCacheControl.yaml"
+      - type: "null"
+    type:
+      type: string
+      const: tool_result
+  required:
+  - type
+  - tool_use_id
+  - content
+- type: object
+  properties:
+    thinking:
+      type: string
+    signature:
+      type: string
+    cache_control:
+      anyOf:
+      - $ref: "../schemas/AnthropicCacheControl.yaml"
+      - type: "null"
+    type:
+      type: string
+      const: thinking
+  required:
+  - type
+  - thinking
+  - signature
+- type: object
+  properties:
+    data:
+      type: string
+    type:
+      type: string
+      const: redacted_thinking
+  required:
+  - type
+  - data
+- description: "Server-initiated tool use (e.g. web search). The model issues the\n
+    tool call and the server executes it; the result returns as a\n`web_search_tool_result`
+    (or sibling) block."
+  type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    input:
+      default:
+    type:
+      type: string
+      const: server_tool_use
+  required:
+  - type
+  - id
+  - name
+- description: Result from a server-initiated web-search tool execution.
+  type: object
+  properties:
+    tool_use_id:
+      type: string
+    content:
+      default:
+    type:
+      type: string
+      const: web_search_tool_result
+  required:
+  - type
+  - tool_use_id
+- description: "Catch-all for unrecognized block types so the proxy can preserve\n
+    blocks Claude has added but the gateway does not yet model."

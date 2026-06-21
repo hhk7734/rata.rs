@@ -1,0 +1,88 @@
+description: "Output content block for the non-streaming response. The streaming\n
+  `content_block_start` event reuses the same enum."
+anyOf:
+- type: object
+  properties:
+    text:
+      type: string
+    citations:
+      anyOf:
+      - type: array
+        items: {}
+      - type: "null"
+    type:
+      type: string
+      const: text
+  required:
+  - type
+  - text
+- type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    input: {}
+    type:
+      type: string
+      const: tool_use
+  required:
+  - type
+  - id
+  - name
+  - input
+- type: object
+  properties:
+    thinking:
+      type: string
+    signature:
+      type: string
+    type:
+      type: string
+      const: thinking
+  required:
+  - type
+  - thinking
+  - signature
+- type: object
+  properties:
+    data:
+      type: string
+    type:
+      type: string
+      const: redacted_thinking
+  required:
+  - type
+  - data
+- description: "Server-initiated tool call (e.g. web_search). The matching result\n
+    arrives as `web_search_tool_result` or a sibling block."
+  type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    input:
+      default:
+    type:
+      type: string
+      const: server_tool_use
+  required:
+  - type
+  - id
+  - name
+- description: Result of a server-initiated web_search tool call.
+  type: object
+  properties:
+    tool_use_id:
+      type: string
+    content:
+      default:
+    type:
+      type: string
+      const: web_search_tool_result
+  required:
+  - type
+  - tool_use_id
+- description: "Catch-all for response blocks the gateway does not yet model\n (`web_fetch_tool_result`,
+    `code_execution_tool_result`, etc.) so\nthey round-trip unchanged."

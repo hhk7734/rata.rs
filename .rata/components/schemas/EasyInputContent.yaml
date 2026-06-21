@@ -1,0 +1,7 @@
+description: "Content of a simplified `EasyInputMessage` — flat string or content\n\
+  list."
+anyOf:
+- type: string
+- type: array
+  items:
+    $ref: "../schemas/InputContent.yaml"

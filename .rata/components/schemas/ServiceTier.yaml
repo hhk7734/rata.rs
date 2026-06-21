@@ -1,0 +1,8 @@
+description: "`service_tier` request hint."
+type: string
+enum:
+- auto
+- default
+- flex
+- scale
+- priority

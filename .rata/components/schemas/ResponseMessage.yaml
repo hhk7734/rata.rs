@@ -1,0 +1,45 @@
+type: object
+properties:
+  role:
+    type: string
+  content:
+    anyOf:
+    - type: string
+    - type: "null"
+  refusal:
+    anyOf:
+    - type: string
+      default:
+    - type: "null"
+  annotations:
+    anyOf:
+    - type: array
+      items:
+        $ref: "../schemas/ResponseMessageAnnotation.yaml"
+      default:
+    - type: "null"
+  audio:
+    anyOf:
+    - $ref: "../schemas/ChatCompletionResponseMessageAudio.yaml"
+    - type: "null"
+    default:
+  function_call:
+    anyOf:
+    - $ref: "../schemas/ResponseMessageFunctionCall.yaml"
+    - type: "null"
+    default:
+  tool_calls:
+    type: array
+    items:
+      $ref: "../schemas/ToolCall.yaml"
+    default: []
+  reasoning_content:
+    anyOf:
+    - type: string
+    - type: "null"
+  provider_specific_fields:
+    type: object
+    description: "LiteLLM-specific extension"
+required:
+- role
+additionalProperties: false

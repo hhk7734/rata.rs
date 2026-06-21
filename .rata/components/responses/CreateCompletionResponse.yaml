@@ -1,0 +1,36 @@
+description: A completion response
+content:
+  application/json:
+    schema:
+      required:
+      - id
+      - object
+      - created
+      - model
+      - choices
+      title: CreateCompletionResponse
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "../schemas/CompletionChoice.yaml"
+        usage:
+          anyOf:
+          - $ref: "../schemas/CompletionUsage.yaml"
+          - type: "null"
+        system_fingerprint:
+          anyOf:
+          - type: string
+          - type: "null"
+      additionalProperties: false

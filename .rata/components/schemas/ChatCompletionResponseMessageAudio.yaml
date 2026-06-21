@@ -1,0 +1,23 @@
+description: "Audio reference returned on assistant messages when the response\n includes
+  the `audio` modality."
+type: object
+properties:
+  id:
+    type: string
+  expires_at:
+    anyOf:
+    - type: integer
+      format: uint64
+      minimum: 0
+    - type: "null"
+  data:
+    anyOf:
+    - type: string
+    - type: "null"
+  transcript:
+    anyOf:
+    - type: string
+    - type: "null"
+required:
+- id
+additionalProperties: false

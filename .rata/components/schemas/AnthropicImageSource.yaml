@@ -1,0 +1,21 @@
+description: "Image source descriptor — base64-encoded inline data or a remote URL."
+type: object
+properties:
+  type:
+    type: string
+  media_type:
+    anyOf:
+    - type: string
+    - type: "null"
+  data:
+    anyOf:
+    - type: string
+    - type: "null"
+  url:
+    anyOf:
+    - type: string
+      format: uri
+    - type: "null"
+required:
+- type
+additionalProperties: false

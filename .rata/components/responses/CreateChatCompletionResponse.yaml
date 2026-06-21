@@ -1,0 +1,40 @@
+description: A chat completion response
+content:
+  application/json:
+    schema:
+      required:
+      - id
+      - object
+      - created
+      - model
+      - choices
+      - usage
+      title: CreateChatCompletionResponse
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+          format: uint64
+          minimum: 0
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "../schemas/Choice.yaml"
+        service_tier:
+          anyOf:
+          - $ref: "../schemas/ServiceTierResponse.yaml"
+          - type: "null"
+          default:
+        system_fingerprint:
+          anyOf:
+          - type: string
+          - type: "null"
+        usage:
+          $ref: "../schemas/Usage.yaml"
+      additionalProperties: false

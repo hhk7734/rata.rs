@@ -1,0 +1,22 @@
+type: object
+properties:
+  summary:
+    type: array
+    items:
+      $ref: "../schemas/ReasoningSummaryContent.yaml"
+  content:
+    type: array
+    items:
+      $ref: "../schemas/ReasoningContentPart.yaml"
+  id:
+    anyOf:
+    - type: string
+    - type: "null"
+  status:
+    anyOf:
+    - $ref: "../schemas/OutputStatus.yaml"
+    - type: "null"
+  encrypted_content:
+    anyOf:
+    - type: string
+    - type: "null"

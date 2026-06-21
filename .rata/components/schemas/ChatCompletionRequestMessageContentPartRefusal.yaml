@@ -1,0 +1,8 @@
+description: "Body for `{\"type\":\"refusal\",\"refusal\":\"…\"}` content parts. Only
+  valid\non assistant turns echoed back as input — refusal text from a prior\nresponse."
+type: object
+properties:
+  refusal:
+    type: string
+required:
+- refusal

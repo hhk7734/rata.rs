@@ -1,0 +1,10 @@
+description: '`{"type":"file","file":{...}}` content part. `file` is left typed as
+
+  `serde_json::Value` because OpenAI accepts multiple sub-shapes
+
+  (`{file_id}`, `{file_data, filename}`) that the gateway forwards as-is.'
+type: object
+properties:
+  file: {}
+required:
+- file

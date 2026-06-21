@@ -1,0 +1,5 @@
+description: "`conversation` request parameter — either an id reference or an\n inline
+  new-conversation spec."
+anyOf:
+- type: string
+- {}

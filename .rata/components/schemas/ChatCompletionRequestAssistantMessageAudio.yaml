@@ -1,0 +1,8 @@
+description: Assistant-side audio reference echoed back in multi-turn audio threads.
+type: object
+properties:
+  id:
+    type: string
+required:
+- id
+additionalProperties: false

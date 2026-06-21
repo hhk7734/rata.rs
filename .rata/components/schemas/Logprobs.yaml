@@ -1,0 +1,32 @@
+type: object
+properties:
+  text_offset:
+    type: array
+    items:
+      type: integer
+      format: uint32
+      minimum: 0
+  token_logprobs:
+    type: array
+    items:
+      anyOf:
+      - type: number
+        format: float
+      - type: "null"
+  tokens:
+    type: array
+    items:
+      type: string
+  top_logprobs:
+    type: array
+    items:
+      anyOf:
+      - type: object
+        additionalProperties: true
+      - type: "null"
+required:
+- text_offset
+- token_logprobs
+- tokens
+- top_logprobs
+additionalProperties: false

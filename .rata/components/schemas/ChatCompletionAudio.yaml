@@ -1,0 +1,12 @@
+description: "`audio` request configuration — voice + output format for audio\n modality
+  responses."
+type: object
+properties:
+  voice:
+    $ref: "../schemas/ChatCompletionAudioVoice.yaml"
+  format:
+    $ref: "../schemas/ChatCompletionAudioFormat.yaml"
+required:
+- voice
+- format
+additionalProperties: false

@@ -1,0 +1,5 @@
+description: "`prompt_cache_retention` hint — `\"5m\"` / `\"1h\"` / arbitrary string
+  for\nforward compatibility."
+anyOf:
+- $ref: "../schemas/KnownPromptCacheRetention.yaml"
+- type: string

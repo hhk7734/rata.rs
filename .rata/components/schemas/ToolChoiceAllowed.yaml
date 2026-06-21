@@ -1,0 +1,10 @@
+type: object
+properties:
+  mode:
+    $ref: "../schemas/ToolChoiceAllowedMode.yaml"
+  tools:
+    type: array
+    items: {}
+required:
+- mode
+- tools

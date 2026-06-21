@@ -1,0 +1,46 @@
+type: object
+properties:
+  id:
+    type: string
+  type:
+    type: string
+  role:
+    anyOf:
+    - type: string
+      description: Present on `message` items, absent on `reasoning` / tool-call items.
+    - type: "null"
+  status:
+    anyOf:
+    - type: string
+    - type: "null"
+  phase: {}
+  summary:
+    anyOf:
+    - type: array
+      description: "Present on `reasoning` items (public-facing summary list); absent
+        on\n`message` items."
+      items:
+        $ref: "../schemas/ContentBlock.yaml"
+    - type: "null"
+  name:
+    anyOf:
+    - type: string
+    - type: "null"
+  call_id:
+    anyOf:
+    - type: string
+      description: Tool-call id clients use to thread the follow-up `tool` role response.
+    - type: "null"
+  arguments:
+    anyOf:
+    - type: string
+    - type: "null"
+  content:
+    type: array
+    items:
+      $ref: "../schemas/ContentBlock.yaml"
+required:
+- id
+- type
+- content
+additionalProperties: false

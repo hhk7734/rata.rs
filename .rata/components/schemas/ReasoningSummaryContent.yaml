@@ -1,0 +1,12 @@
+anyOf:
+- type: object
+  properties:
+    text:
+      type: string
+    type:
+      type: string
+      const: summary_text
+  required:
+  - type
+  - text
+- description: Forward-compatible catch-all.

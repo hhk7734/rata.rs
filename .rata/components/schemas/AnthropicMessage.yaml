@@ -1,0 +1,10 @@
+type: object
+properties:
+  role:
+    $ref: "../schemas/AnthropicRole.yaml"
+  content:
+    $ref: "../schemas/AnthropicMessageContent.yaml"
+required:
+- role
+- content
+additionalProperties: false

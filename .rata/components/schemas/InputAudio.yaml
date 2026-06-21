@@ -1,0 +1,11 @@
+description: "`input_audio` payload — base64-encoded audio data plus a format tag."
+type: object
+properties:
+  data:
+    type: string
+  format:
+    $ref: "../schemas/InputAudioFormat.yaml"
+required:
+- data
+- format
+additionalProperties: false

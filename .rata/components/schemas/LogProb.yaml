@@ -1,0 +1,25 @@
+description: Per-token logprob entry on `InputOutputTextContent.logprobs`.
+type: object
+properties:
+  token:
+    type: string
+  logprob:
+    type: number
+    format: float
+  bytes:
+    anyOf:
+    - type: array
+      items:
+        type: integer
+        format: uint8
+        minimum: 0
+        maximum: 255
+    - type: "null"
+  top_logprobs:
+    type: array
+    items:
+      $ref: "../schemas/TopLogProb.yaml"
+required:
+- token
+- logprob
+additionalProperties: false

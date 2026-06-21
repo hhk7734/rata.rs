@@ -1,0 +1,12 @@
+description: "`web_search_options` configuration."
+type: object
+properties:
+  search_context_size:
+    anyOf:
+    - $ref: "../schemas/WebSearchContextSize.yaml"
+    - type: "null"
+  user_location:
+    anyOf:
+    - $ref: "../schemas/WebSearchUserLocation.yaml"
+    - type: "null"
+additionalProperties: false

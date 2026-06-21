@@ -1,0 +1,13 @@
+description: "`prediction` configuration — a server-side prefix hint used for\n predicted
+  outputs."
+oneOf:
+- type: object
+  properties:
+    content:
+      $ref: "../schemas/PredictionContentValue.yaml"
+    type:
+      type: string
+      const: content
+  required:
+  - type
+  - content

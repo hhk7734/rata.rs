@@ -1,0 +1,9 @@
+type: object
+properties:
+  name:
+    type: string
+  server_label:
+    type: string
+required:
+- name
+- server_label

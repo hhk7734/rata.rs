@@ -1,0 +1,4 @@
+type: string
+enum:
+- 5m
+- 1h

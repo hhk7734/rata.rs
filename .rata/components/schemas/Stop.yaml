@@ -1,0 +1,14 @@
+description: "OpenAI `stop` configuration. Accepts a single string, a string array,\n
+  or — as a Dynamo / vLLM extension — an array of integer token IDs.\n Conversion
+  into the unified request drops the token-id form; unified\nexpresses stops as strings
+  only."
+anyOf:
+- type: string
+- type: array
+  items:
+    type: string
+- type: array
+  items:
+    type: integer
+    format: uint32
+    minimum: 0

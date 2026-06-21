@@ -1,0 +1,24 @@
+type: object
+properties:
+  index:
+    type: integer
+    format: uint32
+    minimum: 0
+  message:
+    $ref: "../schemas/ResponseMessage.yaml"
+  logprobs:
+    anyOf:
+    - $ref: "../schemas/ChatChoiceLogprobs.yaml"
+    - type: "null"
+    default:
+  finish_reason:
+    oneOf:
+    - $ref: "../schemas/FinishReason.yaml"
+    - type: "null"
+  provider_specific_fields:
+    type: object
+    description: "LiteLLM-specific extension"
+required:
+- index
+- message
+additionalProperties: false

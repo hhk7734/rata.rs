@@ -1,0 +1,6 @@
+description: 'Single-variant role enum used to constrain `InputOutputMessage.role`
+
+  to `"assistant"` only.'
+type: string
+enum:
+- assistant

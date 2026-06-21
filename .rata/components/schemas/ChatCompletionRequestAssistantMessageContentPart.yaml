@@ -1,0 +1,19 @@
+oneOf:
+- allOf:
+  - $ref: "../schemas/ChatCompletionRequestMessageContentPartText.yaml"
+  - type: object
+    properties:
+      type:
+        type: string
+        const: text
+    required:
+    - type
+- allOf:
+  - $ref: "../schemas/ChatCompletionRequestMessageContentPartRefusal.yaml"
+  - type: object
+    properties:
+      type:
+        type: string
+        const: refusal
+    required:
+    - type

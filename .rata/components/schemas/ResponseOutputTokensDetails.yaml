@@ -1,0 +1,9 @@
+type: object
+properties:
+  reasoning_tokens:
+    type: integer
+    format: uint32
+    minimum: 0
+required:
+- reasoning_tokens
+additionalProperties: false

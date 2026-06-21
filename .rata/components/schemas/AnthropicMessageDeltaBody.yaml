@@ -1,0 +1,14 @@
+description: "Body of a `message_delta` SSE event. Carries the terminal `stop_reason`\n
+  plus the matched stop sequence (if any). Cumulative `usage` rides on\nthe parent
+  `CreateMessagesStreamResponse::MessageDelta` event."
+type: object
+properties:
+  stop_reason:
+    anyOf:
+    - $ref: "../schemas/AnthropicStopReason.yaml"
+    - type: "null"
+  stop_sequence:
+    anyOf:
+    - type: string
+    - type: "null"
+additionalProperties: false

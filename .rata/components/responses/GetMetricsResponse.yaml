@@ -1,0 +1,5 @@
+description: Prometheus metrics payload
+content:
+  text/plain:
+    schema:
+      type: string

@@ -1,0 +1,19 @@
+type: object
+properties:
+  type:
+    type: string
+  text:
+    type: string
+  cache_control:
+    anyOf:
+    - $ref: "../schemas/AnthropicCacheControl.yaml"
+    - type: "null"
+  citations:
+    anyOf:
+    - type: array
+      items: {}
+    - type: "null"
+required:
+- type
+- text
+additionalProperties: false

@@ -1,0 +1,20 @@
+type: object
+properties:
+  token:
+    type: string
+  logprob:
+    type: number
+    format: float
+  bytes:
+    anyOf:
+    - type: array
+      items:
+        type: integer
+        format: uint8
+        minimum: 0
+        maximum: 255
+    - type: "null"
+required:
+- token
+- logprob
+additionalProperties: false

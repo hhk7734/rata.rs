@@ -1,0 +1,21 @@
+type: object
+properties:
+  index:
+    type: integer
+    format: uint32
+    minimum: 0
+  id:
+    anyOf:
+    - type: string
+    - type: "null"
+  type:
+    anyOf:
+    - $ref: "../schemas/FunctionType.yaml"
+    - type: "null"
+  function:
+    anyOf:
+    - $ref: "../schemas/FunctionCallChunk.yaml"
+    - type: "null"
+required:
+- index
+additionalProperties: false

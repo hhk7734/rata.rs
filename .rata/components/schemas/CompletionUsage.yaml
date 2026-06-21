@@ -1,0 +1,27 @@
+type: object
+properties:
+  prompt_tokens:
+    type: integer
+    format: uint32
+    minimum: 0
+  completion_tokens:
+    type: integer
+    format: uint32
+    minimum: 0
+  total_tokens:
+    type: integer
+    format: uint32
+    minimum: 0
+  prompt_tokens_details:
+    anyOf:
+    - $ref: "../schemas/PromptTokensDetails.yaml"
+    - type: "null"
+  completion_tokens_details:
+    anyOf:
+    - $ref: "../schemas/CompletionTokensDetails.yaml"
+    - type: "null"
+required:
+- prompt_tokens
+- completion_tokens
+- total_tokens
+additionalProperties: false

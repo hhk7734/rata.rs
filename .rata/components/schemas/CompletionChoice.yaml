@@ -1,0 +1,20 @@
+type: object
+properties:
+  text:
+    type: string
+  index:
+    type: integer
+    format: uint32
+    minimum: 0
+  logprobs:
+    anyOf:
+    - $ref: "../schemas/Logprobs.yaml"
+    - type: "null"
+  finish_reason:
+    anyOf:
+    - type: string
+    - type: "null"
+required:
+- text
+- index
+additionalProperties: false

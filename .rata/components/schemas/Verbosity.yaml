@@ -1,0 +1,6 @@
+description: Output-verbosity hint.
+type: string
+enum:
+- low
+- medium
+- high

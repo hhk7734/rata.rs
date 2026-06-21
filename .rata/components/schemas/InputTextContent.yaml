@@ -1,0 +1,7 @@
+description: '`{"type":"input_text","text":"…"}` — plain text input part.'
+type: object
+properties:
+  text:
+    type: string
+required:
+- text

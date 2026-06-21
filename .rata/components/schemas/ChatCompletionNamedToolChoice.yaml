@@ -1,0 +1,10 @@
+type: object
+properties:
+  type:
+    $ref: "../schemas/ChatCompletionToolType.yaml"
+  function:
+    $ref: "../schemas/FunctionName.yaml"
+required:
+- type
+- function
+additionalProperties: false

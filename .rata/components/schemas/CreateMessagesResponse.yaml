@@ -1,0 +1,44 @@
+type: object
+properties:
+  id:
+    type: string
+  type:
+    type: string
+  role:
+    type: string
+  model:
+    type: string
+  content:
+    type: array
+    items:
+      $ref: "../schemas/AnthropicOutputBlock.yaml"
+  stop_reason:
+    anyOf:
+    - $ref: "../schemas/AnthropicStopReason.yaml"
+    - type: "null"
+  stop_sequence:
+    anyOf:
+    - type: string
+    - type: "null"
+  usage:
+    $ref: "../schemas/AnthropicUsage.yaml"
+  anthropic_version:
+    anyOf:
+    - type: string
+      description: "Anthropic-version header echo. Populated when the proxy mirrors
+        it\nonto the response body."
+    - type: "null"
+  container:
+    anyOf:
+    - type: string
+      description: "Container identifier echoed back when the request used a stateful\n
+        sandbox session."
+    - type: "null"
+required:
+- id
+- type
+- role
+- model
+- content
+- usage
+additionalProperties: false

@@ -1,0 +1,71 @@
+description: "One entry in the Responses-API `tools` array. Variants beyond\n `function`
+  are passthrough JSON because they evolve frequently on\nOpenAI's side; only function
+  tools have a fixed shape we need to act\non. Tag-based dispatch — unknown `type`
+  values fail deserialization,\nmatching Dynamo / async-openai. Tool kinds added to
+  OpenAI's spec\nrequire a new variant here."
+oneOf:
+- allOf:
+  - $ref: "../schemas/FunctionTool.yaml"
+  - type: object
+    properties:
+      type:
+        type: string
+        const: function
+    required:
+    - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: file_search
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: web_search
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: computer_use_preview
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: mcp
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: code_interpreter
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: image_generation
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: local_shell
+  required:
+  - type
+- type: object
+  properties:
+    type:
+      type: string
+      const: custom
+  required:
+  - type

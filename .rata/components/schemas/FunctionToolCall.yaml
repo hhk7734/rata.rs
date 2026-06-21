@@ -1,0 +1,20 @@
+type: object
+properties:
+  call_id:
+    type: string
+  name:
+    type: string
+  arguments:
+    type: string
+  id:
+    anyOf:
+    - type: string
+    - type: "null"
+  status:
+    anyOf:
+    - $ref: "../schemas/OutputStatus.yaml"
+    - type: "null"
+required:
+- call_id
+- name
+- arguments

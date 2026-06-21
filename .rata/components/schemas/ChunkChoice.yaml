@@ -1,0 +1,20 @@
+type: object
+properties:
+  index:
+    type: integer
+    format: uint32
+    minimum: 0
+  delta:
+    $ref: "../schemas/Delta.yaml"
+  finish_reason:
+    anyOf:
+    - $ref: "../schemas/FinishReason.yaml"
+    - type: "null"
+  logprobs:
+    anyOf:
+    - $ref: "../schemas/ChatChoiceLogprobs.yaml"
+    - type: "null"
+required:
+- index
+- delta
+additionalProperties: false

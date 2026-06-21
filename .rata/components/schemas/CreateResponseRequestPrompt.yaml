@@ -1,0 +1,13 @@
+description: Stored prompt template reference.
+type: object
+properties:
+  id:
+    type: string
+  version:
+    anyOf:
+    - type: string
+    - type: "null"
+  variables: {}
+required:
+- id
+additionalProperties: false

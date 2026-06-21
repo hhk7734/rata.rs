@@ -1,0 +1,6 @@
+description: 'Item-type discriminator on `EasyInputMessage`. Spec-default `"message"`
+
+  is accepted when the `type` field is absent.'
+type: string
+enum:
+- message

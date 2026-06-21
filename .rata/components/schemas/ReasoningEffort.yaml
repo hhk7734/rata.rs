@@ -1,0 +1,9 @@
+description: Reasoning-effort hint. Shared by Chat and Responses.
+type: string
+enum:
+- none
+- minimal
+- low
+- medium
+- high
+- xhigh

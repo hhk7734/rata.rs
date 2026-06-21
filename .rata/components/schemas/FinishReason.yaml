@@ -1,0 +1,10 @@
+oneOf:
+- type: string
+  enum:
+  - eos
+  - length
+  - stop
+  - tool_calls
+  - cancelled
+  - content_filter
+  additionalProperties: false

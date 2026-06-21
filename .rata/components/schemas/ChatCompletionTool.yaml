@@ -1,0 +1,11 @@
+description: One entry in the request's `tools` array.
+type: object
+properties:
+  type:
+    $ref: "../schemas/ChatCompletionToolType.yaml"
+    default: function
+  function:
+    $ref: "../schemas/FunctionObject.yaml"
+required:
+- function
+additionalProperties: false
