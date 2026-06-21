@@ -11,7 +11,7 @@ use crossterm::{
 use ratatui::{
     Terminal,
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Position},
     prelude::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
@@ -1211,10 +1211,34 @@ impl TuiApp {
         }
     }
 
-    pub fn handle_mouse(&mut self, mouse: MouseEvent, project: Option<&RataProject>) -> anyhow::Result<AppAction> {
-        let contains = |rect: Rect, x, y| {
-            x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
+    fn resize_target_at(&self, column: u16, row: u16) -> Option<DragTarget> {
+        let collections_handle = Rect {
+            x: self.collections_area.right().saturating_sub(1),
+            y: self.collections_area.y,
+            width: 2,
+            height: self.collections_area.height,
         };
+        if rect_contains(collections_handle, column, row) {
+            return Some(DragTarget::Collections);
+        }
+
+        if rect_contains(top_border_area(self.params_area), column, row) {
+            return Some(DragTarget::Request);
+        }
+
+        if rect_contains(top_border_area(self.response_area), column, row) {
+            return Some(DragTarget::Response);
+        }
+
+        None
+    }
+
+    pub fn handle_mouse(
+        &mut self,
+        mouse: MouseEvent,
+        project: Option<&RataProject>,
+    ) -> anyhow::Result<AppAction> {
+        let contains = rect_contains;
 
         if mouse.row == self.shortcut_bar_area.y && mouse.kind == MouseEventKind::Down(MouseButton::Left) {
             let mut current_x = self.shortcut_bar_area.x;
@@ -1553,11 +1577,15 @@ impl TuiApp {
                     return Ok(AppAction::Continue);
                 }
 
-                if mouse.column == self.collections_area.right().saturating_sub(1)
-                    || mouse.column == self.collections_area.right()
-                {
-                    self.active_block = ActiveBlock::Collections;
-                    self.drag_target = DragTarget::Collections;
+                if let Some(drag_target) = self.resize_target_at(mouse.column, mouse.row) {
+                    self.active_block = match drag_target {
+                        DragTarget::Collections => ActiveBlock::Collections,
+                        DragTarget::Request => ActiveBlock::Params,
+                        DragTarget::Response => ActiveBlock::Response,
+                        _ => self.active_block,
+                    };
+                    self.text_cursor = usize::MAX;
+                    self.drag_target = drag_target;
                     return Ok(AppAction::Continue);
                 }
 
@@ -1583,24 +1611,6 @@ impl TuiApp {
                         self.text_cursor = usize::MAX;
                     }
                     return Ok(AppAction::Continue);
-                }
-
-                if mouse.column >= self.request_area.x {
-                    if mouse.row == self.params_area.y.saturating_sub(1)
-                        || mouse.row == self.params_area.y
-                    {
-                        self.active_block = ActiveBlock::Params;
-                        self.text_cursor = usize::MAX;
-                        self.drag_target = DragTarget::Request;
-                        return Ok(AppAction::Continue);
-                    }
-                    if mouse.row == self.response_area.y.saturating_sub(1)
-                        || mouse.row == self.response_area.y
-                    {
-                        self.active_block = ActiveBlock::Response;
-                        self.drag_target = DragTarget::Response;
-                        return Ok(AppAction::Continue);
-                    }
                 }
 
                 if contains(self.response_area, mouse.column, mouse.row) {
@@ -1894,6 +1904,19 @@ fn request_tab_at(app: &TuiApp, column: u16, row: u16) -> Option<RequestTab> {
         current = end + 1 + 1; // +1 for the separator "·"
     }
     None
+}
+
+fn rect_contains(rect: Rect, column: u16, row: u16) -> bool {
+    rect.contains(Position { x: column, y: row })
+}
+
+fn top_border_area(area: Rect) -> Rect {
+    Rect {
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: 1,
+    }
 }
 
 fn response_tab_at(app: &TuiApp, column: u16, row: u16, origin: (u16, u16)) -> Option<ResponseTab> {
@@ -2925,6 +2948,91 @@ mod tests {
     use super::*;
 
     // Removed tests for non-existent functions response_tabs_widget and response_tabs_area
+
+    fn left_down(column: u16, row: u16) -> MouseEvent {
+        MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column,
+            row,
+            modifiers: crossterm::event::KeyModifiers::NONE,
+        }
+    }
+
+    fn app_with_mouse_areas() -> TuiApp {
+        let mut app = TuiApp::new(None);
+        app.request_area = Rect {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 3,
+        };
+        app.collections_area = Rect {
+            x: 0,
+            y: 3,
+            width: 30,
+            height: 25,
+        };
+        app.examples_area = Rect {
+            x: 30,
+            y: 3,
+            width: 70,
+            height: 7,
+        };
+        app.params_area = Rect {
+            x: 30,
+            y: 10,
+            width: 70,
+            height: 10,
+        };
+        app.response_area = Rect {
+            x: 30,
+            y: 20,
+            width: 70,
+            height: 10,
+        };
+        app.shortcut_bar_area = Rect {
+            x: 0,
+            y: 30,
+            width: 100,
+            height: 1,
+        };
+        app
+    }
+
+    #[test]
+    fn request_resize_drag_starts_only_on_request_panel_border() {
+        let mut app = app_with_mouse_areas();
+
+        app.handle_mouse(left_down(10, app.params_area.y), None)
+            .unwrap();
+
+        assert_eq!(app.drag_target, DragTarget::None);
+        assert_eq!(app.active_block, ActiveBlock::Collections);
+    }
+
+    #[test]
+    fn collection_resize_drag_starts_only_on_collection_panel_border() {
+        let mut app = app_with_mouse_areas();
+
+        app.handle_mouse(
+            left_down(app.collections_area.right(), app.request_area.y + 1),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(app.drag_target, DragTarget::None);
+    }
+
+    #[test]
+    fn response_resize_drag_starts_only_on_response_panel_border() {
+        let mut app = app_with_mouse_areas();
+
+        app.handle_mouse(left_down(10, app.response_area.y), None)
+            .unwrap();
+
+        assert_eq!(app.drag_target, DragTarget::None);
+        assert_eq!(app.active_block, ActiveBlock::Collections);
+    }
 
     #[test]
     fn http_methods_have_distinct_styles() {
