@@ -1,0 +1,7 @@
+description: Model details
+content:
+  application/json:
+    schema:
+      oneOf:
+        - $ref: "../schemas/OpenAIModel.yaml"
+        - $ref: "../schemas/AnthropicModel.yaml"
