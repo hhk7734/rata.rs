@@ -1300,6 +1300,9 @@ impl TuiApp {
                 self.active_block = ActiveBlock::Params;
                 self.text_cursor = usize::MAX;
                 self.scroll_request_up(3);
+            } else if contains(self.examples_area, mouse.column, mouse.row) {
+                self.active_block = ActiveBlock::Examples;
+                self.selected_example_row = self.selected_example_row.saturating_sub(1);
             }
             return Ok(AppAction::Continue);
         }
@@ -1312,6 +1315,10 @@ impl TuiApp {
                 self.active_block = ActiveBlock::Params;
                 self.text_cursor = usize::MAX;
                 self.scroll_request_down(3);
+            } else if contains(self.examples_area, mouse.column, mouse.row) {
+                self.active_block = ActiveBlock::Examples;
+                let max = self.model.examples.len().saturating_sub(1);
+                self.selected_example_row = (self.selected_example_row + 1).min(max);
             }
             return Ok(AppAction::Continue);
         }
@@ -2069,8 +2076,8 @@ fn run_loop(
                     .position(examples_state.offset());
                 let scrollbar = ratatui::widgets::Scrollbar::default()
                     .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
-                    .begin_symbol(Some("▲"))
-                    .end_symbol(Some("▼"));
+                    .begin_symbol(None)
+                    .end_symbol(None);
                 frame.render_stateful_widget(
                     scrollbar,
                     app.examples_area.inner(ratatui::layout::Margin {
