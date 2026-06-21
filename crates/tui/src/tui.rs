@@ -2304,7 +2304,8 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     if app.active_block == ActiveBlock::Request {
         spans.extend(render_with_cursor_spans(
             &url,
-            if app.cursor_visible() { Some(app.text_cursor) } else { None },
+            app.text_cursor,
+            app.cursor_visible(),
             Style::default().fg(TEXT).bg(SELECTED_BG),
         ));
     } else {
@@ -2318,7 +2319,12 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     let method_str_len = format!(" {} {} ", app.draft.method.label(), method_icon)
         .chars()
         .count();
-    let occupied = method_str_len + 1 + 1 + url.chars().count() + 1;
+    let url_rendered_len = if app.active_block == ActiveBlock::Request && app.text_cursor >= url.chars().count() {
+        url.chars().count() + 1
+    } else {
+        url.chars().count()
+    };
+    let occupied = method_str_len + 1 + 1 + url_rendered_len + 1;
     let remaining = app
         .request_area
         .width
@@ -2528,7 +2534,8 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.key,
-                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
+                        app.text_cursor,
+                        app.cursor_visible(),
                         Style::default(),
                     ))
                 } else {
@@ -2540,7 +2547,8 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.value,
-                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
+                        app.text_cursor,
+                        app.cursor_visible(),
                         Style::default(),
                     ))
                 } else {
@@ -2607,7 +2615,8 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.key,
-                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
+                        app.text_cursor,
+                        app.cursor_visible(),
                         Style::default(),
                     ))
                 } else {
@@ -2619,7 +2628,8 @@ fn render_request_block(
                 {
                     Line::from(render_with_cursor_spans(
                         &param.value,
-                        if app.cursor_visible() { Some(app.text_cursor) } else { None },
+                        app.text_cursor,
+                        app.cursor_visible(),
                         Style::default(),
                     ))
                 } else {
@@ -3181,33 +3191,37 @@ fn remove_char_at(s: &mut String, idx: usize) {
     s.remove(byte_idx);
 }
 
-fn render_with_cursor_spans(s: &str, cursor: Option<usize>, base_style: Style) -> Vec<Span<'static>> {
+fn render_with_cursor_spans(s: &str, cursor: usize, cursor_visible: bool, base_style: Style) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
-    if let Some(cursor) = cursor {
-        let char_len = s.chars().count();
-        let idx = cursor.min(char_len);
+    let char_len = s.chars().count();
+    let idx = cursor.min(char_len);
 
-        if idx == char_len {
-            spans.push(Span::styled(s.to_string(), base_style));
-            spans.push(Span::styled(
-                " ",
-                base_style.add_modifier(Modifier::REVERSED),
-            ));
+    if idx == char_len {
+        spans.push(Span::styled(s.to_string(), base_style));
+        if cursor_visible {
+            spans.push(Span::styled(" ", base_style.add_modifier(Modifier::REVERSED)));
         } else {
-            let byte_idx = s.char_indices().nth(idx).unwrap().0;
-            let (left, right) = s.split_at(byte_idx);
-            let first_char = right.chars().next().unwrap();
-            let rest = &right[first_char.len_utf8()..];
+            spans.push(Span::styled(" ", base_style));
+        }
+    } else {
+        let byte_idx = s.char_indices().nth(idx).unwrap().0;
+        let (left, right) = s.split_at(byte_idx);
+        let first_char = right.chars().next().unwrap();
+        let rest = &right[first_char.len_utf8()..];
 
-            spans.push(Span::styled(left.to_string(), base_style));
+        spans.push(Span::styled(left.to_string(), base_style));
+        if cursor_visible {
             spans.push(Span::styled(
                 first_char.to_string(),
                 base_style.add_modifier(Modifier::REVERSED),
             ));
-            spans.push(Span::styled(rest.to_string(), base_style));
+        } else {
+            spans.push(Span::styled(
+                first_char.to_string(),
+                base_style,
+            ));
         }
-    } else {
-        spans.push(Span::styled(s.to_string(), base_style));
+        spans.push(Span::styled(rest.to_string(), base_style));
     }
     spans
 }
