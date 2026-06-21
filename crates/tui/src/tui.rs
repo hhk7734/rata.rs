@@ -1222,11 +1222,11 @@ impl TuiApp {
             return Some(DragTarget::Collections);
         }
 
-        if rect_contains(top_border_area(self.params_area), column, row) {
+        if rect_contains(top_resize_area(self.params_area), column, row) {
             return Some(DragTarget::Request);
         }
 
-        if rect_contains(top_border_area(self.response_area), column, row) {
+        if rect_contains(top_resize_area(self.response_area), column, row) {
             return Some(DragTarget::Response);
         }
 
@@ -1524,6 +1524,36 @@ impl TuiApp {
                     return Ok(AppAction::Continue);
                 }
 
+                if let Some(tab) =
+                    response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin)
+                {
+                    self.active_response_tab = tab;
+                    self.response_scroll = 0;
+                    self.active_block = ActiveBlock::Response;
+                    self.text_selection = None;
+                    return Ok(AppAction::Continue);
+                }
+
+                if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
+                    self.active_request_tab = tab;
+                    self.active_block = ActiveBlock::Params;
+                    self.text_cursor = usize::MAX;
+                    self.selected_request_row = 0;
+                    return Ok(AppAction::Continue);
+                }
+
+                if let Some(drag_target) = self.resize_target_at(mouse.column, mouse.row) {
+                    self.active_block = match drag_target {
+                        DragTarget::Collections => ActiveBlock::Collections,
+                        DragTarget::Request => ActiveBlock::Params,
+                        DragTarget::Response => ActiveBlock::Response,
+                        _ => self.active_block,
+                    };
+                    self.text_cursor = usize::MAX;
+                    self.drag_target = drag_target;
+                    return Ok(AppAction::Continue);
+                }
+
                 if contains(self.examples_area, mouse.column, mouse.row) {
                     self.active_block = ActiveBlock::Examples;
                     let list_y = self.examples_area.y + 1;
@@ -1558,36 +1588,6 @@ impl TuiApp {
                     return Ok(AppAction::Continue);
                 }
 
-
-                if let Some(tab) =
-                    response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin)
-                {
-                    self.active_response_tab = tab;
-                    self.response_scroll = 0;
-                    self.active_block = ActiveBlock::Response;
-                    self.text_selection = None;
-                    return Ok(AppAction::Continue);
-                }
-
-                if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
-                    self.active_request_tab = tab;
-                    self.active_block = ActiveBlock::Params;
-                    self.text_cursor = usize::MAX;
-                    self.selected_request_row = 0;
-                    return Ok(AppAction::Continue);
-                }
-
-                if let Some(drag_target) = self.resize_target_at(mouse.column, mouse.row) {
-                    self.active_block = match drag_target {
-                        DragTarget::Collections => ActiveBlock::Collections,
-                        DragTarget::Request => ActiveBlock::Params,
-                        DragTarget::Response => ActiveBlock::Response,
-                        _ => self.active_block,
-                    };
-                    self.text_cursor = usize::MAX;
-                    self.drag_target = drag_target;
-                    return Ok(AppAction::Continue);
-                }
 
                 if contains(self.request_area, mouse.column, mouse.row) {
                     if contains(self.send_button_area, mouse.column, mouse.row) {
@@ -1910,12 +1910,21 @@ fn rect_contains(rect: Rect, column: u16, row: u16) -> bool {
     rect.contains(Position { x: column, y: row })
 }
 
-fn top_border_area(area: Rect) -> Rect {
+fn top_resize_area(area: Rect) -> Rect {
+    if area.y == 0 {
+        return Rect {
+            x: area.x,
+            y: area.y,
+            width: area.width,
+            height: 1,
+        };
+    }
+
     Rect {
         x: area.x,
-        y: area.y,
+        y: area.y - 1,
         width: area.width,
-        height: 1,
+        height: 2,
     }
 }
 
@@ -3008,6 +3017,25 @@ mod tests {
 
         assert_eq!(app.drag_target, DragTarget::None);
         assert_eq!(app.active_block, ActiveBlock::Collections);
+
+        let mut app = app_with_mouse_areas();
+
+        app.handle_mouse(left_down(10, app.params_area.y - 1), None)
+            .unwrap();
+
+        assert_eq!(app.drag_target, DragTarget::None);
+        assert_eq!(app.active_block, ActiveBlock::Collections);
+    }
+
+    #[test]
+    fn request_resize_drag_handles_the_border_above_request_panel() {
+        let mut app = app_with_mouse_areas();
+
+        app.handle_mouse(left_down(app.params_area.x + 1, app.params_area.y - 1), None)
+            .unwrap();
+
+        assert_eq!(app.drag_target, DragTarget::Request);
+        assert_eq!(app.active_block, ActiveBlock::Params);
     }
 
     #[test]
