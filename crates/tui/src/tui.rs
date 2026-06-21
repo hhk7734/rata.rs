@@ -2228,13 +2228,17 @@ fn collections(project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
                 ),
             ])));
             if !is_collapsed {
-                for operation in &collection.operations {
+                let ops_len = collection.operations.len();
+                for (i, operation) in collection.operations.iter().enumerate() {
+                    let is_last = i == ops_len - 1;
+                    let tree_branch = if is_last { "└── " } else { "├── " };
+
                     let is_selected = app.selected_operation.as_ref()
                         == Some(&(operation.method, operation.path.clone()));
                     let mut item = ListItem::new(Line::from(vec![
-                        Span::raw("  "),
+                        Span::styled(tree_branch, muted_style()),
                         Span::styled(
-                            format!("{:<5}", operation.method.label()),
+                            format!("{:<5} ", operation.method.label()),
                             method_style(operation.method),
                         ),
                         Span::styled(operation.summary.clone(), Style::default().fg(TEXT)),
