@@ -121,6 +121,7 @@ pub struct RataProject {
     server_url: Option<String>,
     collections: Vec<Collection>,
     openapi_value: serde_json::Value,
+    tracked_files: Vec<PathBuf>,
 }
 
 impl RataProject {
@@ -132,18 +133,7 @@ impl RataProject {
             return Ok(None);
         };
 
-        let source = fs::read_to_string(&openapi_path)?;
-        let is_json = openapi_path.extension().and_then(|ext| ext.to_str()) == Some("json");
-        let document: OpenAPI = if is_json {
-            serde_json::from_str(&source)?
-        } else {
-            serde_yaml::from_str(&source)?
-        };
-        let openapi_value: serde_json::Value = if is_json {
-            serde_json::from_str(&source)?
-        } else {
-            serde_yaml::from_str(&source)?
-        };
+        let (document, openapi_value, tracked_files) = openapi::load_and_resolve(&openapi_path)?;
 
         let collections = collect_operations(&document);
 
@@ -153,11 +143,16 @@ impl RataProject {
             server_url: document.servers.first().map(|server| server.url.clone()),
             collections,
             openapi_value,
+            tracked_files,
         }))
     }
 
     pub fn openapi_path(&self) -> &Path {
         &self.openapi_path
+    }
+
+    pub fn tracked_files(&self) -> &[PathBuf] {
+        &self.tracked_files
     }
 
     pub fn collections(&self) -> &[Collection] {

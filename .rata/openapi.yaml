@@ -15,7 +15,7 @@ paths:
       description: Returns a list of available models.
       responses:
         "200":
-          $ref: "#/components/responses/ListModelsResponse"
+          $ref: "./components/responses/ListModelsResponse.yaml"
   /v1/models/{model_id}:
     get:
       tags:
@@ -944,26 +944,6 @@ components:
                 anyOf:
                   - type: string
                   - type: "null"
-            additionalProperties: false
-    ListModelsResponse:
-      description: A list of models
-      content:
-        application/json:
-          schema:
-            required:
-              - object
-              - data
-            title: ModelsResponse
-            type: object
-            properties:
-              object:
-                type: string
-              data:
-                type: array
-                items:
-                  oneOf:
-                    - $ref: "#/components/schemas/OpenAIModel"
-                    - $ref: "#/components/schemas/AnthropicModel"
             additionalProperties: false
     GetModelResponse:
       description: Model details

@@ -1,0 +1,19 @@
+description: A list of models
+content:
+  application/json:
+    schema:
+      required:
+        - object
+        - data
+      title: ModelsResponse
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            oneOf:
+              - $ref: "../schemas/OpenAIModel.yaml"
+              - $ref: "../schemas/AnthropicModel.yaml"
+      additionalProperties: false

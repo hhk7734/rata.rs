@@ -1981,9 +1981,7 @@ fn run_loop(
 ) -> anyhow::Result<()> {
     let mut last_mouse_pos: Option<(u16, u16)> = None;
     let mut last_modified = project.as_ref()
-        .map(|p| p.openapi_path().to_path_buf())
-        .and_then(|p| std::fs::metadata(&p).ok())
-        .and_then(|m| m.modified().ok());
+        .and_then(|p| p.tracked_files().iter().filter_map(|f| std::fs::metadata(f).ok()?.modified().ok()).max());
 
     loop {
         terminal.draw(|frame| {
@@ -2135,14 +2133,12 @@ fn run_loop(
             }
         } else {
             if let Some(p) = project.as_ref() {
-                if let Ok(m) = std::fs::metadata(p.openapi_path()) {
-                    if let Ok(current_modified) = m.modified() {
-                        if Some(current_modified) != last_modified {
-                            if let Ok(Some(new_project)) = crate::RataProject::discover(std::env::current_dir().unwrap_or_default()) {
-                                *project = Some(new_project);
-                            }
-                            last_modified = Some(current_modified);
+                if let Some(current_modified) = p.tracked_files().iter().filter_map(|f| std::fs::metadata(f).ok()?.modified().ok()).max() {
+                    if Some(current_modified) != last_modified {
+                        if let Ok(Some(new_project)) = crate::RataProject::discover(std::env::current_dir().unwrap_or_default()) {
+                            *project = Some(new_project);
                         }
+                        last_modified = Some(current_modified);
                     }
                 }
             }
