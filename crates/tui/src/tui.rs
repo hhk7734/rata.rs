@@ -162,6 +162,7 @@ pub struct TuiApp {
     pub sending_frame: usize,
     pub error_popup: Option<String>,
     pub error_popup_area: Rect,
+    pub shortcut_bar_area: Rect,
     pub last_cursor_activity: std::time::Instant,
 }
 
@@ -446,6 +447,7 @@ impl TuiApp {
             sending_frame: 0,
             error_popup: None,
             error_popup_area: Rect::default(),
+            shortcut_bar_area: Rect::default(),
             last_cursor_activity: std::time::Instant::now(),
         }
     }
@@ -1024,6 +1026,19 @@ impl TuiApp {
         }
     }
 
+    pub fn get_shortcuts(&self) -> Vec<(&'static str, &'static str)> {
+        let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
+        if self.active_block == ActiveBlock::Params && self.active_request_tab != RequestTab::Body {
+            shortcuts.push(("e", "Edit"));
+        }
+        if self.wrap_body {
+            shortcuts.push(("w", "Unwrap"));
+        } else {
+            shortcuts.push(("w", "Wrap"));
+        }
+        shortcuts
+    }
+
     fn select_operation(&mut self, operation: &crate::project::Operation, project: &RataProject) {
         self.selected_operation = Some((operation.method, operation.path.clone()));
         self.draft.method = operation.method;
@@ -1197,10 +1212,33 @@ impl TuiApp {
         }
     }
 
-    pub fn handle_mouse(&mut self, mouse: MouseEvent, project: Option<&RataProject>) {
+    pub fn handle_mouse(&mut self, mouse: MouseEvent, project: Option<&RataProject>) -> anyhow::Result<AppAction> {
         let contains = |rect: Rect, x, y| {
             x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
         };
+
+        if mouse.row == self.shortcut_bar_area.y && mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+            let mut current_x = self.shortcut_bar_area.x;
+            current_x += 6; // " Ctrl "
+            current_x += 2; // "\u{E0B0} "
+            
+            for (key, desc) in self.get_shortcuts() {
+                let key_len = key.chars().count() as u16;
+                let desc_len = desc.chars().count() as u16 + 2; // " DESC "
+                let arrow_len = 2; // "\u{E0B0} "
+                
+                let button_width = key_len + desc_len + arrow_len;
+                if mouse.column >= current_x && mouse.column < current_x + button_width {
+                    if let Some(c) = key.chars().next() {
+                        let code = crossterm::event::KeyCode::Char(c);
+                        let modifiers = crossterm::event::KeyModifiers::CONTROL;
+                        let action = self.handle_key(crossterm::event::KeyEvent::new(code, modifiers), project)?;
+                        return Ok(action);
+                    }
+                }
+                current_x += button_width;
+            }
+        }
 
         if let Some(error) = self.error_popup.clone() {
             match mouse.kind {
@@ -1254,7 +1292,7 @@ impl TuiApp {
                 }
                 _ => {}
             }
-            return;
+            return Ok(AppAction::Continue);
         }
 
         if matches!(mouse.kind, MouseEventKind::ScrollUp) {
@@ -1266,7 +1304,7 @@ impl TuiApp {
                 self.text_cursor = usize::MAX;
                 self.scroll_request_up(3);
             }
-            return;
+            return Ok(AppAction::Continue);
         }
 
         if matches!(mouse.kind, MouseEventKind::ScrollDown) {
@@ -1278,7 +1316,7 @@ impl TuiApp {
                 self.text_cursor = usize::MAX;
                 self.scroll_request_down(3);
             }
-            return;
+            return Ok(AppAction::Continue);
         }
 
         match mouse.kind {
@@ -1389,7 +1427,7 @@ impl TuiApp {
                     }
                     DragTarget::None | DragTarget::ErrorPopupSelection => {}
                 }
-                return;
+                return Ok(AppAction::Continue);
             }
             MouseEventKind::Up(MouseButton::Left) => {
                 if self.drag_target == DragTarget::ResponseSelection {
@@ -1412,7 +1450,7 @@ impl TuiApp {
                     }
                 }
                 self.drag_target = DragTarget::None;
-                return;
+                return Ok(AppAction::Continue);
             }
             MouseEventKind::Down(MouseButton::Left) => {
                 let method_str_len =
@@ -1442,7 +1480,7 @@ impl TuiApp {
                         self.active_block = ActiveBlock::Request;
                         self.text_cursor = usize::MAX;
                     }
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if clicked_inside_method_dropdown {
@@ -1453,7 +1491,7 @@ impl TuiApp {
                         self.draft.method = *m;
                         self.handle_url_edited(project);
                     }
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 let dropdown_x = self.request_area.right().saturating_sub(14);
@@ -1478,7 +1516,7 @@ impl TuiApp {
                         self.active_block = ActiveBlock::Request;
                         self.text_cursor = usize::MAX;
                     }
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if clicked_inside_dropdown {
@@ -1507,7 +1545,7 @@ impl TuiApp {
                             }
                         }
                     }
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if let Some(tab) =
@@ -1517,7 +1555,7 @@ impl TuiApp {
                     self.response_scroll = 0;
                     self.active_block = ActiveBlock::Response;
                     self.text_selection = None;
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if let Some(tab) = request_tab_at(self, mouse.column, mouse.row) {
@@ -1525,7 +1563,7 @@ impl TuiApp {
                     self.active_block = ActiveBlock::Params;
                     self.text_cursor = usize::MAX;
                     self.selected_request_row = 0;
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if mouse.column == self.collections_area.right().saturating_sub(1)
@@ -1533,13 +1571,13 @@ impl TuiApp {
                 {
                     self.active_block = ActiveBlock::Collections;
                     self.drag_target = DragTarget::Collections;
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if contains(self.request_area, mouse.column, mouse.row) {
                     if contains(self.send_button_area, mouse.column, mouse.row) {
                         self.send(project);
-                        return;
+                        return Ok(AppAction::Continue);
                     }
                     self.active_block = ActiveBlock::Request;
                     let method_icon = if self.method_dropdown_open {
@@ -1557,7 +1595,7 @@ impl TuiApp {
                     } else {
                         self.text_cursor = usize::MAX;
                     }
-                    return;
+                    return Ok(AppAction::Continue);
                 }
 
                 if mouse.column >= self.request_area.x {
@@ -1567,14 +1605,14 @@ impl TuiApp {
                         self.active_block = ActiveBlock::Params;
                         self.text_cursor = usize::MAX;
                         self.drag_target = DragTarget::Request;
-                        return;
+                        return Ok(AppAction::Continue);
                     }
                     if mouse.row == self.response_area.y.saturating_sub(1)
                         || mouse.row == self.response_area.y
                     {
                         self.active_block = ActiveBlock::Response;
                         self.drag_target = DragTarget::Response;
-                        return;
+                        return Ok(AppAction::Continue);
                     }
                 }
 
@@ -1598,7 +1636,7 @@ impl TuiApp {
                         end: logical_pos,
                     });
                     self.drag_last_row = Some(mouse.row);
-                    return;
+                    return Ok(AppAction::Continue);
                 } else if contains(self.params_area, mouse.column, mouse.row) {
                     self.active_block = ActiveBlock::Params;
                     if self.active_request_tab == RequestTab::Body {
@@ -1625,10 +1663,10 @@ impl TuiApp {
                         self.text_cursor = usize::MAX;
                     }
                     self.drag_last_row = Some(mouse.row);
-                    return;
+                    return Ok(AppAction::Continue);
                 }
             }
-            _ => return,
+            _ => return Ok(AppAction::Continue),
         }
 
         self.active_block = ActiveBlock::None;
@@ -1648,7 +1686,7 @@ impl TuiApp {
                             } else {
                                 self.collapsed_tags.insert(name);
                             }
-                            return;
+                            return Ok(AppAction::Continue);
                         }
                         current_row += 1;
                         if !self.collapsed_tags.contains(&collection.name) {
@@ -1657,7 +1695,7 @@ impl TuiApp {
                                 let op_idx = clicked_row - current_row;
                                 let operation = &collection.operations[op_idx];
                                 self.select_operation(operation, project);
-                                return;
+                                return Ok(AppAction::Continue);
                             }
                             current_row += ops_len;
                         }
@@ -1665,6 +1703,7 @@ impl TuiApp {
                 }
             }
         }
+        Ok(AppAction::Continue)
     }
 
     fn set_response_tabs_area(&mut self, area: Rect) {
@@ -2035,6 +2074,7 @@ fn run_loop(
             frame.render_widget(collections(project.as_ref(), app), body[0]);
             render_request_block(frame, app, project.as_ref(), request_body[0]);
             render_response(frame, app, main_rest[1]);
+            app.shortcut_bar_area = app_layout[1];
             frame.render_widget(render_shortcut_bar(app), app_layout[1]);
 
             if app.examples_dropdown_open {
@@ -2127,7 +2167,10 @@ fn run_loop(
                 },
                 Event::Mouse(mouse) => {
                     last_mouse_pos = Some((mouse.column, mouse.row));
-                    app.handle_mouse(mouse, project.as_ref());
+                    match app.handle_mouse(mouse, project.as_ref())? {
+                        AppAction::Quit => return Ok(()),
+                        AppAction::Continue => {}
+                    }
                 }
                 _ => {}
             }
@@ -2152,7 +2195,10 @@ fn run_loop(
                         row,
                         modifiers: crossterm::event::KeyModifiers::empty(),
                     };
-                    app.handle_mouse(synthetic_mouse, project.as_ref());
+                    match app.handle_mouse(synthetic_mouse, project.as_ref())? {
+                        AppAction::Quit => return Ok(()),
+                        AppAction::Continue => {}
+                    }
                 }
             }
         }
@@ -2334,7 +2380,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     )
 }
 
-fn render_shortcut_bar(_app: &TuiApp) -> Paragraph<'static> {
+fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     let mut spans = Vec::new();
     let base_bg = PANEL;
     let bgs = [SELECTED_BG, BORDER];
@@ -2354,15 +2400,7 @@ fn render_shortcut_bar(_app: &TuiApp) -> Paragraph<'static> {
         Style::default().fg(ACCENT).bg(current_bg),
     ));
 
-    let mut shortcuts = vec![("q", "Quit"), ("s", "Send")];
-    if _app.active_block == ActiveBlock::Params && _app.active_request_tab != RequestTab::Body {
-        shortcuts.push(("e", "Edit"));
-    }
-    if _app.wrap_body {
-        shortcuts.push(("w", "Unwrap"));
-    } else {
-        shortcuts.push(("w", "Wrap"));
-    }
+    let shortcuts = app.get_shortcuts();
 
     for (i, (key, desc)) in shortcuts.iter().enumerate() {
         let is_last = i == shortcuts.len() - 1;
