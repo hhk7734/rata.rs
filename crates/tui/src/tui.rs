@@ -2551,7 +2551,7 @@ fn examples(_project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
                     Span::styled("• ", accent_style()),
                     Span::styled(example.clone(), Style::default().fg(TEXT)),
                 ]));
-                if app.active_block == ActiveBlock::Examples && i == app.selected_example_row {
+                if i == app.selected_example_row {
                     row = row.style(Style::default().bg(SELECTED_BG));
                 }
                 row
