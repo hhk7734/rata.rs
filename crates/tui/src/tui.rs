@@ -2711,7 +2711,10 @@ fn examples(_project: Option<&RataProject>, app: &TuiApp) -> List<'static> {
     List::new(items)
         .block(
             Block::default()
-                .title(" Examples ")
+                .title(Span::styled(
+                    " Examples ",
+                    Style::default().fg(Color::White),
+                ))
                 .borders(Borders::ALL)
                 .style(Style::default().bg(PANEL).fg(TEXT))
                 .border_style(border_style),
