@@ -132,6 +132,7 @@ pub struct TuiApp {
     pub request_area: Rect,
     pub params_area: Rect,
     pub examples_area: Rect,
+    pub examples_offset: usize,
     pub response_area: Rect,
     pub collapsed_tags: std::collections::HashSet<String>,
     pub active_block: ActiveBlock,
@@ -417,6 +418,7 @@ impl TuiApp {
             request_area: Rect::default(),
             params_area: Rect::default(),
             examples_area: Rect::default(),
+            examples_offset: 0,
             response_area: Rect::default(),
             collapsed_tags: std::collections::HashSet::new(),
             active_block: ActiveBlock::None,
@@ -1502,7 +1504,7 @@ impl TuiApp {
                     self.active_block = ActiveBlock::Examples;
                     let list_y = self.examples_area.y + 1;
                     if mouse.row >= list_y {
-                        let clicked_row = (mouse.row - list_y) as usize;
+                        let clicked_row = (mouse.row - list_y) as usize + self.examples_offset;
                         if clicked_row < self.model.examples.len() {
                             self.selected_example_row = clicked_row;
                             if let Some(example_name) = self.model.examples.get(clicked_row) {
@@ -2067,6 +2069,7 @@ fn run_loop(
             let mut examples_state = ratatui::widgets::ListState::default()
                 .with_selected(Some(app.selected_example_row));
             frame.render_stateful_widget(examples(project.as_ref(), app), app.examples_area, &mut examples_state);
+            app.examples_offset = examples_state.offset();
 
             let examples_len = app.model.examples.len().max(1);
             let view_height = app.examples_area.height.saturating_sub(2) as usize;
