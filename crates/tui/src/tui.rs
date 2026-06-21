@@ -15,21 +15,21 @@ use ratatui::{
     prelude::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Row, Table},
+    widgets::{Block, Borders, List, ListItem, Paragraph},
 };
 
 use crate::project::{HttpMethod, RataProject};
 
 pub const PANEL: Color = Color::Rgb(30, 30, 35);
-const SELECTED_BG: Color = Color::Rgb(55, 60, 75);
-const BORDER: Color = Color::Rgb(62, 68, 82);
+pub const SELECTED_BG: Color = Color::Rgb(55, 60, 75);
+pub const BORDER: Color = Color::Rgb(62, 68, 82);
 pub const TEXT: Color = Color::Rgb(242, 244, 247);
-const MUTED: Color = Color::Rgb(152, 162, 179);
+pub const MUTED: Color = Color::Rgb(152, 162, 179);
 pub const ACCENT: Color = Color::Rgb(255, 138, 95);
-const GREEN: Color = Color::Rgb(47, 209, 124);
-const YELLOW: Color = Color::Rgb(245, 184, 75);
-const RED: Color = Color::Rgb(255, 123, 114);
-const BLUE: Color = Color::Rgb(96, 165, 250);
+pub const GREEN: Color = Color::Rgb(47, 209, 124);
+pub const YELLOW: Color = Color::Rgb(245, 184, 75);
+pub const RED: Color = Color::Rgb(255, 123, 114);
+pub const BLUE: Color = Color::Rgb(96, 165, 250);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TuiModel {
@@ -2518,162 +2518,10 @@ fn render_request_block(
             );
         }
         RequestTab::Query => {
-            let mut rows = Vec::new();
-            let params = &app.draft.params;
-            for (i, param) in params.iter().enumerate() {
-                let display_key = if app.active_block == ActiveBlock::Params
-                    && app.param_edit_mode == ParamEditMode::Key
-                    && i == app.selected_request_row
-                {
-                    Line::from(render_with_cursor_spans(
-                        &param.key,
-                        app.text_cursor,
-                        app.cursor_visible(),
-                        Style::default(),
-                    ))
-                } else {
-                    Line::from(param.key.clone())
-                };
-                let display_value = if app.active_block == ActiveBlock::Params
-                    && app.param_edit_mode == ParamEditMode::Value
-                    && i == app.selected_request_row
-                {
-                    Line::from(render_with_cursor_spans(
-                        &param.value,
-                        app.text_cursor,
-                        app.cursor_visible(),
-                        Style::default(),
-                    ))
-                } else {
-                    Line::from(param.value.clone())
-                };
-                let checkbox_text = if param.enabled { "[x]" } else { "[ ]" }.to_string();
-                let checkbox_cell = if param.required {
-                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
-                } else {
-                    ratatui::widgets::Cell::from(checkbox_text)
-                };
-                let mut row = Row::new(vec![
-                    checkbox_cell,
-                    ratatui::widgets::Cell::from(display_key),
-                    ratatui::widgets::Cell::from(display_value),
-                    ratatui::widgets::Cell::from(""),
-                ]);
-                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                    row = row.style(Style::default().bg(SELECTED_BG));
-                }
-                rows.push(row);
-            }
-            let add_style = if app.active_block == ActiveBlock::Params
-                && app.selected_request_row == params.len()
-            {
-                Style::default().bg(SELECTED_BG)
-            } else {
-                Style::default()
-            };
-            rows.push(
-                Row::new(vec![
-                    ratatui::widgets::Cell::from(""),
-                    ratatui::widgets::Cell::from("<Add new query...>").style(add_style.fg(MUTED)),
-                    ratatui::widgets::Cell::from(""),
-                    ratatui::widgets::Cell::from(""),
-                ])
-                .style(add_style),
-            );
-
-            let t = Table::new(
-                rows,
-                [
-                    Constraint::Length(3),
-                    Constraint::Percentage(25),
-                    Constraint::Percentage(35),
-                    Constraint::Percentage(37),
-                ],
-            )
-            .header(
-                Row::new(["", "Key", "Value", "Description"])
-                    .style(muted_style().add_modifier(Modifier::BOLD)),
-            )
-            .block(block)
-            .style(Style::default().fg(TEXT));
-            frame.render_widget(t, area);
+            crate::components::query::render_query_tab(frame, app, area, block);
         }
         RequestTab::Headers => {
-            let mut rows = Vec::new();
-            let params = &app.draft.headers;
-            for (i, param) in params.iter().enumerate() {
-                let display_key = if app.active_block == ActiveBlock::Params
-                    && app.param_edit_mode == ParamEditMode::Key
-                    && i == app.selected_request_row
-                {
-                    Line::from(render_with_cursor_spans(
-                        &param.key,
-                        app.text_cursor,
-                        app.cursor_visible(),
-                        Style::default(),
-                    ))
-                } else {
-                    Line::from(param.key.clone())
-                };
-                let display_value = if app.active_block == ActiveBlock::Params
-                    && app.param_edit_mode == ParamEditMode::Value
-                    && i == app.selected_request_row
-                {
-                    Line::from(render_with_cursor_spans(
-                        &param.value,
-                        app.text_cursor,
-                        app.cursor_visible(),
-                        Style::default(),
-                    ))
-                } else {
-                    Line::from(param.value.clone())
-                };
-                let checkbox_text = if param.enabled { "[x]" } else { "[ ]" }.to_string();
-                let checkbox_cell = if param.required {
-                    ratatui::widgets::Cell::from(checkbox_text).style(Style::default().fg(MUTED))
-                } else {
-                    ratatui::widgets::Cell::from(checkbox_text)
-                };
-                let mut row = Row::new(vec![
-                    checkbox_cell,
-                    ratatui::widgets::Cell::from(display_key),
-                    ratatui::widgets::Cell::from(display_value),
-                ]);
-                if app.active_block == ActiveBlock::Params && i == app.selected_request_row {
-                    row = row.style(Style::default().bg(SELECTED_BG));
-                }
-                rows.push(row);
-            }
-            let add_style = if app.active_block == ActiveBlock::Params
-                && app.selected_request_row == params.len()
-            {
-                Style::default().bg(SELECTED_BG)
-            } else {
-                Style::default()
-            };
-            rows.push(
-                Row::new(vec![
-                    ratatui::widgets::Cell::from(""),
-                    ratatui::widgets::Cell::from("<Add new header...>").style(add_style.fg(MUTED)),
-                    ratatui::widgets::Cell::from(""),
-                ])
-                .style(add_style),
-            );
-
-            let t = Table::new(
-                rows,
-                [
-                    Constraint::Length(3),
-                    Constraint::Percentage(30),
-                    Constraint::Percentage(67),
-                ],
-            )
-            .header(
-                Row::new(["", "Key", "Value"]).style(muted_style().add_modifier(Modifier::BOLD)),
-            )
-            .block(block)
-            .style(Style::default().fg(TEXT));
-            frame.render_widget(t, area);
+            crate::components::headers::render_request_headers_tab(frame, app, area, block);
         }
     }
 }
@@ -2765,53 +2613,7 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
     let view_height = inner.height as usize;
 
     if app.active_response_tab == ResponseTab::Headers {
-        let header_rows: Vec<ratatui::widgets::Row> = app
-            .response
-            .headers
-            .iter()
-            .map(|(k, v)| {
-                ratatui::widgets::Row::new(vec![
-                    ratatui::widgets::Cell::from(Span::styled(
-                        k.clone(),
-                        Style::default().fg(BLUE),
-                    )),
-                    ratatui::widgets::Cell::from(Span::raw(v.clone())),
-                ])
-            })
-            .collect();
-        let widths = [
-            ratatui::layout::Constraint::Percentage(30),
-            ratatui::layout::Constraint::Percentage(70),
-        ];
-        let table = ratatui::widgets::Table::new(header_rows, widths)
-            .header(
-                ratatui::widgets::Row::new(vec!["Key", "Value"])
-                    .style(Style::default().add_modifier(Modifier::BOLD).fg(MUTED)),
-            )
-            .column_spacing(2);
-
-        let mut table_state =
-            ratatui::widgets::TableState::default().with_offset(app.response_scroll as usize);
-        frame.render_stateful_widget(table, inner, &mut table_state);
-
-        let lines = app.response.headers.len() + 1; // +1 for header row
-        if lines > view_height {
-            let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
-                .content_length(lines.saturating_sub(view_height))
-                .position(app.response_scroll as usize);
-            let scrollbar = ratatui::widgets::Scrollbar::default()
-                .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
-                .begin_symbol(Some("▲"))
-                .end_symbol(Some("▼"));
-            frame.render_stateful_widget(
-                scrollbar,
-                area.inner(ratatui::layout::Margin {
-                    vertical: 1,
-                    horizontal: 0,
-                }),
-                &mut scrollbar_state,
-            );
-        }
+        crate::components::headers::render_response_headers_tab(frame, app, area, inner, view_height);
     } else {
         let raw_string = app.active_response_string();
 
@@ -2830,6 +2632,8 @@ fn render_response(frame: &mut ratatui::Frame<'_>, app: &mut TuiApp, area: Rect)
                     None
                 },
             );
+        } else if app.active_response_tab == ResponseTab::Cookies {
+            crate::components::cookies::render_response_cookies_tab(frame, app, area, inner, view_height);
         } else {
             let mut text = ratatui::text::Text::raw(raw_string.clone());
             text = apply_selection(text, app.text_selection);
@@ -3090,7 +2894,7 @@ pub fn apply_cursor_to_text(mut text: Text<'static>, cursor: usize, selection: O
     text
 }
 
-fn muted_style() -> Style {
+pub fn muted_style() -> Style {
     Style::default().fg(MUTED)
 }
 
@@ -3187,7 +2991,7 @@ fn remove_char_at(s: &mut String, idx: usize) {
     s.remove(byte_idx);
 }
 
-fn render_with_cursor_spans(s: &str, cursor: usize, cursor_visible: bool, base_style: Style) -> Vec<Span<'static>> {
+pub fn render_with_cursor_spans(s: &str, cursor: usize, cursor_visible: bool, base_style: Style) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
     let char_len = s.chars().count();
     let idx = cursor.min(char_len);
