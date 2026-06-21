@@ -140,7 +140,7 @@ pub struct TuiApp {
     pub collections_width: u16,
     pub request_height: u16,
     pub response_height_percent: u16,
-    pub examples_dropdown_open: bool,
+    pub examples_height: u16,
     pub wrap_body: bool,
     pub drag_target: DragTarget,
     pub selected_request_row: usize,
@@ -425,7 +425,7 @@ impl TuiApp {
             collections_width: 34,
             request_height: 3,
             response_height_percent: 66,
-            examples_dropdown_open: false,
+            examples_height: 4,
             wrap_body: false,
             drag_target: DragTarget::None,
             selected_request_row: 0,
@@ -667,8 +667,7 @@ impl TuiApp {
                 if self.param_edit_mode != ParamEditMode::None {
                     self.param_edit_mode = ParamEditMode::None;
                 }
-                if self.examples_dropdown_open {
-                    self.examples_dropdown_open = false;
+                if self.active_block == ActiveBlock::Examples {
                     self.active_block = ActiveBlock::Request;
                 }
                 if self.method_dropdown_open {
@@ -840,7 +839,6 @@ impl TuiApp {
                             }
                         }
                     }
-                    self.examples_dropdown_open = false;
                     self.active_block = ActiveBlock::Request;
                 } else if self.active_block == ActiveBlock::MethodDropdown {
                     if let Some(m) = METHODS.get(self.selected_method_row) {
@@ -1097,7 +1095,6 @@ impl TuiApp {
         self.draft.body.clear();
         self.model.examples.clear();
         self.selected_operation = None;
-        self.examples_dropdown_open = false;
 
         self.draft.headers.push(ParamState {
             key: "user-agent".to_string(),
@@ -1494,52 +1491,32 @@ impl TuiApp {
                     return Ok(AppAction::Continue);
                 }
 
-                let dropdown_x = self.request_area.right().saturating_sub(14);
-                let clicked_dropdown_toggle = mouse.row == self.request_area.y
-                    && mouse.column >= dropdown_x
-                    && mouse.column < self.request_area.right();
-                let clicked_inside_dropdown = self.examples_dropdown_open
-                    && contains(self.examples_area, mouse.column, mouse.row);
-
-                if self.examples_dropdown_open
-                    && !clicked_dropdown_toggle
-                    && !clicked_inside_dropdown
-                {
-                    self.examples_dropdown_open = false;
-                }
-
-                if clicked_dropdown_toggle {
-                    self.examples_dropdown_open = !self.examples_dropdown_open;
-                    if self.examples_dropdown_open {
-                        self.active_block = ActiveBlock::Examples;
-                    } else {
-                        self.active_block = ActiveBlock::Request;
-                        self.text_cursor = usize::MAX;
-                    }
-                    return Ok(AppAction::Continue);
-                }
-
-                if clicked_inside_dropdown {
-                    self.active_block = ActiveBlock::Request;
-                    self.examples_dropdown_open = false; // Close when clicked inside
-                    let clicked_row = mouse.row.saturating_sub(self.examples_area.y + 1);
-                    if let Some(example_name) = self.model.examples.get(clicked_row as usize) {
-                        if let Some(project) = project {
-                            if let Some(selected) = &self.selected_operation {
-                                if let Some(op) = project
-                                    .collections()
-                                    .iter()
-                                    .flat_map(|c| &c.operations)
-                                    .find(|o| o.method == selected.0 && o.path == selected.1)
-                                {
-                                    if let Some(example_file) = project
-                                        .examples_for(op)
-                                        .ok()
-                                        .unwrap_or_default()
-                                        .iter()
-                                        .find(|e| &e.name == example_name)
-                                    {
-                                        self.load_example(example_file);
+                if contains(self.examples_area, mouse.column, mouse.row) {
+                    self.active_block = ActiveBlock::Examples;
+                    let list_y = self.examples_area.y + 1;
+                    if mouse.row >= list_y {
+                        let clicked_row = (mouse.row - list_y) as usize;
+                        if clicked_row < self.model.examples.len() {
+                            self.selected_example_row = clicked_row;
+                            if let Some(example_name) = self.model.examples.get(clicked_row) {
+                                if let Some(project) = project {
+                                    if let Some(selected) = &self.selected_operation {
+                                        if let Some(op) = project
+                                            .collections()
+                                            .iter()
+                                            .flat_map(|c| &c.operations)
+                                            .find(|o| o.method == selected.0 && o.path == selected.1)
+                                        {
+                                            if let Some(example_file) = project
+                                                .examples_for(op)
+                                                .ok()
+                                                .unwrap_or_default()
+                                                .iter()
+                                                .find(|e| &e.name == example_name)
+                                            {
+                                                self.load_example(example_file);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1547,6 +1524,7 @@ impl TuiApp {
                     }
                     return Ok(AppAction::Continue);
                 }
+
 
                 if let Some(tab) =
                     response_tab_at(self, mouse.column, mouse.row, self.response_tab_origin)
@@ -2046,13 +2024,20 @@ fn run_loop(
                 ])
                 .split(rest_area);
             app.collections_area = body[0];
+            let examples_and_rest = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Length(app.examples_height), Constraint::Min(0)])
+                .split(body[1]);
+            
+            app.examples_area = examples_and_rest[0];
+
             let main_rest = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Percentage(100_u16.saturating_sub(app.response_height_percent)),
                     Constraint::Percentage(app.response_height_percent),
                 ])
-                .split(body[1]);
+                .split(examples_and_rest[1]);
             let request_body = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Min(0)])
@@ -2072,26 +2057,33 @@ fn run_loop(
 
             frame.render_widget(request_line(app), url_area);
             frame.render_widget(collections(project.as_ref(), app), body[0]);
+            let mut examples_state = ratatui::widgets::ListState::default()
+                .with_selected(Some(app.selected_example_row));
+            frame.render_stateful_widget(examples(project.as_ref(), app), app.examples_area, &mut examples_state);
+
+            let examples_len = app.model.examples.len().max(1);
+            let view_height = app.examples_area.height.saturating_sub(2) as usize;
+            if examples_len > view_height {
+                let mut scrollbar_state = ratatui::widgets::ScrollbarState::default()
+                    .content_length(examples_len.saturating_sub(view_height))
+                    .position(examples_state.offset());
+                let scrollbar = ratatui::widgets::Scrollbar::default()
+                    .orientation(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+                    .begin_symbol(Some("▲"))
+                    .end_symbol(Some("▼"));
+                frame.render_stateful_widget(
+                    scrollbar,
+                    app.examples_area.inner(ratatui::layout::Margin {
+                        vertical: 1,
+                        horizontal: 0,
+                    }),
+                    &mut scrollbar_state,
+                );
+            }
             render_request_block(frame, app, project.as_ref(), request_body[0]);
             render_response(frame, app, main_rest[1]);
             app.shortcut_bar_area = app_layout[1];
             frame.render_widget(render_shortcut_bar(app), app_layout[1]);
-
-            if app.examples_dropdown_open {
-                let dropdown_width = 30;
-                let dropdown_height = app.model.examples.len().max(1).min(10) as u16 + 2;
-                let area = Rect {
-                    x: app.request_area.right().saturating_sub(dropdown_width + 1),
-                    y: app.request_area.y + 1,
-                    width: dropdown_width,
-                    height: dropdown_height,
-                };
-                app.examples_area = area;
-                frame.render_widget(ratatui::widgets::Clear, area);
-                frame.render_widget(examples(project.as_ref(), app), area);
-            } else {
-                app.examples_area = Rect::default();
-            }
 
             if app.method_dropdown_open {
                 let dropdown_width = 15;
@@ -2279,11 +2271,6 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         Style::default().fg(BORDER)
     };
 
-    let example_title = if app.examples_dropdown_open {
-        " Examples ▴ "
-    } else {
-        " Examples ▾ "
-    };
 
     let method_icon = if app.method_dropdown_open {
         "▴"
@@ -2379,7 +2366,6 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     Paragraph::new(Line::from(spans)).block(
         Block::default()
             .title(Span::styled(" URL ", Style::default().fg(Color::White)))
-            .title_top(Line::from(example_title).right_aligned())
             .borders(Borders::ALL)
             .style(Style::default().bg(PANEL).fg(TEXT))
             .border_style(border_style),
