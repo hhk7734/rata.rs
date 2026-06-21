@@ -601,7 +601,10 @@ impl TuiApp {
         project: Option<&RataProject>,
     ) -> anyhow::Result<AppAction> {
         if self.error_popup.is_some() {
-            if key.code == KeyCode::Enter || key.code == KeyCode::Esc {
+            if key.code == KeyCode::Enter
+                || key.code == KeyCode::Esc
+                || key.code == KeyCode::Char('q')
+            {
                 self.error_popup = None;
             }
             return Ok(AppAction::Continue);
