@@ -3,3 +3,27 @@ rust = "1.93.1"
 
 [tasks.rata]
 run = "cargo run"
+
+[tasks.fmt]
+description = "Run cargo fmt against code"
+run = "cargo fmt"
+
+[tasks."fmt:check"]
+description = "Check code formatting"
+run = "cargo fmt --check"
+
+[tasks.lint]
+description = "Run clippy linter"
+run = "cargo clippy -- -D warnings"
+
+[tasks.test]
+depends = ["fmt:check", "lint", "test:unit", "test:integration"]
+description = "Run all tests"
+
+[tasks."test:unit"]
+description = "Run unit tests"
+run = "cargo test --workspace --lib --bins"
+
+[tasks."test:integration"]
+description = "Run Rust integration tests"
+run = "cargo test --workspace --test '*'"
