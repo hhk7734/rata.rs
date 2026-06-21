@@ -7,7 +7,7 @@ properties:
   function:
     $ref: "../schemas/FunctionCall.yaml"
 required:
-- id
-- type
-- function
+  - id
+  - type
+  - function
 additionalProperties: false

@@ -1,5 +1,5 @@
 anyOf:
-- type: array
-  items:
-    $ref: "../schemas/LogProb.yaml"
-- type: "null"
+  - type: array
+    items:
+      $ref: "../schemas/LogProb.yaml"
+  - type: "null"

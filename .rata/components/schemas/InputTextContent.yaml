@@ -4,4 +4,4 @@ properties:
   text:
     type: string
 required:
-- text
+  - text

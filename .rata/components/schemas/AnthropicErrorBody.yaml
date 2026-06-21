@@ -5,6 +5,6 @@ properties:
   message:
     type: string
 required:
-- type
-- message
+  - type
+  - message
 additionalProperties: false

@@ -5,6 +5,6 @@ properties:
   function:
     $ref: "../schemas/FunctionName.yaml"
 required:
-- type
-- function
+  - type
+  - function
 additionalProperties: false

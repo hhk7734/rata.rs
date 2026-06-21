@@ -6,14 +6,14 @@ properties:
     type: string
   annotations:
     anyOf:
-    - type: array
-      items: {}
-    - type: "null"
+      - type: array
+        items: {}
+      - type: "null"
   logprobs:
     anyOf:
-    - $ref: "../schemas/ContentBlockLogprobs.yaml"
-    - type: "null"
+      - $ref: "../schemas/ContentBlockLogprobs.yaml"
+      - type: "null"
 required:
-- type
-- text
+  - type
+  - text
 additionalProperties: false

@@ -5,13 +5,13 @@ properties:
     type: string
   description:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   parameters: {}
   strict:
     anyOf:
-    - type: boolean
-    - type: "null"
+      - type: boolean
+      - type: "null"
 required:
-- name
+  - name
 additionalProperties: false

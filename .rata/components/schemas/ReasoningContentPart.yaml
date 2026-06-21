@@ -1,12 +1,12 @@
 anyOf:
-- type: object
-  properties:
-    text:
-      type: string
-    type:
-      type: string
-      const: reasoning_text
-  required:
-  - type
-  - text
-- description: Forward-compatible catch-all.
+  - type: object
+    properties:
+      text:
+        type: string
+      type:
+        type: string
+        const: reasoning_text
+    required:
+      - type
+      - text
+  - description: Forward-compatible catch-all.

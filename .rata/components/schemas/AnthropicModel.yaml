@@ -1,8 +1,8 @@
 required:
-- id
-- type
-- display_name
-- created_at
+  - id
+  - type
+  - display_name
+  - created_at
 title: AnthropicModel
 type: object
 properties:
@@ -16,8 +16,8 @@ properties:
     type: string
   max_input_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
 additionalProperties: false

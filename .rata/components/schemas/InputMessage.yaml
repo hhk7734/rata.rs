@@ -9,9 +9,9 @@ properties:
     $ref: "../schemas/InputRole.yaml"
   status:
     anyOf:
-    - $ref: "../schemas/OutputStatus.yaml"
-    - type: "null"
+      - $ref: "../schemas/OutputStatus.yaml"
+      - type: "null"
 required:
-- content
-- role
+  - content
+  - role
 additionalProperties: false

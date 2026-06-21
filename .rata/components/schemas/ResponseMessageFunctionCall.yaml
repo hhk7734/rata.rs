@@ -1,5 +1,4 @@
-description: "Deprecated `function_call` echo. OpenAI keeps it on the response for\n
-  backwards compatibility with pre-tools-API clients."
+description: "Deprecated `function_call` echo. OpenAI keeps it on the response for\n backwards compatibility with pre-tools-API clients."
 type: object
 properties:
   name:
@@ -7,6 +6,6 @@ properties:
   arguments:
     type: string
 required:
-- name
-- arguments
+  - name
+  - arguments
 additionalProperties: false

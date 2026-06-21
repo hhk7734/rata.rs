@@ -1,5 +1,5 @@
 anyOf:
-- type: string
-- type: array
-  items:
-    $ref: "../schemas/ChatCompletionRequestAssistantMessageContentPart.yaml"
+  - type: string
+  - type: array
+    items:
+      $ref: "../schemas/ChatCompletionRequestAssistantMessageContentPart.yaml"

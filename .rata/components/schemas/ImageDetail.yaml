@@ -1,6 +1,6 @@
 description: Image-URL detail hint mirrored from the Chat-Completions content part.
 type: string
 enum:
-- auto
-- low
-- high
+  - auto
+  - low
+  - high

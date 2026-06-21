@@ -5,6 +5,6 @@ properties:
   content:
     $ref: "../schemas/AnthropicMessageContent.yaml"
 required:
-- role
-- content
+  - role
+  - content
 additionalProperties: false

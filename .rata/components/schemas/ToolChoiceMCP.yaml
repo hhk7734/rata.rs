@@ -5,5 +5,5 @@ properties:
   server_label:
     type: string
 required:
-- name
-- server_label
+  - name
+  - server_label

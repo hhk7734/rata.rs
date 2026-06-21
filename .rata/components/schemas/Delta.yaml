@@ -2,28 +2,28 @@ type: object
 properties:
   role:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   content:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   reasoning_content:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   refusal:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   function_call:
     anyOf:
-    - $ref: "../schemas/DeltaFunctionCall.yaml"
-    - type: "null"
+      - $ref: "../schemas/DeltaFunctionCall.yaml"
+      - type: "null"
   tool_calls:
     anyOf:
-    - type: array
-      items:
-        $ref: "../schemas/ToolCallChunk.yaml"
-    - type: "null"
+      - type: array
+        items:
+          $ref: "../schemas/ToolCallChunk.yaml"
+      - type: "null"
 additionalProperties: false

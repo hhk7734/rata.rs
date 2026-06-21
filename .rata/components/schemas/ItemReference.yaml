@@ -15,5 +15,5 @@ properties:
     $ref: "../schemas/ItemReferenceTag.yaml"
 additionalProperties: false
 required:
-- id
-- type
+  - id
+  - type

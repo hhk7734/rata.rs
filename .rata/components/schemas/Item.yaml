@@ -1,229 +1,227 @@
-description: "Structured input/output item, discriminated by `type`. Mirrors\nDynamo's
-  `Item` variant-for-variant. Tag-based dispatch — unknown\n`type` values fail deserialization;
-  new item kinds require a new\nvariant here."
+description: "Structured input/output item, discriminated by `type`. Mirrors\nDynamo's `Item` variant-for-variant. Tag-based dispatch — unknown\n`type` values fail deserialization; new item kinds require a new\nvariant here."
 oneOf:
-- allOf:
-  - $ref: "../schemas/MessageItem.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: message
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/FileSearchToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: file_search_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ComputerToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: computer_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ComputerCallOutputItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: computer_call_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/WebSearchToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: web_search_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/FunctionToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: function_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/FunctionCallOutputItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: function_call_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ToolSearchCallItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: tool_search_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ToolSearchOutputItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: tool_search_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ReasoningItem.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: reasoning
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/CompactionSummaryItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: compaction
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ImageGenToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: image_generation_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/CodeInterpreterToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: code_interpreter_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/LocalShellToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: local_shell_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/LocalShellToolCallOutput.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: local_shell_call_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/FunctionShellCallItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: shell_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/FunctionShellCallOutputItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: shell_call_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ApplyPatchToolCallItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: apply_patch_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ApplyPatchToolCallOutputItemParam.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: apply_patch_call_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/MCPListTools.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: mcp_list_tools
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/MCPApprovalRequest.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: mcp_approval_request
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/MCPApprovalResponse.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: mcp_approval_response
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/MCPToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: mcp_call
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/CustomToolCallOutput.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: custom_tool_call_output
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/CustomToolCall.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: custom_tool_call
-    required:
-    - type
+  - allOf:
+      - $ref: "../schemas/MessageItem.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: message
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/FileSearchToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: file_search_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ComputerToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: computer_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ComputerCallOutputItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: computer_call_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/WebSearchToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: web_search_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/FunctionToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: function_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/FunctionCallOutputItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: function_call_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ToolSearchCallItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: tool_search_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ToolSearchOutputItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: tool_search_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ReasoningItem.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: reasoning
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/CompactionSummaryItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: compaction
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ImageGenToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: image_generation_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/CodeInterpreterToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: code_interpreter_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/LocalShellToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: local_shell_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/LocalShellToolCallOutput.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: local_shell_call_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/FunctionShellCallItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: shell_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/FunctionShellCallOutputItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: shell_call_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ApplyPatchToolCallItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: apply_patch_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ApplyPatchToolCallOutputItemParam.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: apply_patch_call_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/MCPListTools.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: mcp_list_tools
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/MCPApprovalRequest.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: mcp_approval_request
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/MCPApprovalResponse.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: mcp_approval_response
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/MCPToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: mcp_call
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/CustomToolCallOutput.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: custom_tool_call_output
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/CustomToolCall.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: custom_tool_call
+        required:
+          - type

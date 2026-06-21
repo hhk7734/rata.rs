@@ -1,9 +1,8 @@
-description: "Streaming option — request that lifecycle event snapshots embed\n `obfuscation`
-  tokens."
+description: "Streaming option — request that lifecycle event snapshots embed\n `obfuscation` tokens."
 type: object
 properties:
   include_obfuscation:
     anyOf:
-    - type: boolean
-    - type: "null"
+      - type: boolean
+      - type: "null"
 additionalProperties: false

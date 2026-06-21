@@ -2,27 +2,27 @@ type: object
 properties:
   content:
     anyOf:
-    - $ref: "../schemas/ChatCompletionRequestAssistantMessageContent.yaml"
-    - type: "null"
+      - $ref: "../schemas/ChatCompletionRequestAssistantMessageContent.yaml"
+      - type: "null"
   reasoning_content:
     anyOf:
-    - $ref: "../schemas/ReasoningContent.yaml"
-    - type: "null"
+      - $ref: "../schemas/ReasoningContent.yaml"
+      - type: "null"
   refusal:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   name:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   audio:
     anyOf:
-    - $ref: "../schemas/ChatCompletionRequestAssistantMessageAudio.yaml"
-    - type: "null"
+      - $ref: "../schemas/ChatCompletionRequestAssistantMessageAudio.yaml"
+      - type: "null"
   tool_calls:
     anyOf:
-    - type: array
-      items:
-        $ref: "../schemas/ToolCall.yaml"
-    - type: "null"
+      - type: array
+        items:
+          $ref: "../schemas/ToolCall.yaml"
+      - type: "null"

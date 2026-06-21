@@ -10,8 +10,8 @@ properties:
     $ref: "../schemas/AnthropicCacheControlType.yaml"
   ttl:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
 required:
-- type
+  - type
 additionalProperties: false

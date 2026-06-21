@@ -3,11 +3,11 @@ content:
   application/json:
     schema:
       required:
-      - id
-      - object
-      - created
-      - model
-      - choices
+        - id
+        - object
+        - created
+        - model
+        - choices
       title: CreateCompletionResponse
       type: object
       properties:
@@ -27,10 +27,10 @@ content:
             $ref: "../schemas/CompletionChoice.yaml"
         usage:
           anyOf:
-          - $ref: "../schemas/CompletionUsage.yaml"
-          - type: "null"
+            - $ref: "../schemas/CompletionUsage.yaml"
+            - type: "null"
         system_fingerprint:
           anyOf:
-          - type: string
-          - type: "null"
+            - type: string
+            - type: "null"
       additionalProperties: false

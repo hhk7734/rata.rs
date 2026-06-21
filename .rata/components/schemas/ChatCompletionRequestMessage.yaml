@@ -1,46 +1,46 @@
 oneOf:
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestSystemMessage.yaml"
-  - type: object
-    properties:
-      role:
-        type: string
-        const: system
-    required:
-    - role
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestDeveloperMessage.yaml"
-  - type: object
-    properties:
-      role:
-        type: string
-        const: developer
-    required:
-    - role
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestUserMessage.yaml"
-  - type: object
-    properties:
-      role:
-        type: string
-        const: user
-    required:
-    - role
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestAssistantMessage.yaml"
-  - type: object
-    properties:
-      role:
-        type: string
-        const: assistant
-    required:
-    - role
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestToolMessage.yaml"
-  - type: object
-    properties:
-      role:
-        type: string
-        const: tool
-    required:
-    - role
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestSystemMessage.yaml"
+      - type: object
+        properties:
+          role:
+            type: string
+            const: system
+        required:
+          - role
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestDeveloperMessage.yaml"
+      - type: object
+        properties:
+          role:
+            type: string
+            const: developer
+        required:
+          - role
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestUserMessage.yaml"
+      - type: object
+        properties:
+          role:
+            type: string
+            const: user
+        required:
+          - role
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestAssistantMessage.yaml"
+      - type: object
+        properties:
+          role:
+            type: string
+            const: assistant
+        required:
+          - role
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestToolMessage.yaml"
+      - type: object
+        properties:
+          role:
+            type: string
+            const: tool
+        required:
+          - role

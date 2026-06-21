@@ -1,6 +1,4 @@
-description: "`{\"type\":\"input_image\", ...}` — image input. Accepts a `file_id`
-  (for\nan uploaded asset) or `image_url` (remote URL / data URI);\n`detail` defaults
-  to `auto` so spec-compliant clients that omit it\nround-trip."
+description: "`{\"type\":\"input_image\", ...}` — image input. Accepts a `file_id` (for\nan uploaded asset) or `image_url` (remote URL / data URI);\n`detail` defaults to `auto` so spec-compliant clients that omit it\nround-trip."
 type: object
 properties:
   detail:
@@ -8,10 +6,10 @@ properties:
     default: auto
   file_id:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   image_url:
     anyOf:
-    - type: string
-      format: uri
-    - type: "null"
+      - type: string
+        format: uri
+      - type: "null"

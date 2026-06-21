@@ -1,6 +1,5 @@
-description: "Output modalities the model may produce. OpenAI defines `text` and\n
-  `audio`; vLLM-side multimodal models accept the same set."
+description: "Output modalities the model may produce. OpenAI defines `text` and\n `audio`; vLLM-side multimodal models accept the same set."
 type: string
 enum:
-- text
-- audio
+  - text
+  - audio

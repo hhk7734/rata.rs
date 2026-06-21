@@ -1,24 +1,23 @@
-description: "Annotation attached to assistant output — citation references for\n
-  web-search / file-search results."
+description: "Annotation attached to assistant output — citation references for\n web-search / file-search results."
 anyOf:
-- type: object
-  properties:
-    url_citation:
-      $ref: "../schemas/UrlCitation.yaml"
-    type:
-      type: string
-      const: url_citation
-  required:
-  - type
-  - url_citation
-- type: object
-  properties:
-    file_citation:
-      $ref: "../schemas/FileCitation.yaml"
-    type:
-      type: string
-      const: file_citation
-  required:
-  - type
-  - file_citation
-- description: Catch-all so future citation kinds round-trip without data loss.
+  - type: object
+    properties:
+      url_citation:
+        $ref: "../schemas/UrlCitation.yaml"
+      type:
+        type: string
+        const: url_citation
+    required:
+      - type
+      - url_citation
+  - type: object
+    properties:
+      file_citation:
+        $ref: "../schemas/FileCitation.yaml"
+      type:
+        type: string
+        const: file_citation
+    required:
+      - type
+      - file_citation
+  - description: Catch-all so future citation kinds round-trip without data loss.

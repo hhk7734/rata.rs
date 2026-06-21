@@ -1,13 +1,13 @@
 type: string
 enum:
-- alloy
-- ash
-- ballad
-- coral
-- echo
-- fable
-- onyx
-- nova
-- sage
-- shimmer
-- verse
+  - alloy
+  - ash
+  - ballad
+  - coral
+  - echo
+  - fable
+  - onyx
+  - nova
+  - sage
+  - shimmer
+  - verse

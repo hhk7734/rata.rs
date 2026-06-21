@@ -5,6 +5,6 @@ properties:
   approximate:
     $ref: "../schemas/WebSearchLocation.yaml"
 required:
-- type
-- approximate
+  - type
+  - approximate
 additionalProperties: false

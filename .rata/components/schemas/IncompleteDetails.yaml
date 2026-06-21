@@ -3,5 +3,5 @@ properties:
   reason:
     type: string
 required:
-- reason
+  - reason
 additionalProperties: false

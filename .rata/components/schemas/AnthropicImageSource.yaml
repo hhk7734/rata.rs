@@ -5,17 +5,17 @@ properties:
     type: string
   media_type:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   data:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   url:
     anyOf:
-    - type: string
-      format: uri
-    - type: "null"
+      - type: string
+        format: uri
+      - type: "null"
 required:
-- type
+  - type
 additionalProperties: false

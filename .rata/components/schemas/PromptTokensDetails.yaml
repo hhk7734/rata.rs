@@ -2,14 +2,14 @@ type: object
 properties:
   cached_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
   audio_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
 additionalProperties: false

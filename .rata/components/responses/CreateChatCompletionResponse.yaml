@@ -3,12 +3,12 @@ content:
   application/json:
     schema:
       required:
-      - id
-      - object
-      - created
-      - model
-      - choices
-      - usage
+        - id
+        - object
+        - created
+        - model
+        - choices
+        - usage
       title: CreateChatCompletionResponse
       type: object
       properties:
@@ -28,13 +28,13 @@ content:
             $ref: "../schemas/Choice.yaml"
         service_tier:
           anyOf:
-          - $ref: "../schemas/ServiceTierResponse.yaml"
-          - type: "null"
+            - $ref: "../schemas/ServiceTierResponse.yaml"
+            - type: "null"
           default:
         system_fingerprint:
           anyOf:
-          - type: string
-          - type: "null"
+            - type: string
+            - type: "null"
         usage:
           $ref: "../schemas/Usage.yaml"
       additionalProperties: false

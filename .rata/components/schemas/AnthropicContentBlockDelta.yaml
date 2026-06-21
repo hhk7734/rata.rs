@@ -1,54 +1,51 @@
-description: "Delta payload inside a `content_block_delta` SSE event. The variant
-  tag\ndiscriminates on the chunked field — `text_delta` for plain text,\n`input_json_delta`
-  for incremental tool-call JSON, `thinking_delta` and\n`signature_delta` for extended-reasoning
-  blocks, `citations_delta` for\nstreamed citations attached to a text block."
+description: "Delta payload inside a `content_block_delta` SSE event. The variant tag\ndiscriminates on the chunked field — `text_delta` for plain text,\n`input_json_delta` for incremental tool-call JSON, `thinking_delta` and\n`signature_delta` for extended-reasoning blocks, `citations_delta` for\nstreamed citations attached to a text block."
 oneOf:
-- type: object
-  properties:
-    text:
-      type: string
-    type:
-      type: string
-      const: text_delta
-  required:
-  - type
-  - text
-- type: object
-  properties:
-    partial_json:
-      type: string
-    type:
-      type: string
-      const: input_json_delta
-  required:
-  - type
-  - partial_json
-- type: object
-  properties:
-    thinking:
-      type: string
-    type:
-      type: string
-      const: thinking_delta
-  required:
-  - type
-  - thinking
-- type: object
-  properties:
-    signature:
-      type: string
-    type:
-      type: string
-      const: signature_delta
-  required:
-  - type
-  - signature
-- type: object
-  properties:
-    citation: {}
-    type:
-      type: string
-      const: citations_delta
-  required:
-  - type
-  - citation
+  - type: object
+    properties:
+      text:
+        type: string
+      type:
+        type: string
+        const: text_delta
+    required:
+      - type
+      - text
+  - type: object
+    properties:
+      partial_json:
+        type: string
+      type:
+        type: string
+        const: input_json_delta
+    required:
+      - type
+      - partial_json
+  - type: object
+    properties:
+      thinking:
+        type: string
+      type:
+        type: string
+        const: thinking_delta
+    required:
+      - type
+      - thinking
+  - type: object
+    properties:
+      signature:
+        type: string
+      type:
+        type: string
+        const: signature_delta
+    required:
+      - type
+      - signature
+  - type: object
+    properties:
+      citation: {}
+      type:
+        type: string
+        const: citations_delta
+    required:
+      - type
+      - citation

@@ -1,5 +1,5 @@
 type: string
 enum:
-- none
-- auto
-- required
+  - none
+  - auto
+  - required

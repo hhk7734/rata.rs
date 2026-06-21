@@ -4,4 +4,4 @@ properties:
   audio_url:
     $ref: "../schemas/AudioUrl.yaml"
 required:
-- audio_url
+  - audio_url

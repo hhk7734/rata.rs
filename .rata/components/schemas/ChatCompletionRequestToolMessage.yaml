@@ -5,5 +5,5 @@ properties:
   tool_call_id:
     type: string
 required:
-- content
-- tool_call_id
+  - content
+  - tool_call_id

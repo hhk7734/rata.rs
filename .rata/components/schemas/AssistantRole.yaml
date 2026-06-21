@@ -3,4 +3,4 @@ description: 'Single-variant role enum used to constrain `InputOutputMessage.rol
   to `"assistant"` only.'
 type: string
 enum:
-- assistant
+  - assistant

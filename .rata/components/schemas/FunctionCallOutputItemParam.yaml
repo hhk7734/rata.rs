@@ -6,12 +6,12 @@ properties:
     $ref: "../schemas/FunctionCallOutputContent.yaml"
   id:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   status:
     anyOf:
-    - $ref: "../schemas/OutputStatus.yaml"
-    - type: "null"
+      - $ref: "../schemas/OutputStatus.yaml"
+      - type: "null"
 required:
-- call_id
-- output
+  - call_id
+  - output

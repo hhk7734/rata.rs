@@ -1,66 +1,66 @@
 description: Citation / annotation attached to an `output_text` part.
 anyOf:
-- type: object
-  properties:
-    file_id:
-      type: string
-    index:
-      anyOf:
-      - type: integer
-        format: uint32
-        minimum: 0
-      - type: "null"
-    filename:
-      anyOf:
-      - type: string
-      - type: "null"
-    type:
-      type: string
-      const: file_citation
-  required:
-  - type
-  - file_id
-- type: object
-  properties:
-    url:
-      type: string
-      format: uri
-    title:
-      anyOf:
-      - type: string
-      - type: "null"
-    start_index:
-      anyOf:
-      - type: integer
-        format: uint32
-        minimum: 0
-      - type: "null"
-    end_index:
-      anyOf:
-      - type: integer
-        format: uint32
-        minimum: 0
-      - type: "null"
-    type:
-      type: string
-      const: url_citation
-  required:
-  - type
-  - url
-- type: object
-  properties:
-    file_id:
-      type: string
-    index:
-      anyOf:
-      - type: integer
-        format: uint32
-        minimum: 0
-      - type: "null"
-    type:
-      type: string
-      const: file_path
-  required:
-  - type
-  - file_id
-- description: Forward-compatible catch-all.
+  - type: object
+    properties:
+      file_id:
+        type: string
+      index:
+        anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+      filename:
+        anyOf:
+          - type: string
+          - type: "null"
+      type:
+        type: string
+        const: file_citation
+    required:
+      - type
+      - file_id
+  - type: object
+    properties:
+      url:
+        type: string
+        format: uri
+      title:
+        anyOf:
+          - type: string
+          - type: "null"
+      start_index:
+        anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+      end_index:
+        anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+      type:
+        type: string
+        const: url_citation
+    required:
+      - type
+      - url
+  - type: object
+    properties:
+      file_id:
+        type: string
+      index:
+        anyOf:
+          - type: integer
+            format: uint32
+            minimum: 0
+          - type: "null"
+      type:
+        type: string
+        const: file_path
+    required:
+      - type
+      - file_id
+  - description: Forward-compatible catch-all.

@@ -1,9 +1,8 @@
 oneOf:
-- type: string
-  enum:
-  - user
-  - assistant
-- description: "Compatibility for clients (e.g. Claude Code) that place system\n instructions
-    in `messages[]` instead of the top-level `system` field."
-  type: string
-  const: system
+  - type: string
+    enum:
+      - user
+      - assistant
+  - description: "Compatibility for clients (e.g. Claude Code) that place system\n instructions in `messages[]` instead of the top-level `system` field."
+    type: string
+    const: system

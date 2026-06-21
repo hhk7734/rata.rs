@@ -5,6 +5,6 @@ properties:
   arguments:
     type: string
 required:
-- name
-- arguments
+  - name
+  - arguments
 additionalProperties: false

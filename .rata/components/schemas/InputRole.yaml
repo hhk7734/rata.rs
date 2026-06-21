@@ -1,6 +1,6 @@
 description: Roles permitted on a user/system/developer input message.
 type: string
 enum:
-- user
-- system
-- developer
+  - user
+  - system
+  - developer

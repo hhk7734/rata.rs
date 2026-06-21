@@ -1,8 +1,6 @@
-description: "Echo of an assistant turn's reasoning content. Accepts a flat string\n
-  (legacy / single-block form) or an interleaved-segment array where\n `segments[i]`
-  precedes `tool_calls[i]`."
+description: "Echo of an assistant turn's reasoning content. Accepts a flat string\n (legacy / single-block form) or an interleaved-segment array where\n `segments[i]` precedes `tool_calls[i]`."
 anyOf:
-- type: string
-- type: array
-  items:
-    type: string
+  - type: string
+  - type: array
+    items:
+      type: string

@@ -1,5 +1,4 @@
-description: "`{\"type\":\"output_text\", ...}` — text content part on an echoed\n
-  assistant message. `annotations` defaults to empty so clients that omit\n it round-trip."
+description: "`{\"type\":\"output_text\", ...}` — text content part on an echoed\n assistant message. `annotations` defaults to empty so clients that omit\n it round-trip."
 type: object
 properties:
   text:
@@ -10,9 +9,9 @@ properties:
       $ref: "../schemas/Annotation.yaml"
   logprobs:
     anyOf:
-    - type: array
-      items:
-        $ref: "../schemas/LogProb.yaml"
-    - type: "null"
+      - type: array
+        items:
+          $ref: "../schemas/LogProb.yaml"
+      - type: "null"
 required:
-- text
+  - text

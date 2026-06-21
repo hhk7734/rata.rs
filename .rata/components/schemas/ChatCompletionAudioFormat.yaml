@@ -1,8 +1,8 @@
 type: string
 enum:
-- wav
-- aac
-- mp3
-- flac
-- opus
-- pcm16
+  - wav
+  - aac
+  - mp3
+  - flac
+  - opus
+  - pcm16

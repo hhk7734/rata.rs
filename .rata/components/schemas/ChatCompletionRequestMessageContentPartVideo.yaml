@@ -4,4 +4,4 @@ properties:
   video_url:
     $ref: "../schemas/VideoUrl.yaml"
 required:
-- video_url
+  - video_url

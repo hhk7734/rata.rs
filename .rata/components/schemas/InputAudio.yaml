@@ -6,6 +6,6 @@ properties:
   format:
     $ref: "../schemas/InputAudioFormat.yaml"
 required:
-- data
-- format
+  - data
+  - format
 additionalProperties: false

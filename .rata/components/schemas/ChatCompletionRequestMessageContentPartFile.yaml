@@ -7,4 +7,4 @@ type: object
 properties:
   file: {}
 required:
-- file
+  - file

@@ -4,4 +4,4 @@ properties:
   input_audio:
     $ref: "../schemas/InputAudio.yaml"
 required:
-- input_audio
+  - input_audio

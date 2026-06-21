@@ -8,13 +8,13 @@ properties:
     $ref: "../schemas/Delta.yaml"
   finish_reason:
     anyOf:
-    - $ref: "../schemas/FinishReason.yaml"
-    - type: "null"
+      - $ref: "../schemas/FinishReason.yaml"
+      - type: "null"
   logprobs:
     anyOf:
-    - $ref: "../schemas/ChatChoiceLogprobs.yaml"
-    - type: "null"
+      - $ref: "../schemas/ChatChoiceLogprobs.yaml"
+      - type: "null"
 required:
-- index
-- delta
+  - index
+  - delta
 additionalProperties: false

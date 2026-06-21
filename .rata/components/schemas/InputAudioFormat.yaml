@@ -1,5 +1,5 @@
 description: Audio format accepted on `input_audio` content parts.
 type: string
 enum:
-- wav
-- mp3
+  - wav
+  - mp3

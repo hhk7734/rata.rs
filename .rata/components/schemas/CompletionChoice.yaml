@@ -8,13 +8,13 @@ properties:
     minimum: 0
   logprobs:
     anyOf:
-    - $ref: "../schemas/Logprobs.yaml"
-    - type: "null"
+      - $ref: "../schemas/Logprobs.yaml"
+      - type: "null"
   finish_reason:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
 required:
-- text
-- index
+  - text
+  - index
 additionalProperties: false

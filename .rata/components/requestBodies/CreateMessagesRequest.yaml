@@ -3,8 +3,8 @@ content:
   application/json:
     schema:
       required:
-      - model
-      - max_tokens
+        - model
+        - max_tokens
       title: CreateMessagesRequest
       type: object
       properties:
@@ -19,8 +19,8 @@ content:
           default: []
         system:
           anyOf:
-          - $ref: "../schemas/AnthropicSystemPrompt.yaml"
-          - type: "null"
+            - $ref: "../schemas/AnthropicSystemPrompt.yaml"
+            - type: "null"
           default:
         max_tokens:
           type: integer
@@ -28,88 +28,87 @@ content:
           minimum: 1
         temperature:
           anyOf:
-          - type: number
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              format: float
+              default:
+            - type: "null"
         top_p:
           anyOf:
-          - type: number
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              format: float
+              default:
+            - type: "null"
         top_k:
           anyOf:
-          - type: integer
-            format: uint32
-            minimum: 0
-            default:
-          - type: "null"
+            - type: integer
+              format: uint32
+              minimum: 0
+              default:
+            - type: "null"
         stop_sequences:
           anyOf:
-          - type: array
-            items:
-              type: string
-            default:
-          - type: "null"
+            - type: array
+              items:
+                type: string
+              default:
+            - type: "null"
         stream:
           type: boolean
           default: false
         tools:
           anyOf:
-          - type: array
-            items:
-              $ref: "../schemas/AnthropicTool.yaml"
-            default:
-          - type: "null"
+            - type: array
+              items:
+                $ref: "../schemas/AnthropicTool.yaml"
+              default:
+            - type: "null"
         tool_choice:
           anyOf:
-          - $ref: "../schemas/AnthropicToolChoice.yaml"
-          - type: "null"
+            - $ref: "../schemas/AnthropicToolChoice.yaml"
+            - type: "null"
           default:
         metadata:
           default:
         thinking:
           anyOf:
-          - $ref: "../schemas/AnthropicThinkingConfig.yaml"
-          - type: "null"
+            - $ref: "../schemas/AnthropicThinkingConfig.yaml"
+            - type: "null"
           default:
         cache_control:
           description: Top-level cache control for automatic prompt prefix caching.
           anyOf:
-          - $ref: "../schemas/AnthropicCacheControl.yaml"
-          - type: "null"
+            - $ref: "../schemas/AnthropicCacheControl.yaml"
+            - type: "null"
           default:
         service_tier:
           anyOf:
-          - type: string
-            description: 'Service tier selection: `"auto"` or `"standard_only"`.'
-            default:
-          - type: "null"
+            - type: string
+              description: 'Service tier selection: `"auto"` or `"standard_only"`.'
+              default:
+            - type: "null"
         container:
           anyOf:
-          - type: string
-            description: Container identifier for stateful sandbox sessions.
-            default:
-          - type: "null"
+            - type: string
+              description: Container identifier for stateful sandbox sessions.
+              default:
+            - type: "null"
         output_config:
-          description: "Output configuration: effort level and optional JSON schema
-            format."
+          description: "Output configuration: effort level and optional JSON schema format."
           default:
         anthropic_version:
           anyOf:
-          - type: string
-            description: Anthropic-version header echo. Forwarded for round-trip parity.
-            default:
-          - type: "null"
+            - type: string
+              description: Anthropic-version header echo. Forwarded for round-trip parity.
+              default:
+            - type: "null"
         anthropic_beta:
           anyOf:
-          - type: array
-            description: Beta-feature opt-ins.
-            items:
-              type: string
-            default:
-          - type: "null"
+            - type: array
+              description: Beta-feature opt-ins.
+              items:
+                type: string
+              default:
+            - type: "null"
         context_management:
           type: object
       additionalProperties: false

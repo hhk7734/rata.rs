@@ -14,14 +14,14 @@ properties:
     minimum: 0
   prompt_tokens_details:
     anyOf:
-    - $ref: "../schemas/PromptTokensDetails.yaml"
-    - type: "null"
+      - $ref: "../schemas/PromptTokensDetails.yaml"
+      - type: "null"
   completion_tokens_details:
     anyOf:
-    - $ref: "../schemas/CompletionTokensDetails.yaml"
-    - type: "null"
+      - $ref: "../schemas/CompletionTokensDetails.yaml"
+      - type: "null"
 required:
-- prompt_tokens
-- completion_tokens
-- total_tokens
+  - prompt_tokens
+  - completion_tokens
+  - total_tokens
 additionalProperties: false

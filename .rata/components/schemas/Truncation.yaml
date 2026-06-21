@@ -1,5 +1,5 @@
 description: "`truncation` policy."
 type: string
 enum:
-- auto
-- disabled
+  - auto
+  - disabled

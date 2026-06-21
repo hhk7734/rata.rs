@@ -8,17 +8,17 @@ properties:
     $ref: "../schemas/ResponseMessage.yaml"
   logprobs:
     anyOf:
-    - $ref: "../schemas/ChatChoiceLogprobs.yaml"
-    - type: "null"
+      - $ref: "../schemas/ChatChoiceLogprobs.yaml"
+      - type: "null"
     default:
   finish_reason:
     oneOf:
-    - $ref: "../schemas/FinishReason.yaml"
-    - type: "null"
+      - $ref: "../schemas/FinishReason.yaml"
+      - type: "null"
   provider_specific_fields:
     type: object
     description: "LiteLLM-specific extension"
 required:
-- index
-- message
+  - index
+  - message
 additionalProperties: false

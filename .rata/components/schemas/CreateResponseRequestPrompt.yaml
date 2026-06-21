@@ -5,9 +5,9 @@ properties:
     type: string
   version:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   variables: {}
 required:
-- id
+  - id
 additionalProperties: false

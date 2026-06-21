@@ -1,6 +1,5 @@
 headers:
   content-type: application/json
-
 body:
   model: "{{model}}"
   messages:

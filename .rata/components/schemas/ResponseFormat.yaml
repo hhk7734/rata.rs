@@ -1,27 +1,26 @@
-description: "`response_format` configuration. OpenAI defines three modes:\n `text`
-  (default), `json_object`, and `json_schema`."
+description: "`response_format` configuration. OpenAI defines three modes:\n `text` (default), `json_object`, and `json_schema`."
 oneOf:
-- type: object
-  properties:
-    type:
-      type: string
-      const: text
-  required:
-  - type
-- type: object
-  properties:
-    type:
-      type: string
-      const: json_object
-  required:
-  - type
-- type: object
-  properties:
-    json_schema:
-      $ref: "../schemas/ResponseFormatJsonSchema.yaml"
-    type:
-      type: string
-      const: json_schema
-  required:
-  - type
-  - json_schema
+  - type: object
+    properties:
+      type:
+        type: string
+        const: text
+    required:
+      - type
+  - type: object
+    properties:
+      type:
+        type: string
+        const: json_object
+    required:
+      - type
+  - type: object
+    properties:
+      json_schema:
+        $ref: "../schemas/ResponseFormatJsonSchema.yaml"
+      type:
+        type: string
+        const: json_schema
+    required:
+      - type
+      - json_schema

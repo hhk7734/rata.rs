@@ -5,20 +5,20 @@ properties:
     format: uri
   title:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   start_index:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
   end_index:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
 required:
-- url
+  - url
 additionalProperties: false

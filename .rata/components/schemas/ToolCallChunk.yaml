@@ -6,16 +6,16 @@ properties:
     minimum: 0
   id:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   type:
     anyOf:
-    - $ref: "../schemas/FunctionType.yaml"
-    - type: "null"
+      - $ref: "../schemas/FunctionType.yaml"
+      - type: "null"
   function:
     anyOf:
-    - $ref: "../schemas/FunctionCallChunk.yaml"
-    - type: "null"
+      - $ref: "../schemas/FunctionCallChunk.yaml"
+      - type: "null"
 required:
-- index
+  - index
 additionalProperties: false

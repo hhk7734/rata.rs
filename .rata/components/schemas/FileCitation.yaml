@@ -4,10 +4,10 @@ properties:
     type: string
   index:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
 required:
-- file_id
+  - file_id
 additionalProperties: false

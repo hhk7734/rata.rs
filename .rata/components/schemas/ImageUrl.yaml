@@ -1,6 +1,4 @@
-description: "`image_url` payload. `url` accepts a remote URL or `data:` URI; `uuid`\n
-  is a gateway extension used to track multimodal assets through the\n pipeline without
-  re-uploading raw bytes."
+description: "`image_url` payload. `url` accepts a remote URL or `data:` URI; `uuid`\n is a gateway extension used to track multimodal assets through the\n pipeline without re-uploading raw bytes."
 type: object
 properties:
   url:
@@ -8,13 +6,13 @@ properties:
     format: uri
   detail:
     anyOf:
-    - $ref: "../schemas/ImageDetail.yaml"
-    - type: "null"
+      - $ref: "../schemas/ImageDetail.yaml"
+      - type: "null"
   uuid:
     anyOf:
-    - type: string
-      format: uuid
-    - type: "null"
+      - type: string
+        format: uuid
+      - type: "null"
 required:
-- url
+  - url
 additionalProperties: false

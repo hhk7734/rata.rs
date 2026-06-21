@@ -4,13 +4,13 @@ info:
   description: OpenAI-compatible and Anthropic-compatible endpoints.
   version: 0.1.0
 servers:
-- url: http://localhost:8000
-- url: http://localhost:8001
+  - url: http://localhost:8000
+  - url: http://localhost:8001
 paths:
   /v1/models:
     get:
       tags:
-      - models
+        - models
       summary: List Models
       description: Returns a list of available models.
       responses:
@@ -19,22 +19,22 @@ paths:
   /v1/models/{model_id}:
     get:
       tags:
-      - models
+        - models
       summary: Get a Model
       description: Retrieves a specific model by ID.
       parameters:
-      - name: model_id
-        in: path
-        required: true
-        schema:
-          type: string
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           $ref: "./components/responses/GetModelResponse.yaml"
   /v1/chat/completions:
     post:
       tags:
-      - chat
+        - chat
       summary: Create a Chat Completion
       description: Creates a model response for the given chat conversation.
       requestBody:
@@ -45,7 +45,7 @@ paths:
   /v1/completions:
     post:
       tags:
-      - completions
+        - completions
       summary: Create a Completion
       description: Creates a completion for the provided prompt and parameters.
       requestBody:
@@ -56,7 +56,7 @@ paths:
   /v1/messages:
     post:
       tags:
-      - messages
+        - messages
       summary: Create a Message
       description: Creates a message using the Anthropic API format.
       requestBody:
@@ -67,7 +67,7 @@ paths:
   /v1/responses:
     post:
       tags:
-      - responses
+        - responses
       summary: Create a Response
       description: Responses endpoint.
       requestBody:
@@ -85,7 +85,7 @@ paths:
   /metrics:
     get:
       tags:
-      - system
+        - system
       summary: Get Metrics
       description: Prometheus metrics endpoint.
       responses:
@@ -94,7 +94,7 @@ paths:
   /debug/metrics-store:
     get:
       tags:
-      - system
+        - system
       summary: Get Metrics for debugging
       description: Returns internal metrics store state for debugging.
       responses:
@@ -103,22 +103,22 @@ paths:
   /debug/reset-prefix-cache:
     post:
       tags:
-      - system
+        - system
       summary: Reset Prefix Cache
       description: Resets the prefix cache for debugging purposes.
       responses:
         "200":
           $ref: "./components/responses/ResetPrefixCacheResponse.yaml"
 tags:
-- name: models
-  description: models for OpenAI/Anthropic compatible Models API.
-- name: chat
-  description: OpenAI-compatible Chat API.
-- name: completions
-  description: OpenAI-compatible Completions API.
-- name: responses
-  description: OpenAI-compatible Responses API.
-- name: messages
-  description: Anthropic-compatible Messages API.
-- name: system
-  description: System endpoints for health, metrics, and debugging.
+  - name: models
+    description: models for OpenAI/Anthropic compatible Models API.
+  - name: chat
+    description: OpenAI-compatible Chat API.
+  - name: completions
+    description: OpenAI-compatible Completions API.
+  - name: responses
+    description: OpenAI-compatible Responses API.
+  - name: messages
+    description: Anthropic-compatible Messages API.
+  - name: system
+    description: System endpoints for health, metrics, and debugging.

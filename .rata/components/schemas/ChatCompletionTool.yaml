@@ -7,5 +7,5 @@ properties:
   function:
     $ref: "../schemas/FunctionObject.yaml"
 required:
-- function
+  - function
 additionalProperties: false

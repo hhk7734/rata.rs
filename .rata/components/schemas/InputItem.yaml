@@ -1,5 +1,5 @@
 description: Single input item. Untagged; specific shapes first.
 anyOf:
-- $ref: "../schemas/ItemReference.yaml"
-- $ref: "../schemas/Item.yaml"
-- $ref: "../schemas/EasyInputMessage.yaml"
+  - $ref: "../schemas/ItemReference.yaml"
+  - $ref: "../schemas/Item.yaml"
+  - $ref: "../schemas/EasyInputMessage.yaml"

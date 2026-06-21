@@ -10,9 +10,9 @@ properties:
     type: array
     items:
       anyOf:
-      - type: number
-        format: float
-      - type: "null"
+        - type: number
+          format: float
+        - type: "null"
   tokens:
     type: array
     items:
@@ -21,12 +21,12 @@ properties:
     type: array
     items:
       anyOf:
-      - type: object
-        additionalProperties: true
-      - type: "null"
+        - type: object
+          additionalProperties: true
+        - type: "null"
 required:
-- text_offset
-- token_logprobs
-- tokens
-- top_logprobs
+  - text_offset
+  - token_logprobs
+  - tokens
+  - top_logprobs
 additionalProperties: false

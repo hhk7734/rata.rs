@@ -1,29 +1,29 @@
 description: Content parts on input messages.
 oneOf:
-- allOf:
-  - $ref: "../schemas/InputTextContent.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: input_text
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/InputImageContent.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: input_image
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/InputFileContent.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: input_file
-    required:
-    - type
+  - allOf:
+      - $ref: "../schemas/InputTextContent.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: input_text
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/InputImageContent.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: input_image
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/InputFileContent.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: input_file
+        required:
+          - type

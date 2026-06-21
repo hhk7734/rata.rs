@@ -3,8 +3,8 @@ content:
   application/json:
     schema:
       required:
-      - model
-      - input
+        - model
+        - input
       title: CreateResponseRequest
       type: object
       properties:
@@ -15,216 +15,212 @@ content:
           $ref: "../schemas/ResponseInput.yaml"
         instructions:
           anyOf:
-          - type: string
-            default:
-          - type: "null"
+            - type: string
+              default:
+            - type: "null"
         temperature:
           anyOf:
-          - type: number
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              format: float
+              default:
+            - type: "null"
         top_p:
           anyOf:
-          - type: number
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              format: float
+              default:
+            - type: "null"
         top_k:
           anyOf:
-          - type: integer
-            description: "vLLM-extension: top-k sampling. `0` disables."
-            format: int32
-            default:
-          - type: "null"
+            - type: integer
+              description: "vLLM-extension: top-k sampling. `0` disables."
+              format: int32
+              default:
+            - type: "null"
         min_p:
           anyOf:
-          - type: number
-            description: "vLLM-extension: minimum token probability relative to the
-              top token."
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              description: "vLLM-extension: minimum token probability relative to the top token."
+              format: float
+              default:
+            - type: "null"
         max_output_tokens:
           anyOf:
-          - type: integer
-            description: OpenAI Responses-spec name for the upper bound on generated
-              tokens.
-            format: uint32
-            minimum: 0
-            default:
-          - type: "null"
+            - type: integer
+              description: OpenAI Responses-spec name for the upper bound on generated tokens.
+              format: uint32
+              minimum: 0
+              default:
+            - type: "null"
         min_tokens:
           anyOf:
-          - type: integer
-            format: uint32
-            minimum: 0
-          - type: "null"
+            - type: integer
+              format: uint32
+              minimum: 0
+            - type: "null"
         presence_penalty:
           anyOf:
-          - type: number
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              format: float
+              default:
+            - type: "null"
         frequency_penalty:
           anyOf:
-          - type: number
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              format: float
+              default:
+            - type: "null"
         repetition_penalty:
           anyOf:
-          - type: number
-            description: "vLLM-extension: repetition penalty (`1.0` = neutral)."
-            format: float
-            default:
-          - type: "null"
+            - type: number
+              description: "vLLM-extension: repetition penalty (`1.0` = neutral)."
+              format: float
+              default:
+            - type: "null"
         seed:
           anyOf:
-          - type: integer
-            format: uint64
-            minimum: 0
-            default:
-          - type: "null"
+            - type: integer
+              format: uint64
+              minimum: 0
+              default:
+            - type: "null"
         stop:
           anyOf:
-          - type: array
-            items:
-              type: string
-            default:
-          - type: "null"
+            - type: array
+              items:
+                type: string
+              default:
+            - type: "null"
         ignore_eos:
           anyOf:
-          - type: boolean
-          - type: "null"
+            - type: boolean
+            - type: "null"
         stream:
           anyOf:
-          - type: boolean
-            default:
-          - type: "null"
+            - type: boolean
+              default:
+            - type: "null"
         stream_options:
           anyOf:
-          - $ref: "../schemas/ResponseStreamOptions.yaml"
-          - type: "null"
+            - $ref: "../schemas/ResponseStreamOptions.yaml"
+            - type: "null"
           default:
         tools:
           anyOf:
-          - type: array
-            items:
-              $ref: "../schemas/Tool.yaml"
-            default:
-          - type: "null"
+            - type: array
+              items:
+                $ref: "../schemas/Tool.yaml"
+              default:
+            - type: "null"
         tool_choice:
           anyOf:
-          - $ref: "../schemas/ToolChoiceParam.yaml"
-          - type: "null"
+            - $ref: "../schemas/ToolChoiceParam.yaml"
+            - type: "null"
           default:
         priority:
           anyOf:
-          - type: integer
-            description: "vLLM scheduler priority (lower = earlier). Requires the
-              engine to be\nlaunched with priority scheduling for any non-default
-              value to take\neffect."
-            format: int32
-            default:
-          - type: "null"
+            - type: integer
+              description: "vLLM scheduler priority (lower = earlier). Requires the engine to be\nlaunched with priority scheduling for any non-default value to take\neffect."
+              format: int32
+              default:
+            - type: "null"
         user:
           anyOf:
-          - type: string
-            default:
-          - type: "null"
+            - type: string
+              default:
+            - type: "null"
         reasoning:
           anyOf:
-          - $ref: "../schemas/Reasoning.yaml"
-          - type: "null"
+            - $ref: "../schemas/Reasoning.yaml"
+            - type: "null"
           default:
         store:
           anyOf:
-          - type: boolean
-            default:
-          - type: "null"
+            - type: boolean
+              default:
+            - type: "null"
         previous_response_id:
           anyOf:
-          - type: string
-            default:
-          - type: "null"
+            - type: string
+              default:
+            - type: "null"
         background:
           anyOf:
-          - type: boolean
-            default:
-          - type: "null"
+            - type: boolean
+              default:
+            - type: "null"
         conversation:
           anyOf:
-          - $ref: "../schemas/ConversationParam.yaml"
-          - type: "null"
+            - $ref: "../schemas/ConversationParam.yaml"
+            - type: "null"
           default:
         include:
           anyOf:
-          - type: array
-            items:
-              $ref: "../schemas/IncludeEnum.yaml"
-            default:
-          - type: "null"
+            - type: array
+              items:
+                $ref: "../schemas/IncludeEnum.yaml"
+              default:
+            - type: "null"
         max_tool_calls:
           anyOf:
-          - type: integer
-            format: uint32
-            minimum: 0
-            default:
-          - type: "null"
+            - type: integer
+              format: uint32
+              minimum: 0
+              default:
+            - type: "null"
         metadata:
           anyOf:
-          - type: object
-            additionalProperties:
-              type: string
-            default:
-          - type: "null"
+            - type: object
+              additionalProperties:
+                type: string
+              default:
+            - type: "null"
         parallel_tool_calls:
           anyOf:
-          - type: boolean
-            default:
-          - type: "null"
+            - type: boolean
+              default:
+            - type: "null"
         prompt:
           anyOf:
-          - $ref: "../schemas/CreateResponseRequestPrompt.yaml"
-          - type: "null"
+            - $ref: "../schemas/CreateResponseRequestPrompt.yaml"
+            - type: "null"
           default:
         prompt_cache_key:
           anyOf:
-          - type: string
-            default:
-          - type: "null"
+            - type: string
+              default:
+            - type: "null"
         prompt_cache_retention:
           anyOf:
-          - $ref: "../schemas/PromptCacheRetention.yaml"
-          - type: "null"
+            - $ref: "../schemas/PromptCacheRetention.yaml"
+            - type: "null"
           default:
         safety_identifier:
           anyOf:
-          - type: string
-            default:
-          - type: "null"
+            - type: string
+              default:
+            - type: "null"
         service_tier:
           anyOf:
-          - $ref: "../schemas/ServiceTier.yaml"
-          - type: "null"
+            - $ref: "../schemas/ServiceTier.yaml"
+            - type: "null"
           default:
         text:
           anyOf:
-          - $ref: "../schemas/ResponseTextParam.yaml"
-          - type: "null"
+            - $ref: "../schemas/ResponseTextParam.yaml"
+            - type: "null"
           default:
         top_logprobs:
           anyOf:
-          - type: integer
-            format: uint8
-            minimum: 0
-            maximum: 255
-            default:
-          - type: "null"
+            - type: integer
+              format: uint8
+              minimum: 0
+              maximum: 255
+              default:
+            - type: "null"
         truncation:
           anyOf:
-          - $ref: "../schemas/Truncation.yaml"
-          - type: "null"
+            - $ref: "../schemas/Truncation.yaml"
+            - type: "null"
           default:
       additionalProperties: false

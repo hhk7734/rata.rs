@@ -1,13 +1,12 @@
-description: "Streaming deprecated-function-call delta. Carries the per-token slice\n
-  of name/arguments separately from the modern `tool_calls` stream."
+description: "Streaming deprecated-function-call delta. Carries the per-token slice\n of name/arguments separately from the modern `tool_calls` stream."
 type: object
 properties:
   name:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   arguments:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
 additionalProperties: false

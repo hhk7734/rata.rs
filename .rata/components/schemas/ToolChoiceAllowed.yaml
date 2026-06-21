@@ -6,5 +6,5 @@ properties:
     type: array
     items: {}
 required:
-- mode
-- tools
+  - mode
+  - tools

@@ -3,4 +3,4 @@ description: 'Item-type discriminator on `EasyInputMessage`. Spec-default `"mess
   is accepted when the `type` field is absent.'
 type: string
 enum:
-- message
+  - message

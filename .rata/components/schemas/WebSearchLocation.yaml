@@ -2,18 +2,18 @@ type: object
 properties:
   city:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   country:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   region:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
   timezone:
     anyOf:
-    - type: string
-    - type: "null"
+      - type: string
+      - type: "null"
 additionalProperties: false

@@ -1,5 +1,5 @@
 type: string
 enum:
-- low
-- medium
-- high
+  - low
+  - medium
+  - high

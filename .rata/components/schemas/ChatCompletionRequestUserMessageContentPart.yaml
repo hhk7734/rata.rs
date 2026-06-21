@@ -1,58 +1,57 @@
 oneOf:
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestMessageContentPartText.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: text
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestMessageContentPartImage.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: image_url
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestMessageContentPartAudio.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: input_audio
-    required:
-    - type
-- description: "vLLM extension: video reference passed by URL."
-  allOf:
-  - $ref: "../schemas/ChatCompletionRequestMessageContentPartVideo.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: video_url
-    required:
-    - type
-- description: "vLLM extension: audio reference passed by URL (distinct from base64\n\
-    `input_audio`)."
-  allOf:
-  - $ref: "../schemas/ChatCompletionRequestMessageContentPartAudioUrl.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: audio_url
-    required:
-    - type
-- allOf:
-  - $ref: "../schemas/ChatCompletionRequestMessageContentPartFile.yaml"
-  - type: object
-    properties:
-      type:
-        type: string
-        const: file
-    required:
-    - type
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestMessageContentPartText.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: text
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestMessageContentPartImage.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: image_url
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestMessageContentPartAudio.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: input_audio
+        required:
+          - type
+  - description: "vLLM extension: video reference passed by URL."
+    allOf:
+      - $ref: "../schemas/ChatCompletionRequestMessageContentPartVideo.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: video_url
+        required:
+          - type
+  - description: "vLLM extension: audio reference passed by URL (distinct from base64\n`input_audio`)."
+    allOf:
+      - $ref: "../schemas/ChatCompletionRequestMessageContentPartAudioUrl.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: audio_url
+        required:
+          - type
+  - allOf:
+      - $ref: "../schemas/ChatCompletionRequestMessageContentPartFile.yaml"
+      - type: object
+        properties:
+          type:
+            type: string
+            const: file
+        required:
+          - type

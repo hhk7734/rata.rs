@@ -1,44 +1,44 @@
 oneOf:
-- type: object
-  properties:
-    disable_parallel_tool_use:
-      anyOf:
-      - type: boolean
-      - type: "null"
-    type:
-      type: string
-      const: auto
-  required:
-  - type
-- type: object
-  properties:
-    disable_parallel_tool_use:
-      anyOf:
-      - type: boolean
-      - type: "null"
-    type:
-      type: string
-      const: any
-  required:
-  - type
-- type: object
-  properties:
-    name:
-      type: string
-    disable_parallel_tool_use:
-      anyOf:
-      - type: boolean
-      - type: "null"
-    type:
-      type: string
-      const: tool
-  required:
-  - type
-  - name
-- type: object
-  properties:
-    type:
-      type: string
-      const: none
-  required:
-  - type
+  - type: object
+    properties:
+      disable_parallel_tool_use:
+        anyOf:
+          - type: boolean
+          - type: "null"
+      type:
+        type: string
+        const: auto
+    required:
+      - type
+  - type: object
+    properties:
+      disable_parallel_tool_use:
+        anyOf:
+          - type: boolean
+          - type: "null"
+      type:
+        type: string
+        const: any
+    required:
+      - type
+  - type: object
+    properties:
+      name:
+        type: string
+      disable_parallel_tool_use:
+        anyOf:
+          - type: boolean
+          - type: "null"
+      type:
+        type: string
+        const: tool
+    required:
+      - type
+      - name
+  - type: object
+    properties:
+      type:
+        type: string
+        const: none
+    required:
+      - type

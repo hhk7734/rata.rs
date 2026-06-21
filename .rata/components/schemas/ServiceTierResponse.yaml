@@ -1,8 +1,7 @@
-description: "Service tier the backend reports it used. vLLM has no concept of tiers\n
-  and always emits `None`; the field exists for spec completeness."
+description: "Service tier the backend reports it used. vLLM has no concept of tiers\n and always emits `None`; the field exists for spec completeness."
 type: string
 enum:
-- scale
-- default
-- flex
-- priority
+  - scale
+  - default
+  - flex
+  - priority

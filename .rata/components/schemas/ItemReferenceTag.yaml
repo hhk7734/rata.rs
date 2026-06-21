@@ -1,3 +1,3 @@
 type: string
 enum:
-- item_reference
+  - item_reference

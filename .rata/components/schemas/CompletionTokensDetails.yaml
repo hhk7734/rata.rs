@@ -2,26 +2,26 @@ type: object
 properties:
   reasoning_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
   audio_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
   accepted_prediction_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
   rejected_prediction_tokens:
     anyOf:
-    - type: integer
-      format: uint32
-      minimum: 0
-    - type: "null"
+      - type: integer
+        format: uint32
+        minimum: 0
+      - type: "null"
 additionalProperties: false

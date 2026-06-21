@@ -4,5 +4,5 @@ description: 'Message item inside `Item::Message`. Untagged; discriminated by `r
 
   `"developer"`.'
 anyOf:
-- $ref: "../schemas/InputOutputMessage.yaml"
-- $ref: "../schemas/InputMessage.yaml"
+  - $ref: "../schemas/InputOutputMessage.yaml"
+  - $ref: "../schemas/InputMessage.yaml"
