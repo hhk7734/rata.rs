@@ -1,4 +1,4 @@
-use crate::tui::{apply_selection, count_visual_lines, TuiApp, TEXT};
+use crate::tui::{TEXT, TuiApp, apply_selection, count_visual_lines};
 
 pub fn render_response_cookies_tab(
     frame: &mut ratatui::Frame,

@@ -170,16 +170,24 @@ impl RataProject {
                 let path = self.root.join(name);
                 if path.is_file() {
                     if let Ok(source) = fs::read_to_string(&path) {
-                        if let Ok(value) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source) {
+                        if let Ok(value) =
+                            serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source)
+                        {
                             if let Some(serde_yaml::Value::Mapping(map)) = value.get("headers") {
                                 for (k, v) in map {
                                     let k_str = match k {
                                         serde_yaml::Value::String(s) => s.clone(),
-                                        _ => serde_yaml::to_string(k).unwrap_or_default().trim().to_string(),
+                                        _ => serde_yaml::to_string(k)
+                                            .unwrap_or_default()
+                                            .trim()
+                                            .to_string(),
                                     };
                                     let v_str = match v {
                                         serde_yaml::Value::String(s) => s.clone(),
-                                        _ => serde_yaml::to_string(v).unwrap_or_default().trim().to_string(),
+                                        _ => serde_yaml::to_string(v)
+                                            .unwrap_or_default()
+                                            .trim()
+                                            .to_string(),
                                     };
                                     hdrs.insert(k_str, v_str);
                                 }
@@ -191,8 +199,24 @@ impl RataProject {
             }
         };
 
-        load_headers(&["variables.yaml", "variable.yaml", "variables.yml", "variable.yml"], &mut headers);
-        load_headers(&["variables.local.yaml", "variable.local.yaml", "variables.local.yml", "variable.local.yml"], &mut headers);
+        load_headers(
+            &[
+                "variables.yaml",
+                "variable.yaml",
+                "variables.yml",
+                "variable.yml",
+            ],
+            &mut headers,
+        );
+        load_headers(
+            &[
+                "variables.local.yaml",
+                "variable.local.yaml",
+                "variables.local.yml",
+                "variable.local.yml",
+            ],
+            &mut headers,
+        );
 
         headers
     }
@@ -204,11 +228,16 @@ impl RataProject {
                 let path = self.root.join(name);
                 if path.is_file() {
                     if let Ok(source) = fs::read_to_string(&path) {
-                        if let Ok(value) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source) {
+                        if let Ok(value) =
+                            serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source)
+                        {
                             for (k, v) in value {
                                 let string_val = match v {
                                     serde_yaml::Value::String(s) => s,
-                                    _ => serde_yaml::to_string(&v).unwrap_or_default().trim().to_string(),
+                                    _ => serde_yaml::to_string(&v)
+                                        .unwrap_or_default()
+                                        .trim()
+                                        .to_string(),
                                 };
                                 vars.insert(k, string_val);
                             }
@@ -219,8 +248,24 @@ impl RataProject {
             }
         };
 
-        load_vars(&["variables.yaml", "variable.yaml", "variables.yml", "variable.yml"], &mut variables);
-        load_vars(&["variables.local.yaml", "variable.local.yaml", "variables.local.yml", "variable.local.yml"], &mut variables);
+        load_vars(
+            &[
+                "variables.yaml",
+                "variable.yaml",
+                "variables.yml",
+                "variable.yml",
+            ],
+            &mut variables,
+        );
+        load_vars(
+            &[
+                "variables.local.yaml",
+                "variable.local.yaml",
+                "variables.local.yml",
+                "variable.local.yml",
+            ],
+            &mut variables,
+        );
 
         variables
     }
@@ -251,11 +296,11 @@ impl RataProject {
         if path.is_empty() || path == "/" {
             return "root".to_string();
         }
-        
+
         let mut result = String::new();
         for (i, part) in path.split('/').skip(1).enumerate() {
             let unescaped = part.replace("~1", "/").replace("~0", "~");
-            
+
             if let Ok(index) = unescaped.parse::<usize>() {
                 result.push_str(&format!("[{}]", index));
             } else {
@@ -268,7 +313,12 @@ impl RataProject {
         result
     }
 
-    pub fn validate_request_body(&self, method: HttpMethod, path: &str, body: &str) -> anyhow::Result<Vec<String>> {
+    pub fn validate_request_body(
+        &self,
+        method: HttpMethod,
+        path: &str,
+        body: &str,
+    ) -> anyhow::Result<Vec<String>> {
         if body.trim().is_empty() {
             return Ok(Vec::new());
         }
@@ -279,10 +329,13 @@ impl RataProject {
 
         let method_str = method.label().to_lowercase();
         let path_escaped = path.replace("~", "~0").replace("/", "~1");
-        
+
         let base_pointer = format!("/paths/{}/{}/requestBody", path_escaped, method_str);
-        if let Some(pointer) = self.get_schema_pointer(base_pointer, "/content/application~1json/schema") {
-            let user_schema = serde_json::json!({"$ref": format!("http://localhost/root#{}", pointer)});
+        if let Some(pointer) =
+            self.get_schema_pointer(base_pointer, "/content/application~1json/schema")
+        {
+            let user_schema =
+                serde_json::json!({"$ref": format!("http://localhost/root#{}", pointer)});
             let registry = jsonschema::Registry::new()
                 .add("http://localhost/root", self.openapi_value.clone())
                 .map_err(|e| anyhow::anyhow!("Failed to add registry: {}", e))?
@@ -293,7 +346,7 @@ impl RataProject {
                 .with_registry(&registry)
                 .build(&user_schema)
                 .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
-            
+
             let mut errors: Vec<String> = Vec::new();
             if !validator.is_valid(&body_value) {
                 for error in validator.iter_errors(&body_value) {
@@ -307,7 +360,13 @@ impl RataProject {
         Ok(Vec::new())
     }
 
-    pub fn validate_response_body(&self, method: HttpMethod, path: &str, status: u16, body: &str) -> anyhow::Result<Vec<String>> {
+    pub fn validate_response_body(
+        &self,
+        method: HttpMethod,
+        path: &str,
+        status: u16,
+        body: &str,
+    ) -> anyhow::Result<Vec<String>> {
         if body.trim().is_empty() {
             return Ok(Vec::new());
         }
@@ -318,12 +377,19 @@ impl RataProject {
 
         let method_str = method.label().to_lowercase();
         let path_escaped = path.replace("~", "~0").replace("/", "~1");
-        
-        let base_pointer = format!("/paths/{}/{}/responses/{}", path_escaped, method_str, status);
-        let base_pointer_default = format!("/paths/{}/{}/responses/default", path_escaped, method_str);
-        
-        let target_pointer = self.get_schema_pointer(base_pointer, "/content/application~1json/schema")
-            .or_else(|| self.get_schema_pointer(base_pointer_default, "/content/application~1json/schema"));
+
+        let base_pointer = format!(
+            "/paths/{}/{}/responses/{}",
+            path_escaped, method_str, status
+        );
+        let base_pointer_default =
+            format!("/paths/{}/{}/responses/default", path_escaped, method_str);
+
+        let target_pointer = self
+            .get_schema_pointer(base_pointer, "/content/application~1json/schema")
+            .or_else(|| {
+                self.get_schema_pointer(base_pointer_default, "/content/application~1json/schema")
+            });
 
         if let Some(p) = target_pointer {
             let user_schema = serde_json::json!({"$ref": format!("http://localhost/root#{}", p)});
@@ -337,7 +403,7 @@ impl RataProject {
                 .with_registry(&registry)
                 .build(&user_schema)
                 .map_err(|e| anyhow::anyhow!("Failed to compile schema: {}", e))?;
-            
+
             let mut errors: Vec<String> = Vec::new();
             if !validator.is_valid(&body_value) {
                 for error in validator.iter_errors(&body_value) {
@@ -381,7 +447,11 @@ impl RataProject {
 
     pub fn examples_for(&self, operation: &Operation) -> anyhow::Result<Vec<ExampleFile>> {
         let path = operation.path.trim_start_matches('/');
-        let example_dir = self.root.join("examples").join(path).join(operation.method.directory());
+        let example_dir = self
+            .root
+            .join("examples")
+            .join(path)
+            .join(operation.method.directory());
         if !example_dir.is_dir() {
             return Ok(Vec::new());
         }
@@ -463,10 +533,18 @@ fn collect_operations(document: &OpenAPI) -> Vec<Collection> {
             for param in item.parameters.iter().chain(operation.parameters.iter()) {
                 if let ReferenceOr::Item(param) = param {
                     let (data, location) = match param {
-                        openapiv3::Parameter::Query { parameter_data, .. } => (parameter_data, "query"),
-                        openapiv3::Parameter::Header { parameter_data, .. } => (parameter_data, "header"),
-                        openapiv3::Parameter::Path { parameter_data, .. } => (parameter_data, "path"),
-                        openapiv3::Parameter::Cookie { parameter_data, .. } => (parameter_data, "cookie"),
+                        openapiv3::Parameter::Query { parameter_data, .. } => {
+                            (parameter_data, "query")
+                        }
+                        openapiv3::Parameter::Header { parameter_data, .. } => {
+                            (parameter_data, "header")
+                        }
+                        openapiv3::Parameter::Path { parameter_data, .. } => {
+                            (parameter_data, "path")
+                        }
+                        openapiv3::Parameter::Cookie { parameter_data, .. } => {
+                            (parameter_data, "cookie")
+                        }
                     };
                     parameters.push(OperationParameter {
                         name: data.name.clone(),

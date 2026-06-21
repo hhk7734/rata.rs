@@ -39,7 +39,10 @@ fn run_request(method: rata::HttpMethod, url: &str) -> anyhow::Result<()> {
         variables = project.variables();
         if !variables.contains_key("baseUrl") {
             if let Some(server) = project.server_url() {
-                variables.insert("baseUrl".to_string(), server.trim_end_matches('/').to_string());
+                variables.insert(
+                    "baseUrl".to_string(),
+                    server.trim_end_matches('/').to_string(),
+                );
             }
         }
     }

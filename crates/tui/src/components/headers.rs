@@ -57,13 +57,12 @@ pub fn render_request_headers_tab(
         }
         rows.push(row);
     }
-    let add_style = if app.active_block == ActiveBlock::Params
-        && app.selected_request_row == params.len()
-    {
-        Style::default().bg(SELECTED_BG)
-    } else {
-        Style::default()
-    };
+    let add_style =
+        if app.active_block == ActiveBlock::Params && app.selected_request_row == params.len() {
+            Style::default().bg(SELECTED_BG)
+        } else {
+            Style::default()
+        };
     rows.push(
         Row::new(vec![
             ratatui::widgets::Cell::from(""),
@@ -81,9 +80,7 @@ pub fn render_request_headers_tab(
             Constraint::Percentage(67),
         ],
     )
-    .header(
-        Row::new(["", "Key", "Value"]).style(muted_style().add_modifier(Modifier::BOLD)),
-    )
+    .header(Row::new(["", "Key", "Value"]).style(muted_style().add_modifier(Modifier::BOLD)))
     .block(block)
     .style(Style::default().fg(TEXT));
     frame.render_widget(t, area);
@@ -103,10 +100,7 @@ pub fn render_response_headers_tab(
         .iter()
         .map(|(k, v)| {
             ratatui::widgets::Row::new(vec![
-                ratatui::widgets::Cell::from(Span::styled(
-                    k.clone(),
-                    Style::default().fg(BLUE),
-                )),
+                ratatui::widgets::Cell::from(Span::styled(k.clone(), Style::default().fg(BLUE))),
                 ratatui::widgets::Cell::from(Span::raw(v.clone())),
             ])
         })

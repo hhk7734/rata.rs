@@ -19,8 +19,11 @@ fn tui_app_edits_url_from_key_input() {
 
     app.input_mode = rata::tui::InputMode::EditingUrl;
     for value in "http://localhost:8000/v1/models".chars() {
-        app.handle_key(KeyEvent::new(KeyCode::Char(value), KeyModifiers::NONE), None)
-            .unwrap();
+        app.handle_key(
+            KeyEvent::new(KeyCode::Char(value), KeyModifiers::NONE),
+            None,
+        )
+        .unwrap();
     }
     app.handle_key(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE), None)
         .unwrap();
@@ -37,15 +40,27 @@ fn response_view_uses_tabs_and_pretty_json_body() {
     app.response.headers = vec![("content-type".to_string(), "application/json".to_string())];
     app.response.cookies = vec!["session=abc; Path=/".to_string()];
 
-    assert_eq!(app.response_tabs(), ["Body".to_string(), "Headers (1)".to_string(), "Cookies (1)".to_string()]);
+    assert_eq!(
+        app.response_tabs(),
+        [
+            "Body".to_string(),
+            "Headers (1)".to_string(),
+            "Cookies (1)".to_string()
+        ]
+    );
     assert_eq!(app.active_response_tab, ResponseTab::Body);
     assert_eq!(
         app.active_response_text(),
-        rata::tui::highlight_json("{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}")
+        rata::tui::highlight_json(
+            "{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}"
+        )
     );
 
     app.active_response_tab = ResponseTab::Headers;
-    assert_eq!(app.active_response_text(), "content-type: application/json".into());
+    assert_eq!(
+        app.active_response_text(),
+        "content-type: application/json".into()
+    );
 
     app.active_response_tab = ResponseTab::Cookies;
     assert_eq!(app.active_response_text(), "session=abc; Path=/".into());
@@ -55,28 +70,37 @@ fn response_view_uses_tabs_and_pretty_json_body() {
 fn response_tabs_are_clickable() {
     let mut app = TuiApp::new(None);
 
-    app.handle_mouse(MouseEvent {
-        kind: MouseEventKind::Down(MouseButton::Left),
-        column: 9,
-        row: 3,
-        modifiers: KeyModifiers::NONE,
-    }, None);
+    app.handle_mouse(
+        MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: 9,
+            row: 3,
+            modifiers: KeyModifiers::NONE,
+        },
+        None,
+    );
     assert_eq!(app.active_response_tab, ResponseTab::Headers);
 
-    app.handle_mouse(MouseEvent {
-        kind: MouseEventKind::Down(MouseButton::Left),
-        column: 25,
-        row: 3,
-        modifiers: KeyModifiers::NONE,
-    }, None);
+    app.handle_mouse(
+        MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: 25,
+            row: 3,
+            modifiers: KeyModifiers::NONE,
+        },
+        None,
+    );
     assert_eq!(app.active_response_tab, ResponseTab::Cookies);
 
-    app.handle_mouse(MouseEvent {
-        kind: MouseEventKind::Down(MouseButton::Left),
-        column: 2,
-        row: 3,
-        modifiers: KeyModifiers::NONE,
-    }, None);
+    app.handle_mouse(
+        MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: 2,
+            row: 3,
+            modifiers: KeyModifiers::NONE,
+        },
+        None,
+    );
     assert_eq!(app.active_response_tab, ResponseTab::Body);
 }
 

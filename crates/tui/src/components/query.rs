@@ -58,13 +58,12 @@ pub fn render_query_tab(
         }
         rows.push(row);
     }
-    let add_style = if app.active_block == ActiveBlock::Params
-        && app.selected_request_row == params.len()
-    {
-        Style::default().bg(SELECTED_BG)
-    } else {
-        Style::default()
-    };
+    let add_style =
+        if app.active_block == ActiveBlock::Params && app.selected_request_row == params.len() {
+            Style::default().bg(SELECTED_BG)
+        } else {
+            Style::default()
+        };
     rows.push(
         Row::new(vec![
             ratatui::widgets::Cell::from(""),
