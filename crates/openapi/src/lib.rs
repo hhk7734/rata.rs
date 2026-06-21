@@ -32,64 +32,62 @@ fn resolve_refs(
 ) -> Result<()> {
     match value {
         Value::Object(map) => {
-            if let Some(ref_val) = map.get("$ref") {
-                if let Some(ref_str) = ref_val.as_str() {
-                    // Only resolve external local files for now
-                    if !ref_str.starts_with('#') && !ref_str.starts_with("http") {
-                        let (file_path, json_ptr) = if let Some(idx) = ref_str.find('#') {
-                            (&ref_str[..idx], Some(&ref_str[idx + 1..]))
-                        } else {
-                            (ref_str, None)
-                        };
+            if let Some(ref_str) = map.get("$ref").and_then(|v| v.as_str()) {
+                // Only resolve external local files for now
+                if !ref_str.starts_with('#') && !ref_str.starts_with("http") {
+                    let (file_path, json_ptr) = if let Some(idx) = ref_str.find('#') {
+                        (&ref_str[..idx], Some(&ref_str[idx + 1..]))
+                    } else {
+                        (ref_str, None)
+                    };
 
-                        let target_path = base_dir.join(file_path);
-                        tracked_files.push(target_path.clone());
-                        let content = std::fs::read_to_string(&target_path).with_context(|| {
-                            format!("Failed to read referenced file {}", target_path.display())
+                    let target_path = base_dir.join(file_path);
+                    tracked_files.push(target_path.clone());
+                    let content = std::fs::read_to_string(&target_path).with_context(|| {
+                        format!("Failed to read referenced file {}", target_path.display())
+                    })?;
+
+                    let mut resolved_val: Value =
+                        serde_yaml::from_str(&content).with_context(|| {
+                            format!("Failed to parse YAML from {}", target_path.display())
                         })?;
 
-                        let mut resolved_val: Value =
-                            serde_yaml::from_str(&content).with_context(|| {
-                                format!("Failed to parse YAML from {}", target_path.display())
-                            })?;
+                    // Recursively resolve references in the loaded file
+                    resolve_refs(
+                        &mut resolved_val,
+                        target_path.parent().unwrap_or(Path::new(".")),
+                        tracked_files,
+                    )?;
 
-                        // Recursively resolve references in the loaded file
-                        resolve_refs(
-                            &mut resolved_val,
-                            target_path.parent().unwrap_or(Path::new(".")),
-                            tracked_files,
-                        )?;
-
-                        if let Some(ptr) = json_ptr {
-                            let mut current = &resolved_val;
-                            if !ptr.is_empty() && ptr != "/" {
-                                for token in ptr.trim_start_matches('/').split('/') {
-                                    let token = token.replace("~1", "/").replace("~0", "~");
-                                    current = match current {
-                                        Value::Object(m) => m.get(&token).with_context(|| {
-                                            format!("Token {} not found in object", token)
-                                        })?,
-                                        Value::Array(a) => {
-                                            let idx: usize = token.parse().with_context(|| {
-                                                format!("Invalid array index {}", token)
-                                            })?;
-                                            a.get(idx).with_context(|| {
-                                                format!("Index {} out of bounds", idx)
-                                            })?
-                                        }
-                                        _ => anyhow::bail!(
-                                            "Cannot traverse token {} in non-object/array",
-                                            token
-                                        ),
-                                    };
-                                }
+                    if let Some(ptr) = json_ptr {
+                        let mut current = &resolved_val;
+                        if !ptr.is_empty() && ptr != "/" {
+                            for token in ptr.trim_start_matches('/').split('/') {
+                                let token = token.replace("~1", "/").replace("~0", "~");
+                                current = match current {
+                                    Value::Object(m) => m.get(&token).with_context(|| {
+                                        format!("Token {} not found in object", token)
+                                    })?,
+                                    Value::Array(a) => {
+                                        let idx: usize = token.parse().with_context(|| {
+                                            format!("Invalid array index {}", token)
+                                        })?;
+                                        a.get(idx).with_context(|| {
+                                            format!("Index {} out of bounds", idx)
+                                        })?
+                                    }
+                                    _ => anyhow::bail!(
+                                        "Cannot traverse token {} in non-object/array",
+                                        token
+                                    ),
+                                };
                             }
-                            *value = current.clone();
-                        } else {
-                            *value = resolved_val;
                         }
-                        return Ok(());
+                        *value = current.clone();
+                    } else {
+                        *value = resolved_val;
                     }
+                    return Ok(());
                 }
             }
 

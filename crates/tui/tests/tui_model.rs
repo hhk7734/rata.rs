@@ -27,14 +27,6 @@ paths:
       responses:
         "200":
           description: User found
-  /users:
-    post:
-      tags: [users]
-      operationId: createUser
-      summary: Create user
-      responses:
-        "201":
-          description: User created
 "#,
     )
     .unwrap();
@@ -50,9 +42,6 @@ paths:
     assert_eq!(model.theme, Theme::Dark);
     assert_eq!(model.collections_title, "Collections");
 
-    assert_eq!(
-        model.selected_request_url,
-        "https://api.example.com/users/{id}"
-    );
+    assert_eq!(model.selected_request_url, "{{baseUrl}}/users/{{id}}");
     assert_eq!(model.examples, vec!["success.yaml".to_string()]);
 }

@@ -37,13 +37,13 @@ fn run_request(method: rata::HttpMethod, url: &str) -> anyhow::Result<()> {
     let mut variables = std::collections::HashMap::new();
     if let Some(project) = &project {
         variables = project.variables();
-        if !variables.contains_key("baseUrl") {
-            if let Some(server) = project.server_url() {
-                variables.insert(
-                    "baseUrl".to_string(),
-                    server.trim_end_matches('/').to_string(),
-                );
-            }
+        if !variables.contains_key("baseUrl")
+            && let Some(server) = project.server_url()
+        {
+            variables.insert(
+                "baseUrl".to_string(),
+                server.trim_end_matches('/').to_string(),
+            );
         }
     }
     let final_url = rata::render(url, &variables);

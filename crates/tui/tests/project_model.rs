@@ -78,23 +78,20 @@ response:
     let project = RataProject::discover(tmp.path()).unwrap().unwrap();
 
     assert_eq!(project.openapi_path(), rata_dir.join("openapi.yaml"));
-    assert_eq!(project.collections()[0].name, "users");
-    assert_eq!(project.collections()[0].operations.len(), 4);
+    assert_eq!(project.collections()[0].name, "organizations");
+    assert_eq!(project.collections()[1].name, "users");
+    assert_eq!(project.collections()[1].operations.len(), 4);
     assert_eq!(
-        project.collections()[0].operations[0].method,
+        project.collections()[1].operations[0].method,
         HttpMethod::Get
     );
-    assert_eq!(
-        project.collections()[0].operations[0].summary,
-        "Get user by ID"
-    );
-    assert_eq!(project.collections()[1].name, "organizations");
+    assert_eq!(project.collections()[1].operations[0].summary, "List users");
 
     let matched = project
         .match_url(HttpMethod::Get, "https://api.example.com/users/42")
         .unwrap()
         .unwrap();
-    assert_eq!(matched.operation.path, "/users/{id}");
+    assert_eq!(matched.operation.path, "/users/{{id}}");
     assert_eq!(
         matched.path_params,
         vec![("id".to_string(), "42".to_string())]

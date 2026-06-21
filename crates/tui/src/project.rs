@@ -169,29 +169,27 @@ impl RataProject {
             for name in file_names {
                 let path = self.root.join(name);
                 if path.is_file() {
-                    if let Ok(source) = fs::read_to_string(&path) {
-                        if let Ok(value) =
+                    if let Ok(source) = fs::read_to_string(&path)
+                        && let Ok(value) =
                             serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source)
-                        {
-                            if let Some(serde_yaml::Value::Mapping(map)) = value.get("headers") {
-                                for (k, v) in map {
-                                    let k_str = match k {
-                                        serde_yaml::Value::String(s) => s.clone(),
-                                        _ => serde_yaml::to_string(k)
-                                            .unwrap_or_default()
-                                            .trim()
-                                            .to_string(),
-                                    };
-                                    let v_str = match v {
-                                        serde_yaml::Value::String(s) => s.clone(),
-                                        _ => serde_yaml::to_string(v)
-                                            .unwrap_or_default()
-                                            .trim()
-                                            .to_string(),
-                                    };
-                                    hdrs.insert(k_str, v_str);
-                                }
-                            }
+                        && let Some(serde_yaml::Value::Mapping(map)) = value.get("headers")
+                    {
+                        for (k, v) in map {
+                            let k_str = match k {
+                                serde_yaml::Value::String(s) => s.clone(),
+                                _ => serde_yaml::to_string(k)
+                                    .unwrap_or_default()
+                                    .trim()
+                                    .to_string(),
+                            };
+                            let v_str = match v {
+                                serde_yaml::Value::String(s) => s.clone(),
+                                _ => serde_yaml::to_string(v)
+                                    .unwrap_or_default()
+                                    .trim()
+                                    .to_string(),
+                            };
+                            hdrs.insert(k_str, v_str);
                         }
                     }
                     break;
@@ -227,20 +225,19 @@ impl RataProject {
             for name in file_names {
                 let path = self.root.join(name);
                 if path.is_file() {
-                    if let Ok(source) = fs::read_to_string(&path) {
-                        if let Ok(value) =
+                    if let Ok(source) = fs::read_to_string(&path)
+                        && let Ok(value) =
                             serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&source)
-                        {
-                            for (k, v) in value {
-                                let string_val = match v {
-                                    serde_yaml::Value::String(s) => s,
-                                    _ => serde_yaml::to_string(&v)
-                                        .unwrap_or_default()
-                                        .trim()
-                                        .to_string(),
-                                };
-                                vars.insert(k, string_val);
-                            }
+                    {
+                        for (k, v) in value {
+                            let string_val = match v {
+                                serde_yaml::Value::String(s) => s,
+                                _ => serde_yaml::to_string(&v)
+                                    .unwrap_or_default()
+                                    .trim()
+                                    .to_string(),
+                            };
+                            vars.insert(k, string_val);
                         }
                     }
                     break;
@@ -274,8 +271,8 @@ impl RataProject {
         let mut current = self.openapi_value.pointer(&base_pointer);
         while let Some(node) = current {
             if let Some(ref_val) = node.get("$ref").and_then(|v| v.as_str()) {
-                if ref_val.starts_with("#") {
-                    base_pointer = ref_val[1..].to_string();
+                if let Some(stripped) = ref_val.strip_prefix("#") {
+                    base_pointer = stripped.to_string();
                     current = self.openapi_value.pointer(&base_pointer);
                 } else {
                     return None;
@@ -352,7 +349,7 @@ impl RataProject {
                 for error in validator.iter_errors(&body_value) {
                     let path = error.instance_path().to_string();
                     let path_str = Self::format_json_pointer(&path);
-                    errors.push(format!("{}: {}", path_str, error.to_string()));
+                    errors.push(format!("{}: {}", path_str, error));
                 }
             }
             return Ok(errors);
@@ -409,7 +406,7 @@ impl RataProject {
                 for error in validator.iter_errors(&body_value) {
                     let path = error.instance_path().to_string();
                     let path_str = Self::format_json_pointer(&path);
-                    errors.push(format!("{}: {}", path_str, error.to_string()));
+                    errors.push(format!("{}: {}", path_str, error));
                 }
             }
             return Ok(errors);
@@ -446,7 +443,11 @@ impl RataProject {
     }
 
     pub fn examples_for(&self, operation: &Operation) -> anyhow::Result<Vec<ExampleFile>> {
-        let path = operation.path.trim_start_matches('/');
+        let path = operation
+            .path
+            .trim_start_matches('/')
+            .replace("{{", "{")
+            .replace("}}", "}");
         let example_dir = self
             .root
             .join("examples")

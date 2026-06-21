@@ -7,6 +7,7 @@ use ratatui::{
 
 use crate::tui::{Selection, TEXT, apply_cursor_to_text, apply_selection, count_visual_lines};
 
+#[allow(clippy::too_many_arguments)]
 pub fn render_body_with_scrollbar<'a>(
     frame: &mut Frame,
     area: Rect,
@@ -91,8 +92,8 @@ fn highlight_json(json: &str) -> ratatui::text::Text<'static> {
                 } else if c == '"' && !escaped {
                     in_string = false;
                     let mut is_key_local = false;
-                    let mut lookahead = iter.clone();
-                    while let Some(lc) = lookahead.next() {
+                    let lookahead = iter.clone();
+                    for lc in lookahead {
                         if lc == ' ' {
                             continue;
                         }
@@ -116,17 +117,15 @@ fn highlight_json(json: &str) -> ratatui::text::Text<'static> {
                 } else {
                     escaped = false;
                 }
-            } else {
-                if c == '"' {
-                    if !current_span.is_empty() {
-                        spans.extend(highlight_non_string(&current_span));
-                        current_span.clear();
-                    }
-                    in_string = true;
-                    current_span.push(c);
-                } else {
-                    current_span.push(c);
+            } else if c == '"' {
+                if !current_span.is_empty() {
+                    spans.extend(highlight_non_string(&current_span));
+                    current_span.clear();
                 }
+                in_string = true;
+                current_span.push(c);
+            } else {
+                current_span.push(c);
             }
         }
         if !current_span.is_empty() {

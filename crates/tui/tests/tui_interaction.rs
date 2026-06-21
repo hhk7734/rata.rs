@@ -17,7 +17,7 @@ use tempfile::tempdir;
 fn tui_app_edits_url_from_key_input() {
     let mut app = TuiApp::new(None);
 
-    app.input_mode = rata::tui::InputMode::EditingUrl;
+    app.active_block = rata::tui::ActiveBlock::Request;
     for value in "http://localhost:8000/v1/models".chars() {
         app.handle_key(
             KeyEvent::new(KeyCode::Char(value), KeyModifiers::NONE),
@@ -36,7 +36,7 @@ fn tui_app_edits_url_from_key_input() {
 #[test]
 fn response_view_uses_tabs_and_pretty_json_body() {
     let mut app = TuiApp::new(None);
-    app.response.body = r#"{"ok":true,"items":[{"id":1}]}"#.to_string();
+    app.response.body = "{\"ok\":true,\"items\":[{\"id\":1}]}".to_string();
     app.response.headers = vec![("content-type".to_string(), "application/json".to_string())];
     app.response.cookies = vec!["session=abc; Path=/".to_string()];
 
@@ -50,27 +50,28 @@ fn response_view_uses_tabs_and_pretty_json_body() {
     );
     assert_eq!(app.active_response_tab, ResponseTab::Body);
     assert_eq!(
-        app.active_response_text(),
-        rata::tui::highlight_json(
-            "{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}"
-        )
+        app.active_response_string(),
+        "{\n  \"items\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"ok\": true\n}"
     );
 
     app.active_response_tab = ResponseTab::Headers;
     assert_eq!(
-        app.active_response_text(),
-        "content-type: application/json".into()
+        app.active_response_string(),
+        "content-type: application/json".to_string()
     );
 
     app.active_response_tab = ResponseTab::Cookies;
-    assert_eq!(app.active_response_text(), "session=abc; Path=/".into());
+    assert_eq!(
+        app.active_response_string(),
+        "session=abc; Path=/".to_string()
+    );
 }
 
 #[test]
 fn response_tabs_are_clickable() {
     let mut app = TuiApp::new(None);
 
-    app.handle_mouse(
+    let _ = app.handle_mouse(
         MouseEvent {
             kind: MouseEventKind::Down(MouseButton::Left),
             column: 9,
@@ -81,7 +82,7 @@ fn response_tabs_are_clickable() {
     );
     assert_eq!(app.active_response_tab, ResponseTab::Headers);
 
-    app.handle_mouse(
+    let _ = app.handle_mouse(
         MouseEvent {
             kind: MouseEventKind::Down(MouseButton::Left),
             column: 25,
@@ -92,7 +93,7 @@ fn response_tabs_are_clickable() {
     );
     assert_eq!(app.active_response_tab, ResponseTab::Cookies);
 
-    app.handle_mouse(
+    let _ = app.handle_mouse(
         MouseEvent {
             kind: MouseEventKind::Down(MouseButton::Left),
             column: 2,
@@ -159,8 +160,14 @@ paths:
     let mut app = TuiApp::new(Some(&project));
 
     app.edit_url(format!("http://{address}/v1/models?limit=1"));
-    app.send(Some(&project)).unwrap();
+    app.send(Some(&project));
     server.join().unwrap();
+
+    if let Some(rx) = app.send_rx.take() {
+        if let Ok(Ok(res)) = rx.recv() {
+            app.response = res;
+        }
+    }
 
     assert_eq!(app.draft.url, format!("http://{address}/v1/models?limit=1"));
     assert_eq!(app.response.status, Some(200));

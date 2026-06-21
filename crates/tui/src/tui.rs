@@ -188,13 +188,11 @@ fn visual_to_char_index(
 ) -> usize {
     if !wrap || width == 0 {
         let mut index = 0;
-        let mut current_v_line = 0;
-        for line in text.lines() {
+        for (current_v_line, line) in text.lines().enumerate() {
             let line_len = line.chars().count();
             if current_v_line == target_v_line {
                 return index + target_v_col.min(line_len);
             }
-            current_v_line += 1;
             index += line_len + 1;
         }
         return text.chars().count();
@@ -231,15 +229,13 @@ fn visual_to_char_index(
             let word_len = word_end - char_iter_idx;
             let ws_len = ws_end - word_end;
 
-            if line_width + word_len > width {
-                if line_width > 0 {
-                    current_v_line += 1;
-                    if current_v_line > target_v_line {
-                        return visual_line_start_idx + target_v_col.min(line_width);
-                    }
-                    line_width = 0;
-                    visual_line_start_idx = index + char_iter_idx;
+            if line_width + word_len > width && line_width > 0 {
+                current_v_line += 1;
+                if current_v_line > target_v_line {
+                    return visual_line_start_idx + target_v_col.min(line_width);
                 }
+                line_width = 0;
+                visual_line_start_idx = index + char_iter_idx;
             }
 
             let mut remaining_word = word_len;
@@ -535,20 +531,20 @@ impl TuiApp {
             return;
         }
 
-        if let Some(proj) = project {
-            if let Some((method, path)) = &self.selected_operation {
-                match proj.validate_request_body(*method, path, &self.draft.body) {
-                    Ok(errors) => {
-                        if !errors.is_empty() {
-                            self.error_popup =
-                                Some(format!("Request Validation Failed:\n{}", errors.join("\n")));
-                            return;
-                        }
-                    }
-                    Err(e) => {
-                        self.error_popup = Some(format!("Schema Error:\n{}", e));
+        if let Some(proj) = project
+            && let Some((method, path)) = &self.selected_operation
+        {
+            match proj.validate_request_body(*method, path, &self.draft.body) {
+                Ok(errors) => {
+                    if !errors.is_empty() {
+                        self.error_popup =
+                            Some(format!("Request Validation Failed:\n{}", errors.join("\n")));
                         return;
                     }
+                }
+                Err(e) => {
+                    self.error_popup = Some(format!("Schema Error:\n{}", e));
+                    return;
                 }
             }
         }
@@ -821,25 +817,21 @@ impl TuiApp {
                 } else if self.active_block == ActiveBlock::Examples {
                     if let Some(example_name) = self.model.examples.get(self.selected_example_row) {
                         let name_clone = example_name.clone();
-                        if let Some(project) = project {
-                            if let Some(selected) = &self.selected_operation {
-                                if let Some(op) = project
-                                    .collections()
-                                    .iter()
-                                    .flat_map(|c| &c.operations)
-                                    .find(|o| o.method == selected.0 && o.path == selected.1)
-                                {
-                                    if let Some(example_file) = project
-                                        .examples_for(op)
-                                        .ok()
-                                        .unwrap_or_default()
-                                        .iter()
-                                        .find(|e| e.name == name_clone)
-                                    {
-                                        self.load_example(example_file);
-                                    }
-                                }
-                            }
+                        if let Some(project) = project
+                            && let Some(selected) = &self.selected_operation
+                            && let Some(op) = project
+                                .collections()
+                                .iter()
+                                .flat_map(|c| &c.operations)
+                                .find(|o| o.method == selected.0 && o.path == selected.1)
+                            && let Some(example_file) = project
+                                .examples_for(op)
+                                .ok()
+                                .unwrap_or_default()
+                                .iter()
+                                .find(|e| e.name == name_clone)
+                        {
+                            self.load_example(example_file);
                         }
                     }
                     self.active_block = ActiveBlock::Request;
@@ -932,10 +924,10 @@ impl TuiApp {
                     } else {
                         &mut self.draft.headers
                     };
-                    if let Some(param) = map.get_mut(self.selected_request_row) {
-                        if !param.required {
-                            param.enabled = !param.enabled;
-                        }
+                    if let Some(param) = map.get_mut(self.selected_request_row)
+                        && !param.required
+                    {
+                        param.enabled = !param.enabled;
                     }
                     return Ok(AppAction::Continue);
                 }
@@ -1177,16 +1169,15 @@ impl TuiApp {
                 return;
             }
             let mut next_op = ops[0];
-            if let Some(selected) = &self.selected_operation {
-                if let Some(pos) = ops
+            if let Some(selected) = &self.selected_operation
+                && let Some(pos) = ops
                     .iter()
                     .position(|op| op.method == selected.0 && op.path == selected.1)
-                {
-                    if pos + 1 < ops.len() {
-                        next_op = ops[pos + 1];
-                    } else {
-                        next_op = ops[pos]; // stay at last
-                    }
+            {
+                if pos + 1 < ops.len() {
+                    next_op = ops[pos + 1];
+                } else {
+                    next_op = ops[pos]; // stay at last
                 }
             }
             self.select_operation(next_op, project);
@@ -1200,16 +1191,15 @@ impl TuiApp {
                 return;
             }
             let mut prev_op = ops[0];
-            if let Some(selected) = &self.selected_operation {
-                if let Some(pos) = ops
+            if let Some(selected) = &self.selected_operation
+                && let Some(pos) = ops
                     .iter()
                     .position(|op| op.method == selected.0 && op.path == selected.1)
-                {
-                    if pos > 0 {
-                        prev_op = ops[pos - 1];
-                    } else {
-                        prev_op = ops[0]; // stay at first
-                    }
+            {
+                if pos > 0 {
+                    prev_op = ops[pos - 1];
+                } else {
+                    prev_op = ops[0]; // stay at first
                 }
             }
             self.select_operation(prev_op, project);
@@ -1258,16 +1248,15 @@ impl TuiApp {
                 let arrow_len = 2; // "\u{E0B0} "
 
                 let button_width = key_len + desc_len + arrow_len;
-                if mouse.column >= current_x && mouse.column < current_x + button_width {
-                    if let Some(c) = key.chars().next() {
-                        let code = crossterm::event::KeyCode::Char(c);
-                        let modifiers = crossterm::event::KeyModifiers::CONTROL;
-                        let action = self.handle_key(
-                            crossterm::event::KeyEvent::new(code, modifiers),
-                            project,
-                        )?;
-                        return Ok(action);
-                    }
+                if mouse.column >= current_x
+                    && mouse.column < current_x + button_width
+                    && let Some(c) = key.chars().next()
+                {
+                    let code = crossterm::event::KeyCode::Char(c);
+                    let modifiers = crossterm::event::KeyModifiers::CONTROL;
+                    let action =
+                        self.handle_key(crossterm::event::KeyEvent::new(code, modifiers), project)?;
+                    return Ok(action);
                 }
                 current_x += button_width;
             }
@@ -1297,27 +1286,27 @@ impl TuiApp {
                     }
                 }
                 MouseEventKind::Drag(MouseButton::Left) => {
-                    if self.drag_target == DragTarget::ErrorPopupSelection {
-                        if let Some(sel) = &mut self.text_selection {
-                            let inner_y = self.error_popup_area.y + 1;
-                            let inner_x = self.error_popup_area.x + 1;
-                            let v_line = mouse.row.saturating_sub(inner_y) as usize;
-                            let v_col = mouse.column.saturating_sub(inner_x) as usize;
-                            let width = self.error_popup_area.width.saturating_sub(2) as usize;
+                    if self.drag_target == DragTarget::ErrorPopupSelection
+                        && let Some(sel) = &mut self.text_selection
+                    {
+                        let inner_y = self.error_popup_area.y + 1;
+                        let inner_x = self.error_popup_area.x + 1;
+                        let v_line = mouse.row.saturating_sub(inner_y) as usize;
+                        let v_col = mouse.column.saturating_sub(inner_x) as usize;
+                        let width = self.error_popup_area.width.saturating_sub(2) as usize;
 
-                            let char_idx = visual_to_char_index(&error, v_line, v_col, width, true);
-                            sel.end = char_index_to_logical(&error, char_idx);
-                        }
+                        let char_idx = visual_to_char_index(&error, v_line, v_col, width, true);
+                        sel.end = char_index_to_logical(&error, char_idx);
                     }
                 }
                 MouseEventKind::Up(MouseButton::Left) => {
                     if self.drag_target == DragTarget::ErrorPopupSelection {
                         if let Some(sel) = self.text_selection {
                             let text = Self::extract_text_selection(&error, sel);
-                            if !text.is_empty() {
-                                if let Some(clipboard) = &mut self.clipboard {
-                                    let _ = clipboard.set_text(text);
-                                }
+                            if !text.is_empty()
+                                && let Some(clipboard) = &mut self.clipboard
+                            {
+                                let _ = clipboard.set_text(text);
                             }
                         }
                         self.drag_target = DragTarget::None;
@@ -1363,7 +1352,7 @@ impl TuiApp {
             MouseEventKind::Drag(MouseButton::Left) => {
                 match self.drag_target {
                     DragTarget::Collections => {
-                        self.collections_width = mouse.column.max(10).min(120);
+                        self.collections_width = mouse.column.clamp(10, 120);
                     }
                     DragTarget::Request => {
                         self.examples_height =
@@ -1379,7 +1368,7 @@ impl TuiApp {
                             let offset = mouse.row.saturating_sub(main_rest_y);
                             let percent = (offset as u32 * 100 / main_rest_h as u32) as u16;
                             self.response_height_percent =
-                                100u16.saturating_sub(percent).max(10).min(90);
+                                100u16.saturating_sub(percent).clamp(10, 90);
                         }
                     }
                     DragTarget::ScrollResponse => {
@@ -1473,20 +1462,20 @@ impl TuiApp {
                 if self.drag_target == DragTarget::ResponseSelection {
                     if let Some(sel) = self.text_selection {
                         let text = self.extract_selection(sel);
-                        if !text.is_empty() {
-                            if let Some(clipboard) = &mut self.clipboard {
-                                let _ = clipboard.set_text(text);
-                            }
+                        if !text.is_empty()
+                            && let Some(clipboard) = &mut self.clipboard
+                        {
+                            let _ = clipboard.set_text(text);
                         }
                     }
-                } else if self.drag_target == DragTarget::RequestSelection {
-                    if let Some(sel) = self.request_selection {
-                        let text = self.extract_request_selection(sel);
-                        if !text.is_empty() {
-                            if let Some(clipboard) = &mut self.clipboard {
-                                let _ = clipboard.set_text(text);
-                            }
-                        }
+                } else if self.drag_target == DragTarget::RequestSelection
+                    && let Some(sel) = self.request_selection
+                {
+                    let text = self.extract_request_selection(sel);
+                    if !text.is_empty()
+                        && let Some(clipboard) = &mut self.clipboard
+                    {
+                        let _ = clipboard.set_text(text);
                     }
                 }
                 self.drag_target = DragTarget::None;
@@ -1497,7 +1486,7 @@ impl TuiApp {
                     .chars()
                     .count() as u16;
                 let clicked_method_dropdown = mouse.row == self.request_area.y + 1
-                    && mouse.column >= self.request_area.x + 1
+                    && mouse.column > self.request_area.x
                     && mouse.column < self.request_area.x + 1 + method_str_len;
                 let clicked_inside_method_dropdown = self.method_dropdown_open
                     && contains(self.method_dropdown_area, mouse.column, mouse.row);
@@ -1572,29 +1561,22 @@ impl TuiApp {
                         let clicked_row = (mouse.row - list_y) as usize + self.examples_offset;
                         if clicked_row < self.model.examples.len() {
                             self.selected_example_row = clicked_row;
-                            if let Some(example_name) = self.model.examples.get(clicked_row) {
-                                if let Some(project) = project {
-                                    if let Some(selected) = &self.selected_operation {
-                                        if let Some(op) = project
-                                            .collections()
-                                            .iter()
-                                            .flat_map(|c| &c.operations)
-                                            .find(|o| {
-                                                o.method == selected.0 && o.path == selected.1
-                                            })
-                                        {
-                                            if let Some(example_file) = project
-                                                .examples_for(op)
-                                                .ok()
-                                                .unwrap_or_default()
-                                                .iter()
-                                                .find(|e| &e.name == example_name)
-                                            {
-                                                self.load_example(example_file);
-                                            }
-                                        }
-                                    }
-                                }
+                            if let Some(example_name) = self.model.examples.get(clicked_row)
+                                && let Some(project) = project
+                                && let Some(selected) = &self.selected_operation
+                                && let Some(op) = project
+                                    .collections()
+                                    .iter()
+                                    .flat_map(|c| &c.operations)
+                                    .find(|o| o.method == selected.0 && o.path == selected.1)
+                                && let Some(example_file) = project
+                                    .examples_for(op)
+                                    .ok()
+                                    .unwrap_or_default()
+                                    .iter()
+                                    .find(|e| &e.name == example_name)
+                            {
+                                self.load_example(example_file);
                             }
                         }
                     }
@@ -1817,13 +1799,13 @@ fn execute_request(
     let mut variables = std::collections::HashMap::new();
     if let Some(project) = project {
         variables = project.variables();
-        if !variables.contains_key("baseUrl") {
-            if let Some(server) = project.server_url() {
-                variables.insert(
-                    "baseUrl".to_string(),
-                    server.trim_end_matches('/').to_string(),
-                );
-            }
+        if !variables.contains_key("baseUrl")
+            && let Some(server) = project.server_url()
+        {
+            variables.insert(
+                "baseUrl".to_string(),
+                server.trim_end_matches('/').to_string(),
+            );
         }
     }
 
@@ -2188,28 +2170,27 @@ fn run_loop(
                 match res {
                     Ok(response) => {
                         app.response = response;
-                        if let Some(proj) = project.as_ref() {
-                            if let Some((method, path)) = &app.selected_operation {
-                                if let Some(status) = app.response.status {
-                                    match proj.validate_response_body(
-                                        *method,
-                                        path,
-                                        status,
-                                        &app.response.body,
-                                    ) {
-                                        Ok(errors) => {
-                                            if !errors.is_empty() {
-                                                app.error_popup = Some(format!(
-                                                    "Response Validation Failed:\n{}",
-                                                    errors.join("\n")
-                                                ));
-                                            }
-                                        }
-                                        Err(e) => {
-                                            app.error_popup =
-                                                Some(format!("Response Schema Error:\n{}", e));
-                                        }
+                        if let Some(proj) = project.as_ref()
+                            && let Some((method, path)) = &app.selected_operation
+                            && let Some(status) = app.response.status
+                        {
+                            match proj.validate_response_body(
+                                *method,
+                                path,
+                                status,
+                                &app.response.body,
+                            ) {
+                                Ok(errors) => {
+                                    if !errors.is_empty() {
+                                        app.error_popup = Some(format!(
+                                            "Response Validation Failed:\n{}",
+                                            errors.join("\n")
+                                        ));
                                     }
+                                }
+                                Err(e) => {
+                                    app.error_popup =
+                                        Some(format!("Response Schema Error:\n{}", e));
                                 }
                             }
                         }
@@ -2239,37 +2220,35 @@ fn run_loop(
                 _ => {}
             }
         } else {
-            if let Some(p) = project.as_ref() {
-                if let Some(current_modified) = p
+            if let Some(p) = project.as_ref()
+                && let Some(current_modified) = p
                     .tracked_files()
                     .iter()
                     .filter_map(|f| std::fs::metadata(f).ok()?.modified().ok())
                     .max()
+                && Some(current_modified) != last_modified
+            {
+                if let Ok(Some(new_project)) =
+                    crate::RataProject::discover(std::env::current_dir().unwrap_or_default())
                 {
-                    if Some(current_modified) != last_modified {
-                        if let Ok(Some(new_project)) = crate::RataProject::discover(
-                            std::env::current_dir().unwrap_or_default(),
-                        ) {
-                            *project = Some(new_project);
-                        }
-                        last_modified = Some(current_modified);
-                    }
+                    *project = Some(new_project);
                 }
+                last_modified = Some(current_modified);
             }
-            if app.drag_target == DragTarget::ResponseSelection {
-                if let Some((col, row)) = last_mouse_pos {
-                    let synthetic_mouse = crossterm::event::MouseEvent {
-                        kind: crossterm::event::MouseEventKind::Drag(
-                            crossterm::event::MouseButton::Left,
-                        ),
-                        column: col,
-                        row,
-                        modifiers: crossterm::event::KeyModifiers::empty(),
-                    };
-                    match app.handle_mouse(synthetic_mouse, project.as_ref())? {
-                        AppAction::Quit => return Ok(()),
-                        AppAction::Continue => {}
-                    }
+            if app.drag_target == DragTarget::ResponseSelection
+                && let Some((col, row)) = last_mouse_pos
+            {
+                let synthetic_mouse = crossterm::event::MouseEvent {
+                    kind: crossterm::event::MouseEventKind::Drag(
+                        crossterm::event::MouseButton::Left,
+                    ),
+                    column: col,
+                    row,
+                    modifiers: crossterm::event::KeyModifiers::empty(),
+                };
+                match app.handle_mouse(synthetic_mouse, project.as_ref())? {
+                    AppAction::Quit => return Ok(()),
+                    AppAction::Continue => {}
                 }
             }
         }
@@ -2432,7 +2411,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
         (11, btn)
     };
 
-    if remaining >= send_len as u16 + 1 {
+    if remaining > send_len as u16 {
         let padding = remaining - send_len as u16;
         spans.push(Span::styled(
             " ".repeat(padding as usize),
@@ -2480,7 +2459,7 @@ fn render_shortcut_bar(app: &TuiApp) -> Paragraph<'static> {
     for (i, (key, desc)) in shortcuts.iter().enumerate() {
         let is_last = i == shortcuts.len() - 1;
         spans.push(Span::styled(
-            format!("{}", key),
+            key.to_string(),
             Style::default()
                 .fg(GREEN)
                 .bg(current_bg)
