@@ -1454,7 +1454,7 @@ impl TuiApp {
             }
             MouseEventKind::Down(MouseButton::Left) => {
                 let method_str_len =
-                    format!(" {} ▾ ", self.draft.method.label()).chars().count() as u16;
+                    format!(" {:<5} ▾ ", self.draft.method.label()).chars().count() as u16;
                 let clicked_method_dropdown = mouse.row == self.request_area.y + 1
                     && mouse.column >= self.request_area.x + 1
                     && mouse.column < self.request_area.x + 1 + method_str_len;
@@ -1585,7 +1585,7 @@ impl TuiApp {
                     } else {
                         "▾"
                     };
-                    let method_str_len = format!(" {} {} ", self.draft.method.label(), method_icon)
+                    let method_str_len = format!(" {:<5} {} ", self.draft.method.label(), method_icon)
                         .chars()
                         .count() as u16;
                     let url_start_x = self.request_area.x + 1 + method_str_len + 2;
@@ -2293,7 +2293,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
 
     let mut spans = vec![
         Span::styled(
-            format!(" {} {} ", app.draft.method.label(), method_icon),
+            format!(" {:<5} {} ", app.draft.method.label(), method_icon),
             method_style(app.draft.method)
                 .bg(SELECTED_BG)
                 .add_modifier(Modifier::BOLD),
@@ -2316,7 +2316,7 @@ fn request_line(app: &TuiApp) -> Paragraph<'static> {
     }
     spans.push(Span::styled(" ", Style::default().fg(TEXT).bg(SELECTED_BG)));
 
-    let method_str_len = format!(" {} {} ", app.draft.method.label(), method_icon)
+    let method_str_len = format!(" {:<5} {} ", app.draft.method.label(), method_icon)
         .chars()
         .count();
     let url_rendered_len = if app.active_block == ActiveBlock::Request && app.text_cursor >= url.chars().count() {
