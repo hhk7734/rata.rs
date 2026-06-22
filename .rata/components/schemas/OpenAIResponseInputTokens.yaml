@@ -1,0 +1,13 @@
+type: object
+properties:
+  input_tokens:
+    type: integer
+    description: Input tokens count.
+  object:
+    type: string
+    const: response.input_tokens
+    description: Must be `response.input_tokens`.
+required:
+  - input_tokens
+  - object
+description: Input token counts of the request.

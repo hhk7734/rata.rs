@@ -86,6 +86,17 @@ paths:
       responses:
         "200":
           $ref: "./components/responses/CreateResponseResponse.yaml"
+  /v1/responses/input_tokens:
+    post:
+      tags:
+        - responses
+      summary: Count Tokens
+      description: Returns input token counts of the request.
+      requestBody:
+        $ref: "./components/requestBodies/OpenAICountResponseTokensRequest.yaml"
+      responses:
+        "200":
+          $ref: "./components/responses/OpenAICountResponseTokensResponse.yaml"
   /health:
     get:
       summary: Get Health

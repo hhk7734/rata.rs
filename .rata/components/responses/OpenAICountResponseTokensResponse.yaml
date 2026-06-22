@@ -1,0 +1,5 @@
+description: Returns input token counts of the request.
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/OpenAIResponseInputTokens.yaml"

@@ -1,0 +1,36 @@
+required: true
+content:
+  application/json:
+    schema:
+      required:
+        - model
+      title: OpenAICountResponseTokensRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+          description: "The model to use."
+        input:
+          anyOf:
+            - $ref: "../schemas/ResponseInput.yaml"
+            - type: "null"
+          description: "Text, image, or file inputs to the model, used to generate a response."
+        conversation:
+          anyOf:
+            - $ref: "../schemas/ResponseConversation.yaml"
+            - type: "null"
+          description: "The conversation that this response belongs to."
+        tools:
+          anyOf:
+            - type: array
+              items:
+                $ref: "../schemas/Tool.yaml"
+            - type: "null"
+          description: "Definitions of tools that the model may use."
+        truncation:
+          anyOf:
+            - $ref: "../schemas/Truncation.yaml"
+            - type: "null"
+          description: "The truncation strategy to use for the model response."
+      additionalProperties: false
