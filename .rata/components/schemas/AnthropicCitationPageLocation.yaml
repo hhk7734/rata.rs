@@ -1,0 +1,27 @@
+type: object
+properties:
+  cited_text:
+    type: string
+  document_index:
+    type: number
+  document_title:
+    type: string
+  end_page_number:
+    type: number
+  file_id:
+    type: string
+  start_page_number:
+    type: number
+  type:
+    type: string
+    const: page_location
+    enum:
+    - page_location
+required:
+- cited_text
+- document_index
+- document_title
+- end_page_number
+- file_id
+- start_page_number
+- type

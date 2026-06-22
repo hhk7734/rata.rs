@@ -1,0 +1,16 @@
+type: object
+properties:
+  content:
+    anyOf:
+    - type: string
+    - type: array
+      items:
+        $ref: ../schemas/AnthropicContentBlockSourceContent.yaml
+  type:
+    type: string
+    const: content
+    enum:
+    - content
+required:
+- content
+- type

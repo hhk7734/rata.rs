@@ -1,0 +1,23 @@
+type: object
+properties:
+  data:
+    type: string
+  media_type:
+    anyOf:
+    - type: string
+      const: image/jpeg
+    - type: string
+      const: image/png
+    - type: string
+      const: image/gif
+    - type: string
+      const: image/webp
+  type:
+    type: string
+    const: base64
+    enum:
+    - base64
+required:
+- data
+- media_type
+- type

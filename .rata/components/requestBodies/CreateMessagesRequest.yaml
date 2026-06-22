@@ -92,6 +92,12 @@ content:
               description: Container identifier for stateful sandbox sessions.
               default:
             - type: "null"
+        inference_geo:
+          anyOf:
+            - type: string
+              description: Specifies the geographic region for inference processing.
+              default:
+            - type: "null"
         output_config:
           description: "Output configuration: effort level and optional JSON schema format."
           default:

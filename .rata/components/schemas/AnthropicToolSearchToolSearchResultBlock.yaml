@@ -1,0 +1,14 @@
+type: object
+properties:
+  tool_references:
+    type: array
+    items:
+      $ref: ../schemas/AnthropicToolReferenceBlock.yaml
+  type:
+    type: string
+    const: tool_search_tool_search_result
+    enum:
+    - tool_search_tool_search_result
+required:
+- tool_references
+- type

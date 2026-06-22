@@ -1,0 +1,61 @@
+type: object
+properties:
+  name:
+    type: string
+    const: web_search
+    enum:
+    - web_search
+    description: 'Name of the tool.
+
+      This is how the tool will be called by the model and in `tool_use` blocks.'
+  type:
+    type: string
+    const: web_search_20250305
+    enum:
+    - web_search_20250305
+  allowed_callers:
+    type: array
+    items:
+      anyOf:
+      - type: string
+        const: direct
+      - type: string
+        const: code_execution_20250825
+      - type: string
+        const: code_execution_20260120
+    enum:
+    - direct
+    - code_execution_20250825
+    - code_execution_20260120
+  allowed_domains:
+    type: array
+    items:
+      type: string
+    description: If provided, only these domains will be included in results. Cannot
+      be used alongside `blocked_domains`.
+  blocked_domains:
+    type: array
+    items:
+      type: string
+    description: If provided, these domains will never appear in results. Cannot be
+      used alongside `allowed_domains`.
+  cache_control:
+    $ref: ../schemas/AnthropicCacheControl.yaml
+    description: Create a cache control breakpoint at this content block.
+  defer_loading:
+    type: boolean
+    description: If true, tool will not be included in initial system prompt. Only
+      loaded when returned via tool_reference from tool search.
+  max_uses:
+    type: number
+    description: Maximum number of times the tool can be used in the API request.
+  strict:
+    type: boolean
+    description: When true, guarantees schema validation on tool names and inputs
+  user_location:
+    $ref: ../schemas/AnthropicWebSearchUserLocation.yaml
+    description: Parameters for the user's location. Used to provide more relevant
+      search results.
+required:
+- name
+- type

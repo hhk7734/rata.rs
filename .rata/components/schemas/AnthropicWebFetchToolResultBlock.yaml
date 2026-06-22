@@ -1,0 +1,24 @@
+type: object
+properties:
+  caller:
+    anyOf:
+    - $ref: ../schemas/AnthropicDirectCaller.yaml
+    - $ref: ../schemas/AnthropicServerToolCaller.yaml
+    - $ref: ../schemas/AnthropicServerToolCaller20260120.yaml
+    description: Tool invocation directly from the model.
+  content:
+    anyOf:
+    - $ref: ../schemas/AnthropicWebFetchToolResultErrorBlock.yaml
+    - $ref: ../schemas/AnthropicWebFetchBlock.yaml
+  tool_use_id:
+    type: string
+  type:
+    type: string
+    const: web_fetch_tool_result
+    enum:
+    - web_fetch_tool_result
+required:
+- caller
+- content
+- tool_use_id
+- type

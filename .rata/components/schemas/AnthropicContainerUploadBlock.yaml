@@ -1,0 +1,13 @@
+type: object
+properties:
+  file_id:
+    type: string
+  type:
+    type: string
+    const: container_upload
+    enum:
+    - container_upload
+required:
+- file_id
+- type
+description: Response model for a file uploaded to the container.

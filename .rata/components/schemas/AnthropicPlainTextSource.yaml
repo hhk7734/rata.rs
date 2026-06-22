@@ -1,0 +1,18 @@
+type: object
+properties:
+  data:
+    type: string
+  media_type:
+    type: string
+    const: text/plain
+    enum:
+    - text/plain
+  type:
+    type: string
+    const: text
+    enum:
+    - text
+required:
+- data
+- media_type
+- type

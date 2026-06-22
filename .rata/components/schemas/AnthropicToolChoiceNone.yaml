@@ -1,0 +1,10 @@
+type: object
+properties:
+  type:
+    type: string
+    const: none
+    enum:
+    - none
+required:
+- type
+description: The model will not be allowed to use tools.

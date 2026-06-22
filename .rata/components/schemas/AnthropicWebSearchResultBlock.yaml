@@ -1,0 +1,16 @@
+type: object
+properties:
+  type:
+    type: string
+    const: web_search_result
+  encrypted_content:
+    type: string
+  page_age:
+    type: string
+  title:
+    type: string
+  url:
+    type: string
+required:
+- type
+- url

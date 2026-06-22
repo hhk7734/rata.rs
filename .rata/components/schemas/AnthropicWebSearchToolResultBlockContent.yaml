@@ -1,0 +1,5 @@
+anyOf:
+- $ref: ../schemas/AnthropicWebSearchToolResultError.yaml
+- type: array
+  items:
+    $ref: ../schemas/AnthropicWebSearchResultBlock.yaml

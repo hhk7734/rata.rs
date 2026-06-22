@@ -1,0 +1,20 @@
+type: object
+properties:
+  content:
+    $ref: ../schemas/AnthropicDocumentBlock.yaml
+  retrieved_at:
+    type: string
+    description: ISO 8601 timestamp when the content was retrieved
+  type:
+    type: string
+    const: web_fetch_result
+    enum:
+    - web_fetch_result
+  url:
+    type: string
+    description: Fetched content URL
+required:
+- content
+- retrieved_at
+- type
+- url

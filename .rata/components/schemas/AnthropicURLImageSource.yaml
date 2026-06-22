@@ -1,0 +1,12 @@
+type: object
+properties:
+  type:
+    type: string
+    const: url
+    enum:
+    - url
+  url:
+    type: string
+required:
+- type
+- url

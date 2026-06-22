@@ -1,0 +1,19 @@
+type: object
+properties:
+  type:
+    type: string
+    const: adaptive
+    enum:
+    - adaptive
+  display:
+    anyOf:
+    - type: string
+      const: summarized
+    - type: string
+      const: omitted
+    description: Controls how thinking content appears in the response. When set to
+      `summarized`, thinking is returned normally. When set to `omitted`, thinking
+      content is redacted but a signature is returned for multi-turn continuity. Defaults
+      to `summarized`.
+required:
+- type

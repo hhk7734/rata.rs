@@ -1,0 +1,30 @@
+type: object
+properties:
+  content:
+    type: string
+  file_type:
+    anyOf:
+    - type: string
+      const: text
+    - type: string
+      const: image
+    - type: string
+      const: pdf
+  num_lines:
+    type: number
+  start_line:
+    type: number
+  total_lines:
+    type: number
+  type:
+    type: string
+    const: text_editor_code_execution_view_result
+    enum:
+    - text_editor_code_execution_view_result
+required:
+- content
+- file_type
+- num_lines
+- start_line
+- total_lines
+- type

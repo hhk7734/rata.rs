@@ -1,0 +1,17 @@
+type: object
+properties:
+  error_code:
+    $ref: ../schemas/AnthropicCodeExecutionToolResultErrorCode.yaml
+    enum:
+    - invalid_tool_input
+    - unavailable
+    - too_many_requests
+    - execution_time_exceeded
+  type:
+    type: string
+    const: code_execution_tool_result_error
+    enum:
+    - code_execution_tool_result_error
+required:
+- error_code
+- type

@@ -1,0 +1,21 @@
+type: object
+properties:
+  cited_text:
+    type: string
+  encrypted_index:
+    type: string
+  title:
+    type: string
+  type:
+    type: string
+    const: web_search_result_location
+    enum:
+    - web_search_result_location
+  url:
+    type: string
+required:
+- cited_text
+- encrypted_index
+- title
+- type
+- url

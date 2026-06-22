@@ -1,0 +1,23 @@
+type: object
+properties:
+  content:
+    type: array
+    items:
+      $ref: ../schemas/AnthropicBashCodeExecutionOutputBlock.yaml
+  return_code:
+    type: number
+  stderr:
+    type: string
+  stdout:
+    type: string
+  type:
+    type: string
+    const: bash_code_execution_result
+    enum:
+    - bash_code_execution_result
+required:
+- content
+- return_code
+- stderr
+- stdout
+- type

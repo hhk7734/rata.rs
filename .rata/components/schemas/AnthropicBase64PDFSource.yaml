@@ -1,0 +1,18 @@
+type: object
+properties:
+  data:
+    type: string
+  media_type:
+    type: string
+    const: application/pdf
+    enum:
+    - application/pdf
+  type:
+    type: string
+    const: base64
+    enum:
+    - base64
+required:
+- data
+- media_type
+- type

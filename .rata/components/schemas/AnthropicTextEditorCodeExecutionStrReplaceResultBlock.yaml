@@ -1,0 +1,26 @@
+type: object
+properties:
+  lines:
+    type: array
+    items:
+      type: string
+  new_lines:
+    type: number
+  new_start:
+    type: number
+  old_lines:
+    type: number
+  old_start:
+    type: number
+  type:
+    type: string
+    const: text_editor_code_execution_str_replace_result
+    enum:
+    - text_editor_code_execution_str_replace_result
+required:
+- lines
+- new_lines
+- new_start
+- old_lines
+- old_start
+- type

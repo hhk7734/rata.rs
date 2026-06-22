@@ -1,0 +1,15 @@
+type: object
+properties:
+  signature:
+    type: string
+  thinking:
+    type: string
+  type:
+    type: string
+    const: thinking
+    enum:
+    - thinking
+required:
+- signature
+- thinking
+- type

@@ -1,0 +1,24 @@
+type: object
+properties:
+  content:
+    type: array
+    items:
+      $ref: ../schemas/AnthropicCodeExecutionOutputBlock.yaml
+  encrypted_stdout:
+    type: string
+  return_code:
+    type: number
+  stderr:
+    type: string
+  type:
+    type: string
+    const: encrypted_code_execution_result
+    enum:
+    - encrypted_code_execution_result
+required:
+- content
+- encrypted_stdout
+- return_code
+- stderr
+- type
+description: Code execution result with encrypted stdout for PFC + web_search results.

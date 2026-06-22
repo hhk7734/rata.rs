@@ -1,0 +1,4 @@
+anyOf:
+- $ref: ../schemas/AnthropicCitationCharLocation.yaml
+- $ref: ../schemas/AnthropicCitationPageLocation.yaml
+- $ref: ../schemas/AnthropicCitationContentBlockLocation.yaml

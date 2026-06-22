@@ -1,0 +1,12 @@
+type: object
+properties:
+  is_file_update:
+    type: boolean
+  type:
+    type: string
+    const: text_editor_code_execution_create_result
+    enum:
+    - text_editor_code_execution_create_result
+required:
+- is_file_update
+- type

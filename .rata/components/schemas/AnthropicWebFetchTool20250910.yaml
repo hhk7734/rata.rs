@@ -1,0 +1,64 @@
+type: object
+properties:
+  name:
+    type: string
+    const: web_fetch
+    enum:
+    - web_fetch
+    description: 'Name of the tool.
+
+      This is how the tool will be called by the model and in `tool_use` blocks.'
+  type:
+    type: string
+    const: web_fetch_20250910
+    enum:
+    - web_fetch_20250910
+  allowed_callers:
+    type: array
+    items:
+      anyOf:
+      - type: string
+        const: direct
+      - type: string
+        const: code_execution_20250825
+      - type: string
+        const: code_execution_20260120
+    enum:
+    - direct
+    - code_execution_20250825
+    - code_execution_20260120
+  allowed_domains:
+    type: array
+    items:
+      type: string
+    description: List of domains to allow fetching from
+  blocked_domains:
+    type: array
+    items:
+      type: string
+    description: List of domains to block fetching from
+  cache_control:
+    $ref: ../schemas/AnthropicCacheControl.yaml
+    description: Create a cache control breakpoint at this content block.
+  citations:
+    $ref: ../schemas/AnthropicWebSearchOptions.yaml
+    description: Citations configuration for fetched documents. Citations are disabled
+      by default.
+  defer_loading:
+    type: boolean
+    description: If true, tool will not be included in initial system prompt. Only
+      loaded when returned via tool_reference from tool search.
+  max_content_tokens:
+    type: number
+    description: Maximum number of tokens used by including web page text content
+      in the context. The limit is approximate and does not apply to binary content
+      such as PDFs.
+  max_uses:
+    type: number
+    description: Maximum number of times the tool can be used in the API request.
+  strict:
+    type: boolean
+    description: When true, guarantees schema validation on tool names and inputs
+required:
+- name
+- type

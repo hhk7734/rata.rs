@@ -1,0 +1,17 @@
+type: object
+properties:
+  content:
+    $ref: ../schemas/AnthropicCodeExecutionToolResultBlockContent.yaml
+    description: Code execution result with encrypted stdout for PFC + web_search
+      results.
+  tool_use_id:
+    type: string
+  type:
+    type: string
+    const: code_execution_tool_result
+    enum:
+    - code_execution_tool_result
+required:
+- content
+- tool_use_id
+- type
