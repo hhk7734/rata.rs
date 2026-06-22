@@ -1,0 +1,5 @@
+description: Token counts
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/AnthropicMessageTokensCount.yaml"

@@ -64,6 +64,17 @@ paths:
       responses:
         "200":
           $ref: "./components/responses/CreateMessagesResponse.yaml"
+  /v1/messages/count_tokens:
+    post:
+      tags:
+        - messages
+      summary: Count Tokens
+      description: Count the number of tokens in a Message.
+      requestBody:
+        $ref: "./components/requestBodies/AnthropicCountMessagesTokensRequest.yaml"
+      responses:
+        "200":
+          $ref: "./components/responses/AnthropicCountMessagesTokensResponse.yaml"
   /v1/responses:
     post:
       tags:

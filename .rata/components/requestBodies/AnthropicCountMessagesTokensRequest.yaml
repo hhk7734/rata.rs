@@ -1,0 +1,51 @@
+required: true
+content:
+  application/json:
+    schema:
+      required:
+        - messages
+        - model
+      title: AnthropicCountMessagesTokensRequest
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 1
+          description: "The model that will complete your prompt."
+        messages:
+          type: array
+          items:
+            $ref: "../schemas/AnthropicMessage.yaml"
+          minItems: 1
+          description: "Input messages."
+        system:
+          anyOf:
+            - $ref: "../schemas/AnthropicSystemPrompt.yaml"
+            - type: "null"
+          description: "System prompt."
+        tools:
+          anyOf:
+            - type: array
+              items:
+                $ref: "../schemas/AnthropicTool.yaml"
+            - type: "null"
+          description: "Definitions of tools that the model may use."
+        tool_choice:
+          anyOf:
+            - $ref: "../schemas/AnthropicToolChoice.yaml"
+            - type: "null"
+          description: "How the model should use the provided tools."
+        thinking:
+          anyOf:
+            - $ref: "../schemas/AnthropicThinkingConfig.yaml"
+            - type: "null"
+          description: "Configuration for enabling Claude's extended thinking."
+        cache_control:
+          description: "Top-level cache control for automatic prompt prefix caching."
+          anyOf:
+            - $ref: "../schemas/AnthropicCacheControl.yaml"
+            - type: "null"
+        output_config:
+          description: "Configuration options for the model's output, such as the output format."
+          default:
+      additionalProperties: false
