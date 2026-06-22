@@ -13,7 +13,7 @@ properties:
     type: string
     const: custom_tool_call
     enum:
-    - custom_tool_call
+      - custom_tool_call
     description: The type of the custom tool call. Always `custom_tool_call`.
   id:
     type: string
@@ -22,8 +22,8 @@ properties:
     type: string
     description: The namespace of the custom tool being called.
 required:
-- name
-- call_id
-- input
-- type
+  - name
+  - call_id
+  - input
+  - type
 description: A call to a custom tool created by the model.

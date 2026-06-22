@@ -3,16 +3,16 @@ properties:
   error_code:
     $ref: ../schemas/AnthropicBashCodeExecutionToolResultErrorCode.yaml
     enum:
-    - invalid_tool_input
-    - unavailable
-    - too_many_requests
-    - execution_time_exceeded
-    - output_file_too_large
+      - invalid_tool_input
+      - unavailable
+      - too_many_requests
+      - execution_time_exceeded
+      - output_file_too_large
   type:
     type: string
     const: bash_code_execution_tool_result_error
     enum:
-    - bash_code_execution_tool_result_error
+      - bash_code_execution_tool_result_error
 required:
-- error_code
-- type
+  - error_code
+  - type

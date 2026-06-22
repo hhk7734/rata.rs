@@ -16,7 +16,7 @@ properties:
     type: object
     description: Breakdown of tokens used in the prompt.
 required:
-- completion_tokens
-- prompt_tokens
-- total_tokens
+  - completion_tokens
+  - prompt_tokens
+  - total_tokens
 description: Usage statistics for the completion request.

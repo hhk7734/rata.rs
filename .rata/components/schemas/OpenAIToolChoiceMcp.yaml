@@ -7,13 +7,12 @@ properties:
     type: string
     const: mcp
     enum:
-    - mcp
+      - mcp
     description: For MCP tools, the type is always `mcp`.
   name:
     type: string
     description: The name of the tool to call on the server.
 required:
-- server_label
-- type
-description: Use this option to force the model to call a specific tool on a remote
-  MCP server.
+  - server_label
+  - type
+description: Use this option to force the model to call a specific tool on a remote MCP server.

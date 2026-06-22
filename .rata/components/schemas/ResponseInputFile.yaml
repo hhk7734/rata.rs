@@ -4,17 +4,15 @@ properties:
     type: string
     const: input_file
     enum:
-    - input_file
+      - input_file
     description: The type of the input item. Always `input_file`.
   detail:
     anyOf:
-    - type: string
-      const: low
-    - type: string
-      const: high
-    description: The detail level of the file to be sent to the model. Use `low` for
-      the default rendering behavior, or `high` to render the file at higher quality.
-      Defaults to `low`.
+      - type: string
+        const: low
+      - type: string
+        const: high
+    description: The detail level of the file to be sent to the model. Use `low` for the default rendering behavior, or `high` to render the file at higher quality. Defaults to `low`.
   file_data:
     type: string
     description: The content of the file to be sent to the model.
@@ -28,5 +26,5 @@ properties:
     type: string
     description: The name of the file to be sent to the model.
 required:
-- type
+  - type
 description: A file input to the model.

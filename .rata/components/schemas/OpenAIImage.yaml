@@ -4,12 +4,12 @@ properties:
     type: string
     const: image
     enum:
-    - image
+      - image
     description: The type of the output. Always `image`.
   url:
     type: string
     description: The URL of the image output from the code interpreter.
 required:
-- url
-- type
+  - url
+  - type
 description: The image output from the code interpreter.

@@ -4,9 +4,9 @@ properties:
     type: string
     const: url
     enum:
-    - url
+      - url
   url:
     type: string
 required:
-- type
-- url
+  - type
+  - url

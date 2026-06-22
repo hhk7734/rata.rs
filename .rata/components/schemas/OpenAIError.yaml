@@ -10,10 +10,10 @@ properties:
     type: string
     const: error
     enum:
-    - error
+      - error
     description: The object type, which was always `error` for moderation failures.
 required:
-- code
-- message
-- type
+  - code
+  - message
+  - type
 description: An error produced while attempting moderation.

@@ -5,19 +5,19 @@ properties:
     description: The grammar definition.
   syntax:
     anyOf:
-    - type: string
-      const: lark
-    - type: string
-      const: regex
+      - type: string
+        const: lark
+      - type: string
+        const: regex
     description: The syntax of the grammar definition. One of `lark` or `regex`.
   type:
     type: string
     const: grammar
     enum:
-    - grammar
+      - grammar
     description: Grammar format. Always `grammar`.
 required:
-- definition
-- syntax
-- type
+  - definition
+  - syntax
+  - type
 description: A grammar defined by the user.

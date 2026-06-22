@@ -1,4 +1,4 @@
 anyOf:
-- $ref: ../schemas/AnthropicCodeExecutionToolResultError.yaml
-- $ref: ../schemas/AnthropicCodeExecutionResultBlock.yaml
-- $ref: ../schemas/AnthropicEncryptedCodeExecutionResultBlock.yaml
+  - $ref: ../schemas/AnthropicCodeExecutionToolResultError.yaml
+  - $ref: ../schemas/AnthropicCodeExecutionResultBlock.yaml
+  - $ref: ../schemas/AnthropicEncryptedCodeExecutionResultBlock.yaml

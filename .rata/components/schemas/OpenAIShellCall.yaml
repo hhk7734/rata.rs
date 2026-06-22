@@ -10,35 +10,33 @@ properties:
     type: string
     const: shell_call
     enum:
-    - shell_call
+      - shell_call
     description: The type of the item. Always `shell_call`.
   id:
     type: string
-    description: The unique ID of the shell tool call. Populated when this item is
-      returned via API.
+    description: The unique ID of the shell tool call. Populated when this item is returned via API.
   environment:
     anyOf:
-    - $ref: ../schemas/ResponseLocalEnvironment.yaml
-    - $ref: ../schemas/ResponseContainerReference.yaml
+      - $ref: ../schemas/ResponseLocalEnvironment.yaml
+      - $ref: ../schemas/ResponseContainerReference.yaml
     description: Represents the use of a local environment to perform shell actions.
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: completed
-    - type: string
-      const: incomplete
-    description: The status of the shell call. One of `in_progress`, `completed`,
-      or `incomplete`.
+      - type: string
+        const: in_progress
+      - type: string
+        const: completed
+      - type: string
+        const: incomplete
+    description: The status of the shell call. One of `in_progress`, `completed`, or `incomplete`.
   created_by:
     type: string
     description: The ID of the entity that created this tool call.
 required:
-- environment
-- call_id
-- action
-- status
-- id
-- type
+  - environment
+  - call_id
+  - action
+  - status
+  - id
+  - type
 description: A tool representing a request to execute one or more shell commands.

@@ -9,9 +9,8 @@ properties:
     type: string
     const: double_click
     enum:
-    - double_click
-    description: Specifies the event type. For a double click action, this property
-      is always set to `double_click`.
+      - double_click
+    description: Specifies the event type. For a double click action, this property is always set to `double_click`.
   x:
     type: number
     description: The x-coordinate where the double click occurred.
@@ -19,8 +18,8 @@ properties:
     type: number
     description: The y-coordinate where the double click occurred.
 required:
-- y
-- type
-- x
-- keys
+  - y
+  - type
+  - x
+  - keys
 description: A double click action.

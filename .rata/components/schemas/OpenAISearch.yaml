@@ -4,7 +4,7 @@ properties:
     type: string
     const: search
     enum:
-    - search
+      - search
     description: The action type.
   queries:
     type: array
@@ -20,5 +20,5 @@ properties:
       type: object
     description: The sources used in the search.
 required:
-- type
+  - type
 description: Action type "search" - Performs a web search query.

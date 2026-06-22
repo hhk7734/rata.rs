@@ -4,16 +4,14 @@ properties:
     type: array
     items:
       type: string
-    description: The combination of keys the model is requesting to be pressed. This
-      is an array of strings, each representing a key.
+    description: The combination of keys the model is requesting to be pressed. This is an array of strings, each representing a key.
   type:
     type: string
     const: keypress
     enum:
-    - keypress
-    description: Specifies the event type. For a keypress action, this property is
-      always set to `keypress`.
+      - keypress
+    description: Specifies the event type. For a keypress action, this property is always set to `keypress`.
 required:
-- type
-- keys
+  - type
+  - keys
 description: A collection of keypresses the model would like to perform.

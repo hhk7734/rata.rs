@@ -6,7 +6,7 @@ properties:
     type: string
     const: text_editor_code_execution_create_result
     enum:
-    - text_editor_code_execution_create_result
+      - text_editor_code_execution_create_result
 required:
-- is_file_update
-- type
+  - is_file_update
+  - type

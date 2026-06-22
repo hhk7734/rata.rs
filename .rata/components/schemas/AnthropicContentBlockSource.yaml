@@ -2,15 +2,15 @@ type: object
 properties:
   content:
     anyOf:
-    - type: string
-    - type: array
-      items:
-        $ref: ../schemas/AnthropicContentBlockSourceContent.yaml
+      - type: string
+      - type: array
+        items:
+          $ref: ../schemas/AnthropicContentBlockSourceContent.yaml
   type:
     type: string
     const: content
     enum:
-    - content
+      - content
 required:
-- content
-- type
+  - content
+  - type

@@ -16,12 +16,12 @@ properties:
     type: string
     const: char_location
     enum:
-    - char_location
+      - char_location
 required:
-- cited_text
-- document_index
-- document_title
-- end_char_index
-- file_id
-- start_char_index
-- type
+  - cited_text
+  - document_index
+  - document_title
+  - end_char_index
+  - file_id
+  - start_char_index
+  - type

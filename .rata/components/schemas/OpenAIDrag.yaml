@@ -4,8 +4,7 @@ properties:
     type: array
     items:
       type: object
-    description: 'An array of coordinates representing the path of the drag action.
-      Coordinates will appear as an array of objects, eg
+    description: 'An array of coordinates representing the path of the drag action. Coordinates will appear as an array of objects, eg
 
       ```
 
@@ -22,15 +21,14 @@ properties:
     type: string
     const: drag
     enum:
-    - drag
-    description: Specifies the event type. For a drag action, this property is always
-      set to `drag`.
+      - drag
+    description: Specifies the event type. For a drag action, this property is always set to `drag`.
   keys:
     type: array
     items:
       type: string
     description: The keys being held while dragging the mouse.
 required:
-- path
-- type
+  - path
+  - type
 description: A drag action.

@@ -10,13 +10,13 @@ properties:
     description: The queries used to search for files.
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: searching
-    - type: string
-      const: completed
-    - $ref: ../schemas/OpenAI2.yaml
+      - type: string
+        const: in_progress
+      - type: string
+        const: searching
+      - type: string
+        const: completed
+      - $ref: ../schemas/OpenAI2.yaml
     description: 'The status of the file search tool call. One of `in_progress`,
 
       `searching`, `incomplete` or `failed`,'
@@ -24,7 +24,7 @@ properties:
     type: string
     const: file_search_call
     enum:
-    - file_search_call
+      - file_search_call
     description: The type of the file search tool call. Always `file_search_call`.
   results:
     type: array
@@ -32,10 +32,10 @@ properties:
       type: object
     description: The results of the file search tool call.
 required:
-- queries
-- status
-- id
-- type
+  - queries
+  - status
+  - id
+  - type
 description: 'The results of a file search tool call. See the
 
   [file search guide](/docs/guides/tools-file-search) for more information.'

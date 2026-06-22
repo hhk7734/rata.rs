@@ -12,10 +12,10 @@ properties:
     type: string
     const: moderation_results
     enum:
-    - moderation_results
+      - moderation_results
     description: The object type, which is always `moderation_results`.
 required:
-- model
-- results
-- type
+  - model
+  - results
+  - type
 description: Successful moderation results for the request input or generated output.

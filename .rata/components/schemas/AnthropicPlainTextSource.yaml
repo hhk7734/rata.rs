@@ -6,13 +6,13 @@ properties:
     type: string
     const: text/plain
     enum:
-    - text/plain
+      - text/plain
   type:
     type: string
     const: text
     enum:
-    - text
+      - text
 required:
-- data
-- media_type
-- type
+  - data
+  - media_type
+  - type

@@ -4,30 +4,30 @@ properties:
     type: string
   caller:
     anyOf:
-    - $ref: ../schemas/AnthropicDirectCaller.yaml
-    - $ref: ../schemas/AnthropicServerToolCaller.yaml
-    - $ref: ../schemas/AnthropicServerToolCaller20260120.yaml
+      - $ref: ../schemas/AnthropicDirectCaller.yaml
+      - $ref: ../schemas/AnthropicServerToolCaller.yaml
+      - $ref: ../schemas/AnthropicServerToolCaller20260120.yaml
     description: Tool invocation directly from the model.
   input:
     type: object
     additionalProperties: true
   name:
     anyOf:
-    - type: string
-      const: web_search
-    - type: string
-      const: web_fetch
-    - type: string
-      const: code_execution
-    - $ref: ../schemas/AnthropicServerToolCaller.yaml
+      - type: string
+        const: web_search
+      - type: string
+        const: web_fetch
+      - type: string
+        const: code_execution
+      - $ref: ../schemas/AnthropicServerToolCaller.yaml
   type:
     type: string
     const: server_tool_use
     enum:
-    - server_tool_use
+      - server_tool_use
 required:
-- id
-- caller
-- input
-- name
-- type
+  - id
+  - caller
+  - input
+  - name
+  - type

@@ -6,9 +6,9 @@ properties:
     type: string
     const: container_reference
     enum:
-    - container_reference
+      - container_reference
     description: The environment type. Always `container_reference`.
 required:
-- container_id
-- type
+  - container_id
+  - type
 description: Represents a container created with /v1/containers.

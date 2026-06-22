@@ -2,8 +2,7 @@ type: object
 properties:
   input_tokens:
     type: number
-    description: 'The total number of tokens across the provided list of messages,
-      system prompt, and tools.
+    description: 'The total number of tokens across the provided list of messages, system prompt, and tools.
 
       ```http
 
@@ -93,4 +92,4 @@ properties:
 
       ```'
 required:
-- input_tokens
+  - input_tokens

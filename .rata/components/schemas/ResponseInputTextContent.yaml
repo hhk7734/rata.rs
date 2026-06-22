@@ -7,9 +7,9 @@ properties:
     type: string
     const: input_text
     enum:
-    - input_text
+      - input_text
     description: The type of the input item. Always `input_text`.
 required:
-- text
-- type
+  - text
+  - type
 description: A text input to the model.

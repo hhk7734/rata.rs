@@ -4,17 +4,17 @@ properties:
     type: array
     items:
       anyOf:
-      - $ref: ../schemas/OpenAIComparisonFilter.yaml
-      - $ref: ../schemas/OpenAIunknown.yaml
+        - $ref: ../schemas/OpenAIComparisonFilter.yaml
+        - $ref: ../schemas/OpenAIunknown.yaml
     description: Array of filters to combine. Items can be `ComparisonFilter` or `CompoundFilter`.
   type:
     anyOf:
-    - type: string
-      const: and
-    - type: string
-      const: or
+      - type: string
+        const: and
+      - type: string
+        const: or
     description: 'Type of operation: `and` or `or`.'
 required:
-- filters
-- type
+  - filters
+  - type
 description: Combine multiple filters using `and` or `or`.

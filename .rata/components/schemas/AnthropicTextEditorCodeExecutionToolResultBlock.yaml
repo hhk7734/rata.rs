@@ -2,18 +2,18 @@ type: object
 properties:
   content:
     anyOf:
-    - $ref: ../schemas/AnthropicTextEditorCodeExecutionToolResultError.yaml
-    - $ref: ../schemas/AnthropicTextEditorCodeExecutionViewResultBlock.yaml
-    - $ref: ../schemas/AnthropicTextEditorCodeExecutionCreateResultBlock.yaml
-    - $ref: ../schemas/AnthropicTextEditorCodeExecutionStrReplaceResultBlock.yaml
+      - $ref: ../schemas/AnthropicTextEditorCodeExecutionToolResultError.yaml
+      - $ref: ../schemas/AnthropicTextEditorCodeExecutionViewResultBlock.yaml
+      - $ref: ../schemas/AnthropicTextEditorCodeExecutionCreateResultBlock.yaml
+      - $ref: ../schemas/AnthropicTextEditorCodeExecutionStrReplaceResultBlock.yaml
   tool_use_id:
     type: string
   type:
     type: string
     const: text_editor_code_execution_tool_result
     enum:
-    - text_editor_code_execution_tool_result
+      - text_editor_code_execution_tool_result
 required:
-- content
-- tool_use_id
-- type
+  - content
+  - tool_use_id
+  - type

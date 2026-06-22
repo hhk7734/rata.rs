@@ -1,5 +1,5 @@
 type: string
 enum:
-- invalid_tool_input
-- unavailable
-- execution_time_exceeded
+  - invalid_tool_input
+  - unavailable
+  - execution_time_exceeded

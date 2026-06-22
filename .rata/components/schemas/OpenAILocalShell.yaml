@@ -4,8 +4,8 @@ properties:
     type: string
     const: local_shell
     enum:
-    - local_shell
+      - local_shell
     description: The type of the local shell tool. Always `local_shell`.
 required:
-- type
+  - type
 description: A tool that allows the model to execute shell commands in a local environment.

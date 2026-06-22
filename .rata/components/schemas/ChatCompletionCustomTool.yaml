@@ -7,9 +7,9 @@ properties:
     type: string
     const: custom
     enum:
-    - custom
+      - custom
     description: The type of the custom tool. Always `custom`.
 required:
-- custom
-- type
+  - custom
+  - type
 description: A custom tool that processes input using a specified format.

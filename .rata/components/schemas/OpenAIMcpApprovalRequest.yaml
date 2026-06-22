@@ -16,12 +16,12 @@ properties:
     type: string
     const: mcp_approval_request
     enum:
-    - mcp_approval_request
+      - mcp_approval_request
     description: The type of the item. Always `mcp_approval_request`.
 required:
-- name
-- server_label
-- id
-- arguments
-- type
+  - name
+  - server_label
+  - id
+  - arguments
+  - type
 description: A request for human approval of a tool invocation.

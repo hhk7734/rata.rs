@@ -7,8 +7,8 @@ properties:
     type: string
     const: refusal
     enum:
-    - refusal
+      - refusal
     description: The type of the content part.
 required:
-- refusal
-- type
+  - refusal
+  - type

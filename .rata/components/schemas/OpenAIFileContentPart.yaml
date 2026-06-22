@@ -6,9 +6,9 @@ properties:
     type: string
     const: file
     enum:
-    - file
+      - file
     description: The type of the content part. Always `file`.
 required:
-- file
-- type
+  - file
+  - type
 description: Learn about [file inputs](/docs/guides/text) for text generation.

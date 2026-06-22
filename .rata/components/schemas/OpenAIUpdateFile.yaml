@@ -10,10 +10,10 @@ properties:
     type: string
     const: update_file
     enum:
-    - update_file
+      - update_file
     description: Update an existing file with the provided diff.
 required:
-- path
-- diff
-- type
+  - path
+  - diff
+  - type
 description: Instruction for updating an existing file via the apply_patch tool.

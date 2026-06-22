@@ -8,6 +8,6 @@ properties:
     const: text
     description: The type of the content part.
 required:
-- text
-- type
+  - text
+  - type
 description: Learn about [text inputs](/docs/guides/text-generation).

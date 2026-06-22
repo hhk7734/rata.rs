@@ -7,10 +7,9 @@ properties:
     type: string
     const: type
     enum:
-    - type
-    description: Specifies the event type. For a type action, this property is always
-      set to `type`.
+      - type
+    description: Specifies the event type. For a type action, this property is always set to `type`.
 required:
-- text
-- type
+  - text
+  - type
 description: An action to type in text.

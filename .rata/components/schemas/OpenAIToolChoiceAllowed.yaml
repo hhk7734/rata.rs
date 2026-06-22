@@ -2,10 +2,10 @@ type: object
 properties:
   mode:
     anyOf:
-    - type: string
-      const: auto
-    - type: string
-      const: required
+      - type: string
+        const: auto
+      - type: string
+        const: required
     description: 'Constrains the tools available to the model to a pre-defined set.
 
       `auto` allows the model to pick from among the allowed tools and generate a
@@ -39,10 +39,10 @@ properties:
     type: string
     const: allowed_tools
     enum:
-    - allowed_tools
+      - allowed_tools
     description: Allowed tool configuration type. Always `allowed_tools`.
 required:
-- tools
-- mode
-- type
+  - tools
+  - mode
+  - type
 description: Constrains the tools available to the model to a pre-defined set.

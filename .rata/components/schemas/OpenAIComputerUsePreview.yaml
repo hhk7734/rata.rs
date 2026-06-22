@@ -8,24 +8,23 @@ properties:
     description: The width of the computer display.
   environment:
     anyOf:
-    - type: string
-      const: windows
-    - type: string
-      const: mac
-    - type: string
-      const: linux
-    - $ref: ../schemas/OpenAI2.yaml
+      - type: string
+        const: windows
+      - type: string
+        const: mac
+      - type: string
+        const: linux
+      - $ref: ../schemas/OpenAI2.yaml
     description: The type of computer environment to control.
   type:
     type: string
     const: computer_use_preview
     enum:
-    - computer_use_preview
+      - computer_use_preview
     description: The type of the computer use tool. Always `computer_use_preview`.
 required:
-- environment
-- display_width
-- display_height
-- type
-description: A tool that controls a virtual computer. Learn more about the [computer
-  tool](https://platform.openai.com/docs/guides/tools-computer-use).
+  - environment
+  - display_width
+  - display_height
+  - type
+description: A tool that controls a virtual computer. Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).

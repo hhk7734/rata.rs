@@ -2,8 +2,7 @@ type: object
 properties:
   read_only:
     type: boolean
-    description: 'Indicates whether or not a tool modifies data or is read-only. If
-      an
+    description: 'Indicates whether or not a tool modifies data or is read-only. If an
 
       MCP server is [annotated with `readOnlyHint`](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations-readonlyhint),
 

@@ -4,9 +4,8 @@ properties:
     type: string
     const: wait
     enum:
-    - wait
-    description: Specifies the event type. For a wait action, this property is always
-      set to `wait`.
+      - wait
+    description: Specifies the event type. For a wait action, this property is always set to `wait`.
 required:
-- type
+  - type
 description: A wait action.

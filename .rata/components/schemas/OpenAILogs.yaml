@@ -7,9 +7,9 @@ properties:
     type: string
     const: logs
     enum:
-    - logs
+      - logs
     description: The type of the output. Always `logs`.
 required:
-- logs
-- type
+  - logs
+  - type
 description: The logs output from the code interpreter.

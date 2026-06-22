@@ -3,20 +3,20 @@ properties:
   error_code:
     $ref: ../schemas/AnthropicWebFetchToolResultErrorCode.yaml
     enum:
-    - invalid_tool_input
-    - url_too_long
-    - url_not_allowed
-    - url_not_in_prior_context
-    - url_not_accessible
-    - unsupported_content_type
-    - too_many_requests
-    - max_uses_exceeded
-    - unavailable
+      - invalid_tool_input
+      - url_too_long
+      - url_not_allowed
+      - url_not_in_prior_context
+      - url_not_accessible
+      - unsupported_content_type
+      - too_many_requests
+      - max_uses_exceeded
+      - unavailable
   type:
     type: string
     const: web_fetch_tool_result_error
     enum:
-    - web_fetch_tool_result_error
+      - web_fetch_tool_result_error
 required:
-- error_code
-- type
+  - error_code
+  - type

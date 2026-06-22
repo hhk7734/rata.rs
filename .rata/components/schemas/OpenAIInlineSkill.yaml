@@ -13,10 +13,10 @@ properties:
     type: string
     const: inline
     enum:
-    - inline
+      - inline
     description: Defines an inline skill for this request.
 required:
-- name
-- source
-- description
-- type
+  - name
+  - source
+  - description
+  - type

@@ -1,6 +1,6 @@
 type: string
 enum:
-- invalid_tool_input
-- unavailable
-- too_many_requests
-- execution_time_exceeded
+  - invalid_tool_input
+  - unavailable
+  - too_many_requests
+  - execution_time_exceeded

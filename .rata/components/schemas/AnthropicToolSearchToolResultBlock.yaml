@@ -2,16 +2,16 @@ type: object
 properties:
   content:
     anyOf:
-    - $ref: ../schemas/AnthropicToolSearchToolResultError.yaml
-    - $ref: ../schemas/AnthropicToolSearchToolSearchResultBlock.yaml
+      - $ref: ../schemas/AnthropicToolSearchToolResultError.yaml
+      - $ref: ../schemas/AnthropicToolSearchToolSearchResultBlock.yaml
   tool_use_id:
     type: string
   type:
     type: string
     const: tool_search_tool_result
     enum:
-    - tool_search_tool_result
+      - tool_search_tool_result
 required:
-- content
-- tool_use_id
-- type
+  - content
+  - tool_use_id
+  - type

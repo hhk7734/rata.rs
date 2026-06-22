@@ -7,9 +7,9 @@ properties:
     type: string
     const: grammar
     enum:
-    - grammar
+      - grammar
     description: Grammar format. Always `grammar`.
 required:
-- grammar
-- type
+  - grammar
+  - type
 description: A grammar defined by the user.

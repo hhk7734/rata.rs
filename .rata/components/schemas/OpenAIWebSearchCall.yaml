@@ -5,35 +5,34 @@ properties:
     description: The unique ID of the web search tool call.
   action:
     anyOf:
-    - type: object
-    - type: object
-    - type: object
-    description: 'An object describing the specific action taken in this web search
-      call.
+      - type: object
+      - type: object
+      - type: object
+    description: 'An object describing the specific action taken in this web search call.
 
       Includes details on how the model used the web (search, open_page, find_in_page).'
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: searching
-    - type: string
-      const: completed
-    - type: string
-      const: failed
+      - type: string
+        const: in_progress
+      - type: string
+        const: searching
+      - type: string
+        const: completed
+      - type: string
+        const: failed
     description: The status of the web search tool call.
   type:
     type: string
     const: web_search_call
     enum:
-    - web_search_call
+      - web_search_call
     description: The type of the web search tool call. Always `web_search_call`.
 required:
-- action
-- id
-- status
-- type
+  - action
+  - id
+  - status
+  - type
 description: 'The results of a web search tool call. See the
 
   [web search guide](/docs/guides/tools-web-search) for more information.'

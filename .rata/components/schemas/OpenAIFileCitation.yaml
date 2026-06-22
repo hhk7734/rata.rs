@@ -13,11 +13,11 @@ properties:
     type: string
     const: file_citation
     enum:
-    - file_citation
+      - file_citation
     description: The type of the file citation. Always `file_citation`.
 required:
-- index
-- filename
-- type
-- file_id
+  - index
+  - filename
+  - type
+  - file_id
 description: A citation to a file.

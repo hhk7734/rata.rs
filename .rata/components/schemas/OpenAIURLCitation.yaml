@@ -13,15 +13,15 @@ properties:
     type: string
     const: url_citation
     enum:
-    - url_citation
+      - url_citation
     description: The type of the URL citation. Always `url_citation`.
   url:
     type: string
     description: The URL of the web resource.
 required:
-- title
-- start_index
-- url
-- end_index
-- type
+  - title
+  - start_index
+  - url
+  - end_index
+  - type
 description: A citation for a web resource used to generate a model response.

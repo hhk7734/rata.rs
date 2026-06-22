@@ -7,12 +7,11 @@ properties:
     type: string
     const: skill_reference
     enum:
-    - skill_reference
+      - skill_reference
     description: References a skill created with the /v1/skills endpoint.
   version:
     type: string
-    description: Optional skill version. Use a positive integer or 'latest'. Omit
-      for default.
+    description: Optional skill version. Use a positive integer or 'latest'. Omit for default.
 required:
-- skill_id
-- type
+  - skill_id
+  - type

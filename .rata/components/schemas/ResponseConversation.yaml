@@ -4,5 +4,5 @@ properties:
     type: string
     description: The unique ID of the conversation.
 required:
-- id
+  - id
 description: The conversation that this response belongs to.

@@ -9,13 +9,13 @@ properties:
     type: string
     const: mid_conv_system
     enum:
-    - mid_conv_system
+      - mid_conv_system
   cache_control:
     $ref: ../schemas/AnthropicCacheControl.yaml
     description: Create a cache control breakpoint at this content block.
 required:
-- content
-- type
+  - content
+  - type
 description: 'System instructions that appear mid-conversation.
 
   Use this block to provide or update system-level instructions at a specific

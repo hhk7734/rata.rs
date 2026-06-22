@@ -6,13 +6,13 @@ properties:
     type: string
     const: application/pdf
     enum:
-    - application/pdf
+      - application/pdf
   type:
     type: string
     const: base64
     enum:
-    - base64
+      - base64
 required:
-- data
-- media_type
-- type
+  - data
+  - media_type
+  - type

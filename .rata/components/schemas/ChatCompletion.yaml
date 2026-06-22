@@ -7,8 +7,7 @@ properties:
     type: array
     items:
       type: object
-    description: A list of chat completion choices. Can be more than one if `n` is
-      greater than 1.
+    description: A list of chat completion choices. Can be more than one if `n` is greater than 1.
   created:
     type: number
     description: The Unix timestamp (in seconds) of when the chat completion was created.
@@ -19,39 +18,35 @@ properties:
     type: string
     const: chat.completion
     enum:
-    - chat.completion
+      - chat.completion
     description: The object type, which is always `chat.completion`.
   moderation:
     type: object
-    description: 'Moderation results for the request input and generated output, if
-      moderated
+    description: 'Moderation results for the request input and generated output, if moderated
 
       completions were requested.'
   service_tier:
     anyOf:
-    - type: string
-      const: auto
-    - type: string
-      const: default
-    - type: string
-      const: flex
-    - $ref: ../schemas/OpenAI2.yaml
+      - type: string
+        const: auto
+      - type: string
+        const: default
+      - type: string
+        const: flex
+      - $ref: ../schemas/OpenAI2.yaml
     description: Specifies the processing type used for serving the request.
   system_fingerprint:
     type: string
-    description: 'This fingerprint represents the backend configuration that the model
-      runs with.
+    description: 'This fingerprint represents the backend configuration that the model runs with.
 
-      Can be used in conjunction with the `seed` request parameter to understand when
-      backend changes have been made that might impact determinism.'
+      Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.'
   usage:
     $ref: ../schemas/OpenAICompletionUsage.yaml
     description: Usage statistics for the completion request.
 required:
-- id
-- choices
-- created
-- model
-- object
-description: Represents a chat completion response returned by model, based on the
-  provided input.
+  - id
+  - choices
+  - created
+  - model
+  - object
+description: Represents a chat completion response returned by model, based on the provided input.

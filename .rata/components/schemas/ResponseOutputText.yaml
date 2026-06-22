@@ -4,10 +4,10 @@ properties:
     type: array
     items:
       anyOf:
-      - type: object
-      - type: object
-      - type: object
-      - type: object
+        - type: object
+        - type: object
+        - type: object
+        - type: object
     description: The annotations of the text output.
   logprobs:
     type: array
@@ -20,11 +20,11 @@ properties:
     type: string
     const: output_text
     enum:
-    - output_text
+      - output_text
     description: The type of the output text. Always `output_text`.
 required:
-- annotations
-- logprobs
-- text
-- type
+  - annotations
+  - logprobs
+  - text
+  - type
 description: A text output from the model.

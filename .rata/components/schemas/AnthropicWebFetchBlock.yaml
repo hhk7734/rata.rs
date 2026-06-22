@@ -9,12 +9,12 @@ properties:
     type: string
     const: web_fetch_result
     enum:
-    - web_fetch_result
+      - web_fetch_result
   url:
     type: string
     description: Fetched content URL
 required:
-- content
-- retrieved_at
-- type
-- url
+  - content
+  - retrieved_at
+  - type
+  - url

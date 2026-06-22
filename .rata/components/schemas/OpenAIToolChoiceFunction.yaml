@@ -7,9 +7,9 @@ properties:
     type: string
     const: function
     enum:
-    - function
+      - function
     description: For function calling, the type is always `function`.
 required:
-- name
-- type
+  - name
+  - type
 description: Use this option to force the model to call a specific function.

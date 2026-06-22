@@ -4,7 +4,7 @@ properties:
     type: string
     const: local
     enum:
-    - local
+      - local
     description: Use a local computer environment.
   skills:
     type: array
@@ -12,4 +12,4 @@ properties:
       $ref: ../schemas/OpenAILocalSkill.yaml
     description: An optional list of skills.
 required:
-- type
+  - type

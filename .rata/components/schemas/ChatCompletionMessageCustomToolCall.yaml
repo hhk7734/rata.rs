@@ -10,10 +10,10 @@ properties:
     type: string
     const: custom
     enum:
-    - custom
+      - custom
     description: The type of the tool. Always `custom`.
 required:
-- id
-- type
-- custom
+  - id
+  - type
+  - custom
 description: A call to a custom tool created by the model.

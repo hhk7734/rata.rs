@@ -4,10 +4,10 @@ properties:
     type: string
     const: json_object
     enum:
-    - json_object
+      - json_object
     description: The type of response format being defined. Always `json_object`.
 required:
-- type
+  - type
 description: 'JSON object response format. An older method of generating JSON responses.
 
   Using `json_schema` is recommended for models that support it. Note that the

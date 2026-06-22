@@ -8,8 +8,8 @@ properties:
     type: string
     const: thinking
     enum:
-    - thinking
+      - thinking
 required:
-- signature
-- thinking
-- type
+  - signature
+  - thinking
+  - type

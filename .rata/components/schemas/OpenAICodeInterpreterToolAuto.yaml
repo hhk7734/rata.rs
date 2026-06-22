@@ -4,7 +4,7 @@ properties:
     type: string
     const: auto
     enum:
-    - auto
+      - auto
     description: Always `auto`.
   file_ids:
     type: array
@@ -13,21 +13,20 @@ properties:
     description: An optional list of uploaded files to make available to your code.
   memory_limit:
     anyOf:
-    - type: string
-      const: 1g
-    - type: string
-      const: 4g
-    - type: string
-      const: 16g
-    - type: string
-      const: 64g
+      - type: string
+        const: 1g
+      - type: string
+        const: 4g
+      - type: string
+        const: 16g
+      - type: string
+        const: 64g
     description: The memory limit for the code interpreter container.
   network_policy:
     anyOf:
-    - $ref: ../schemas/OpenAIContainerNetworkPolicyDisabled.yaml
-    - $ref: ../schemas/OpenAIContainerNetworkPolicyAllowlist.yaml
+      - $ref: ../schemas/OpenAIContainerNetworkPolicyDisabled.yaml
+      - $ref: ../schemas/OpenAIContainerNetworkPolicyAllowlist.yaml
     description: Network access policy for the container.
 required:
-- type
-description: Configuration for a code interpreter container. Optionally specify the
-  IDs of the files to run the code on.
+  - type
+description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.

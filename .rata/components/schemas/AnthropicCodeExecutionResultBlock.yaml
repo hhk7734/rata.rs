@@ -14,10 +14,10 @@ properties:
     type: string
     const: code_execution_result
     enum:
-    - code_execution_result
+      - code_execution_result
 required:
-- content
-- return_code
-- stderr
-- stdout
-- type
+  - content
+  - return_code
+  - stderr
+  - stdout
+  - type

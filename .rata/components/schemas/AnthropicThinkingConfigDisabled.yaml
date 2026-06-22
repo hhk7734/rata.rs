@@ -4,6 +4,6 @@ properties:
     type: string
     const: disabled
     enum:
-    - disabled
+      - disabled
 required:
-- type
+  - type

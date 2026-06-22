@@ -2,26 +2,19 @@ type: object
 properties:
   budget_tokens:
     type: number
-    description: "Determines how many tokens Claude can use for its internal reasoning\
-      \ process. Larger budgets can enable more thorough analysis for complex problems,\
-      \ improving response quality.\nMust be \u22651024 and less than `max_tokens`.\n\
-      See [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)\
-      \ for details."
+    description: "Determines how many tokens Claude can use for its internal reasoning process. Larger budgets can enable more thorough analysis for complex problems, improving response quality.\nMust be ≥1024 and less than `max_tokens`.\nSee [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) for details."
   type:
     type: string
     const: enabled
     enum:
-    - enabled
+      - enabled
   display:
     anyOf:
-    - type: string
-      const: summarized
-    - type: string
-      const: omitted
-    description: Controls how thinking content appears in the response. When set to
-      `summarized`, thinking is returned normally. When set to `omitted`, thinking
-      content is redacted but a signature is returned for multi-turn continuity. Defaults
-      to `summarized`.
+      - type: string
+        const: summarized
+      - type: string
+        const: omitted
+    description: Controls how thinking content appears in the response. When set to `summarized`, thinking is returned normally. When set to `omitted`, thinking content is redacted but a signature is returned for multi-turn continuity. Defaults to `summarized`.
 required:
-- budget_tokens
-- type
+  - budget_tokens
+  - type

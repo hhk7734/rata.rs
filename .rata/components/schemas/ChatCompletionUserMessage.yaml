@@ -2,24 +2,23 @@ type: object
 properties:
   content:
     anyOf:
-    - type: string
-    - type: array
-      items:
-        $ref: ../schemas/ChatCompletionContentPart.yaml
+      - type: string
+      - type: array
+        items:
+          $ref: ../schemas/ChatCompletionContentPart.yaml
     description: The contents of the user message.
   role:
     type: string
     const: user
     enum:
-    - user
+      - user
     description: The role of the messages author, in this case `user`.
   name:
     type: string
-    description: An optional name for the participant. Provides the model information
-      to differentiate between participants of the same role.
+    description: An optional name for the participant. Provides the model information to differentiate between participants of the same role.
 required:
-- content
-- role
+  - content
+  - role
 description: 'Messages sent by an end user, containing prompts or additional context
 
   information.'

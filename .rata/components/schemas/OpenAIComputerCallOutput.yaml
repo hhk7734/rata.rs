@@ -10,7 +10,7 @@ properties:
     type: string
     const: computer_call_output
     enum:
-    - computer_call_output
+      - computer_call_output
     description: The type of the computer tool call output. Always `computer_call_output`.
   id:
     type: string
@@ -19,31 +19,29 @@ properties:
     type: array
     items:
       type: object
-    description: 'The safety checks reported by the API that have been acknowledged
-      by the
+    description: 'The safety checks reported by the API that have been acknowledged by the
 
       developer.'
   status:
     anyOf:
-    - type: string
-      const: completed
-    - type: string
-      const: incomplete
-    - type: string
-      const: failed
-    - type: string
-      const: in_progress
-    description: 'The status of the message input. One of `in_progress`, `completed`,
-      or
+      - type: string
+        const: completed
+      - type: string
+        const: incomplete
+      - type: string
+        const: failed
+      - type: string
+        const: in_progress
+    description: 'The status of the message input. One of `in_progress`, `completed`, or
 
       `incomplete`. Populated when input items are returned via API.'
   created_by:
     type: string
     description: The identifier of the actor that created the item.
 required:
-- call_id
-- output
-- status
-- id
-- type
+  - call_id
+  - output
+  - status
+  - id
+  - type
 description: The output of a computer tool call.

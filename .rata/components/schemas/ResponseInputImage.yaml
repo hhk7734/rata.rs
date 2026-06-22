@@ -2,30 +2,28 @@ type: object
 properties:
   detail:
     anyOf:
-    - type: string
-      const: low
-    - type: string
-      const: high
-    - type: string
-      const: auto
-    - type: string
-      const: original
-    description: The detail level of the image to be sent to the model. One of `high`,
-      `low`, `auto`, or `original`. Defaults to `auto`.
+      - type: string
+        const: low
+      - type: string
+        const: high
+      - type: string
+        const: auto
+      - type: string
+        const: original
+    description: The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
   type:
     type: string
     const: input_image
     enum:
-    - input_image
+      - input_image
     description: The type of the input item. Always `input_image`.
   file_id:
     type: string
     description: The ID of the file to be sent to the model.
   image_url:
     type: string
-    description: The URL of the image to be sent to the model. A fully qualified URL
-      or base64 encoded image in a data URL.
+    description: The URL of the image to be sent to the model. A fully qualified URL or base64 encoded image in a data URL.
 required:
-- detail
-- type
+  - detail
+  - type
 description: An image input to the model. Learn about [image inputs](/docs/guides/vision).

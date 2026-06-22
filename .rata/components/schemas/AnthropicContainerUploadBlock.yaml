@@ -6,8 +6,8 @@ properties:
     type: string
     const: container_upload
     enum:
-    - container_upload
+      - container_upload
 required:
-- file_id
-- type
+  - file_id
+  - type
 description: Response model for a file uploaded to the container.

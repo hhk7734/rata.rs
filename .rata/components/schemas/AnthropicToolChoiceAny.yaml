@@ -4,13 +4,12 @@ properties:
     type: string
     const: any
     enum:
-    - any
+      - any
   disable_parallel_tool_use:
     type: boolean
     description: 'Whether to disable parallel tool use.
 
-      Defaults to `false`. If set to `true`, the model will output exactly one tool
-      use.'
+      Defaults to `false`. If set to `true`, the model will output exactly one tool use.'
 required:
-- type
+  - type
 description: The model will use any available tools.

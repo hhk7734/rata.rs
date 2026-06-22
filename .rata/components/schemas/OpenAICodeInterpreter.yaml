@@ -2,10 +2,9 @@ type: object
 properties:
   container:
     anyOf:
-    - type: string
-    - type: object
-    description: 'The code interpreter container. Can be a container ID or an object
-      that
+      - type: string
+      - type: object
+    description: 'The code interpreter container. Can be a container ID or an object that
 
       specifies uploaded file IDs to make available to your code, along with an
 
@@ -14,9 +13,9 @@ properties:
     type: string
     const: code_interpreter
     enum:
-    - code_interpreter
+      - code_interpreter
     description: The type of the code interpreter tool. Always `code_interpreter`.
 required:
-- container
-- type
+  - container
+  - type
 description: A tool that runs Python code to help generate a response to a prompt.

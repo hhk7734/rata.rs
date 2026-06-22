@@ -4,7 +4,7 @@ properties:
     type: string
     const: none
     enum:
-    - none
+      - none
 required:
-- type
+  - type
 description: The model will not be allowed to use tools.

@@ -16,12 +16,12 @@ properties:
     type: string
     const: page_location
     enum:
-    - page_location
+      - page_location
 required:
-- cited_text
-- document_index
-- document_title
-- end_page_number
-- file_id
-- start_page_number
-- type
+  - cited_text
+  - document_index
+  - document_title
+  - end_page_number
+  - file_id
+  - start_page_number
+  - type

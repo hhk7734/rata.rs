@@ -10,19 +10,19 @@ properties:
     type: string
     const: local_shell_call_output
     enum:
-    - local_shell_call_output
+      - local_shell_call_output
     description: The type of the local shell tool call output. Always `local_shell_call_output`.
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: completed
-    - type: string
-      const: incomplete
+      - type: string
+        const: in_progress
+      - type: string
+        const: completed
+      - type: string
+        const: incomplete
     description: The status of the item. One of `in_progress`, `completed`, or `incomplete`.
 required:
-- id
-- output
-- type
+  - id
+  - output
+  - type
 description: The output of a local shell tool call.

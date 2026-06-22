@@ -6,7 +6,7 @@ properties:
     type: string
     const: redacted_thinking
     enum:
-    - redacted_thinking
+      - redacted_thinking
 required:
-- data
-- type
+  - data
+  - type

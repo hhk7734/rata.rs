@@ -8,7 +8,7 @@ properties:
     type: string
     const: tool_search_tool_search_result
     enum:
-    - tool_search_tool_search_result
+      - tool_search_tool_search_result
 required:
-- tool_references
-- type
+  - tool_references
+  - type

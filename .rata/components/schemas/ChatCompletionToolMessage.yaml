@@ -2,21 +2,21 @@ type: object
 properties:
   content:
     anyOf:
-    - type: string
-    - type: array
-      items:
-        $ref: ../schemas/ChatCompletionContentPartText.yaml
+      - type: string
+      - type: array
+        items:
+          $ref: ../schemas/ChatCompletionContentPartText.yaml
     description: The contents of the tool message.
   role:
     type: string
     const: tool
     enum:
-    - tool
+      - tool
     description: The role of the messages author, in this case `tool`.
   tool_call_id:
     type: string
     description: Tool call that this message is responding to.
 required:
-- content
-- role
-- tool_call_id
+  - content
+  - role
+  - tool_call_id

@@ -7,8 +7,8 @@ properties:
     type: string
     const: item_reference
     enum:
-    - item_reference
+      - item_reference
     description: The type of item to reference. Always `item_reference`.
 required:
-- id
+  - id
 description: An internal identifier for an item to reference.

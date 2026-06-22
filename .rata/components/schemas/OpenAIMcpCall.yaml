@@ -16,14 +16,13 @@ properties:
     type: string
     const: mcp_call
     enum:
-    - mcp_call
+      - mcp_call
     description: The type of the item. Always `mcp_call`.
   approval_request_id:
     type: string
     description: 'Unique identifier for the MCP tool call approval request.
 
-      Include this value in a subsequent `mcp_approval_response` input to approve
-      or reject the corresponding tool call.'
+      Include this value in a subsequent `mcp_approval_response` input to approve or reject the corresponding tool call.'
   error:
     type: string
     description: The error from the tool call, if any.
@@ -32,19 +31,18 @@ properties:
     description: The output from the tool call.
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: completed
-    - type: string
-      const: incomplete
-    - $ref: ../schemas/OpenAI2.yaml
-    description: The status of the tool call. One of `in_progress`, `completed`, `incomplete`,
-      `calling`, or `failed`.
+      - type: string
+        const: in_progress
+      - type: string
+        const: completed
+      - type: string
+        const: incomplete
+      - $ref: ../schemas/OpenAI2.yaml
+    description: The status of the tool call. One of `in_progress`, `completed`, `incomplete`, `calling`, or `failed`.
 required:
-- name
-- server_label
-- id
-- arguments
-- type
+  - name
+  - server_label
+  - id
+  - arguments
+  - type
 description: An invocation of a tool on an MCP server.

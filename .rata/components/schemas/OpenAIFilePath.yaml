@@ -10,10 +10,10 @@ properties:
     type: string
     const: file_path
     enum:
-    - file_path
+      - file_path
     description: The type of the file path. Always `file_path`.
 required:
-- index
-- type
-- file_id
+  - index
+  - type
+  - file_id
 description: A path to a file.

@@ -4,6 +4,5 @@ properties:
     type: string
     description: The name of the function to call.
 required:
-- name
-description: 'Specifying a particular function via `{"name": "my_function"}` forces
-  the model to call that function.'
+  - name
+description: 'Specifying a particular function via `{"name": "my_function"}` forces the model to call that function.'

@@ -12,4 +12,4 @@ properties:
   timezone:
     type: string
 required:
-- type
+  - type

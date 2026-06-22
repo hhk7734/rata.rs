@@ -6,9 +6,9 @@ properties:
     type: string
     const: image_url
     enum:
-    - image_url
+      - image_url
     description: The type of the content part.
 required:
-- image_url
-- type
+  - image_url
+  - type
 description: Learn about [image inputs](/docs/guides/vision).

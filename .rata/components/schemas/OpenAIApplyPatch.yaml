@@ -4,9 +4,8 @@ properties:
     type: string
     const: apply_patch
     enum:
-    - apply_patch
+      - apply_patch
     description: The type of the tool. Always `apply_patch`.
 required:
-- type
-description: Allows the assistant to create, delete, or update files using unified
-  diffs.
+  - type
+description: Allows the assistant to create, delete, or update files using unified diffs.

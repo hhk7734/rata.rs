@@ -6,9 +6,9 @@ properties:
     type: string
     const: function
     enum:
-    - function
+      - function
     description: The type of the tool. Currently, only `function` is supported.
 required:
-- function
-- type
+  - function
+  - type
 description: A function tool that can be used to generate a response.

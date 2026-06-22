@@ -16,11 +16,11 @@ properties:
     type: string
     const: text_editor_code_execution_str_replace_result
     enum:
-    - text_editor_code_execution_str_replace_result
+      - text_editor_code_execution_str_replace_result
 required:
-- lines
-- new_lines
-- new_start
-- old_lines
-- old_start
-- type
+  - lines
+  - new_lines
+  - new_start
+  - old_lines
+  - old_start
+  - type

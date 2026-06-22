@@ -9,7 +9,7 @@ properties:
     type: string
     const: allowlist
     enum:
-    - allowlist
+      - allowlist
     description: Allow outbound network access only to specified domains. Always `allowlist`.
   domain_secrets:
     type: array
@@ -17,5 +17,5 @@ properties:
       $ref: ../schemas/OpenAIContainerNetworkPolicyDomainSecret.yaml
     description: Optional domain-scoped secrets for allowlisted domains.
 required:
-- allowed_domains
-- type
+  - allowed_domains
+  - type

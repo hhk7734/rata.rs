@@ -3,18 +3,18 @@ properties:
   error_code:
     $ref: ../schemas/AnthropicToolSearchToolResultErrorCode.yaml
     enum:
-    - invalid_tool_input
-    - unavailable
-    - too_many_requests
-    - execution_time_exceeded
+      - invalid_tool_input
+      - unavailable
+      - too_many_requests
+      - execution_time_exceeded
   error_message:
     type: string
   type:
     type: string
     const: tool_search_tool_result_error
     enum:
-    - tool_search_tool_result_error
+      - tool_search_tool_result_error
 required:
-- error_code
-- error_message
-- type
+  - error_code
+  - error_message
+  - type

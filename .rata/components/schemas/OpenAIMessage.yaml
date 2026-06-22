@@ -2,27 +2,26 @@ type: object
 properties:
   content:
     $ref: ../schemas/ResponseInputMessageContentList.yaml
-    description: 'A list of one or many input items to the model, containing different
-      content
+    description: 'A list of one or many input items to the model, containing different content
 
       types.'
   role:
     anyOf:
-    - type: string
-      const: user
-    - type: string
-      const: system
-    - type: string
-      const: developer
+      - type: string
+        const: user
+      - type: string
+        const: system
+      - type: string
+        const: developer
     description: The role of the message input. One of `user`, `system`, or `developer`.
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: completed
-    - type: string
-      const: incomplete
+      - type: string
+        const: in_progress
+      - type: string
+        const: completed
+      - type: string
+        const: incomplete
     description: 'The status of item. One of `in_progress`, `completed`, or
 
       `incomplete`. Populated when items are returned via API.'
@@ -30,11 +29,11 @@ properties:
     type: string
     const: message
     enum:
-    - message
+      - message
     description: The type of the message input. Always set to `message`.
 required:
-- content
-- role
+  - content
+  - role
 description: 'A message input to the model with a role indicating instruction following
 
   hierarchy. Instructions given with the `developer` or `system` role take

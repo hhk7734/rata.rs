@@ -10,10 +10,10 @@ properties:
     type: string
     const: function
     enum:
-    - function
+      - function
     description: The type of the tool. Currently, only `function` is supported.
 required:
-- function
-- id
-- type
+  - function
+  - id
+  - type
 description: A call to a function tool created by the model.

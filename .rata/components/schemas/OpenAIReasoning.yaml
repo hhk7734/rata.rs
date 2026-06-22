@@ -12,7 +12,7 @@ properties:
     type: string
     const: reasoning
     enum:
-    - reasoning
+      - reasoning
     description: The type of the object. Always `reasoning`.
   content:
     type: array
@@ -21,27 +21,25 @@ properties:
     description: Reasoning text content.
   encrypted_content:
     type: string
-    description: 'The encrypted content of the reasoning item - populated when a response
-      is
+    description: 'The encrypted content of the reasoning item - populated when a response is
 
       generated with `reasoning.encrypted_content` in the `include` parameter.'
   status:
     anyOf:
-    - type: string
-      const: in_progress
-    - type: string
-      const: completed
-    - type: string
-      const: incomplete
+      - type: string
+        const: in_progress
+      - type: string
+        const: completed
+      - type: string
+        const: incomplete
     description: 'The status of the item. One of `in_progress`, `completed`, or
 
       `incomplete`. Populated when items are returned via API.'
 required:
-- id
-- type
-- summary
-description: 'A description of the chain of thought used by a reasoning model while
-  generating
+  - id
+  - type
+  - summary
+description: 'A description of the chain of thought used by a reasoning model while generating
 
   a response. Be sure to include these items in your `input` to the Responses API
 

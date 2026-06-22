@@ -7,7 +7,7 @@ properties:
     type: string
     const: custom
     enum:
-    - custom
+      - custom
     description: The type of the custom tool. Always `custom`.
   defer_loading:
     type: boolean
@@ -19,7 +19,6 @@ properties:
     $ref: ../schemas/OpenAICustomToolInputFormat.yaml
     description: The input format for the custom tool. Default is unconstrained text.
 required:
-- name
-- type
-description: A custom tool that processes input using a specified format. Learn more
-  about   [custom tools](/docs/guides/function-calling#custom-tools)
+  - name
+  - type
+description: A custom tool that processes input using a specified format. Learn more about   [custom tools](/docs/guides/function-calling#custom-tools)

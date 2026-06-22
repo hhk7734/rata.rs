@@ -4,8 +4,8 @@ properties:
     type: string
     const: text
     enum:
-    - text
+      - text
     description: Unconstrained text format. Always `text`.
 required:
-- type
+  - type
 description: Unconstrained free-form text.

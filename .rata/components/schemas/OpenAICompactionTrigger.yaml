@@ -4,8 +4,8 @@ properties:
     type: string
     const: compaction_trigger
     enum:
-    - compaction_trigger
+      - compaction_trigger
     description: The type of the item. Always `compaction_trigger`.
 required:
-- type
+  - type
 description: Compacts the current context. Must be the final input item.

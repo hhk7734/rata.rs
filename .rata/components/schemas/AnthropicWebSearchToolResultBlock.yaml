@@ -2,9 +2,9 @@ type: object
 properties:
   caller:
     anyOf:
-    - $ref: ../schemas/AnthropicDirectCaller.yaml
-    - $ref: ../schemas/AnthropicServerToolCaller.yaml
-    - $ref: ../schemas/AnthropicServerToolCaller20260120.yaml
+      - $ref: ../schemas/AnthropicDirectCaller.yaml
+      - $ref: ../schemas/AnthropicServerToolCaller.yaml
+      - $ref: ../schemas/AnthropicServerToolCaller20260120.yaml
     description: Tool invocation directly from the model.
   content:
     $ref: ../schemas/AnthropicWebSearchToolResultBlockContent.yaml
@@ -14,9 +14,9 @@ properties:
     type: string
     const: web_search_tool_result
     enum:
-    - web_search_tool_result
+      - web_search_tool_result
 required:
-- caller
-- content
-- tool_use_id
-- type
+  - caller
+  - content
+  - tool_use_id
+  - type

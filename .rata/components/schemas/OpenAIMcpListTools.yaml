@@ -15,14 +15,14 @@ properties:
     type: string
     const: mcp_list_tools
     enum:
-    - mcp_list_tools
+      - mcp_list_tools
     description: The type of the item. Always `mcp_list_tools`.
   error:
     type: string
     description: Error message if the server could not list tools.
 required:
-- tools
-- server_label
-- id
-- type
+  - tools
+  - server_label
+  - id
+  - type
 description: A list of tools available on an MCP server.

@@ -2,12 +2,11 @@ type: object
 properties:
   categories:
     $ref: ../schemas/OpenAImap[boolean].yaml
-    description: A dictionary of moderation categories to booleans, True if the input
-      is flagged under this category.
+    description: A dictionary of moderation categories to booleans, True if the input is flagged under this category.
   category_applied_input_types:
     anyOf:
-    - $ref: ../schemas/OpenAImap[array.yaml
-    - $ref: ../schemas/OpenAI"image"].yaml
+      - $ref: ../schemas/OpenAImap[array.yaml
+      - $ref: ../schemas/OpenAI"image"].yaml
     description: Which modalities of input are reflected by the score for each category.
   category_scores:
     $ref: ../schemas/OpenAImap[number].yaml
@@ -22,14 +21,13 @@ properties:
     type: string
     const: moderation_result
     enum:
-    - moderation_result
-    description: The object type, which was always `moderation_result` for successful
-      moderation results.
+      - moderation_result
+    description: The object type, which was always `moderation_result` for successful moderation results.
 required:
-- category_scores
-- categories
-- model
-- flagged
-- category_applied_input_types
-- type
+  - category_scores
+  - categories
+  - model
+  - flagged
+  - category_applied_input_types
+  - type
 description: A moderation result produced for the response input or output.

@@ -15,12 +15,11 @@ properties:
     type: string
     const: json_schema
     enum:
-    - json_schema
+      - json_schema
     description: The type of response format being defined. Always `json_schema`.
   description:
     type: string
-    description: 'A description of what the response format is for, used by the model
-      to
+    description: 'A description of what the response format is for, used by the model to
 
       determine how to respond in the format.'
   strict:
@@ -35,9 +34,9 @@ properties:
 
       guide](/docs/guides/structured-outputs).'
 required:
-- name
-- schema
-- type
+  - name
+  - schema
+  - type
 description: 'JSON Schema response format. Used to generate structured JSON responses.
 
   Learn more about [Structured Outputs](/docs/guides/structured-outputs).'

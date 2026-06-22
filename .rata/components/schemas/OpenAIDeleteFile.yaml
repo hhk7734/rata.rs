@@ -7,9 +7,9 @@ properties:
     type: string
     const: delete_file
     enum:
-    - delete_file
+      - delete_file
     description: Delete the specified file.
 required:
-- path
-- type
+  - path
+  - type
 description: Instruction for deleting an existing file via the apply_patch tool.

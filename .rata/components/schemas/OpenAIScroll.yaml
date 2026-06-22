@@ -10,9 +10,8 @@ properties:
     type: string
     const: scroll
     enum:
-    - scroll
-    description: Specifies the event type. For a scroll action, this property is always
-      set to `scroll`.
+      - scroll
+    description: Specifies the event type. For a scroll action, this property is always set to `scroll`.
   x:
     type: number
     description: The x-coordinate where the scroll occurred.
@@ -25,9 +24,9 @@ properties:
       type: string
     description: The keys being held while scrolling.
 required:
-- scroll_x
-- x
-- scroll_y
-- y
-- type
+  - scroll_x
+  - x
+  - scroll_y
+  - y
+  - type
 description: A scroll action.

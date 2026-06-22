@@ -4,8 +4,8 @@ properties:
     type: string
     const: shell
     enum:
-    - shell
+      - shell
     description: The tool to call. Always `shell`.
 required:
-- type
+  - type
 description: Forces the model to call the shell tool when a tool call is required.
