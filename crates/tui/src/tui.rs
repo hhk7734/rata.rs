@@ -788,7 +788,9 @@ impl TuiApp {
                 Ok(AppAction::Continue)
             }
             KeyCode::Enter => {
-                if self.active_block == ActiveBlock::Request {
+                if self.active_block == ActiveBlock::Collections {
+                    self.active_block = ActiveBlock::Examples;
+                } else if self.active_block == ActiveBlock::Request {
                     self.send(project);
                 } else if self.active_block == ActiveBlock::Params
                     && self.active_request_tab == RequestTab::Body
@@ -1690,6 +1692,7 @@ impl TuiApp {
                                 let op_idx = clicked_row - current_row;
                                 let operation = &collection.operations[op_idx];
                                 self.select_operation(operation, project);
+                                self.active_block = ActiveBlock::Examples;
                                 return Ok(AppAction::Continue);
                             }
                             current_row += ops_len;
