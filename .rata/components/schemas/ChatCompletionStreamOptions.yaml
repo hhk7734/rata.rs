@@ -1,10 +1,4 @@
-description: |
-  Streaming options. Extends OpenAI's spec with vLLM / SGLang's
-   `continuous_usage_stats` flag (per-chunk usage instead of trailing-only).
-   
-  Both fields default to `false` when absent so an empty object
-  (`"stream_options": {}`) deserializes as a no-op — matching the
-  pre-Dynamo-mirror behavior where `include_usage` was `Option<bool>`.
+description: Options for streaming response. Only set this when you set stream to true.
 type: object
 properties:
   include_usage:
