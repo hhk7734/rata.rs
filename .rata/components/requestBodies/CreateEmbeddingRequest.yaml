@@ -1,0 +1,48 @@
+required: true
+content:
+  application/json:
+    schema:
+      required:
+        - input
+        - model
+      title: CreateEmbeddingRequest
+      type: object
+      properties:
+        input:
+          anyOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+            - type: array
+              items:
+                type: integer
+            - type: array
+              items:
+                type: array
+                items:
+                  type: integer
+          description: "Input text to embed, encoded as a string or array of tokens."
+        model:
+          $ref: "../schemas/EmbeddingModel.yaml"
+        dimensions:
+          anyOf:
+            - type: integer
+              minimum: 1
+            - type: "null"
+          description: "The number of dimensions the resulting output embeddings should have."
+        encoding_format:
+          anyOf:
+            - type: string
+              enum:
+                - float
+                - base64
+            - type: "null"
+          default: float
+          description: "The format to return the embeddings in."
+        user:
+          anyOf:
+            - type: string
+            - type: "null"
+          description: "A unique identifier representing your end-user."
+      additionalProperties: false

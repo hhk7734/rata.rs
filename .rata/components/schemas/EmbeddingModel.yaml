@@ -1,0 +1,8 @@
+anyOf:
+  - type: string
+  - type: string
+    enum:
+      - text-embedding-ada-002
+      - text-embedding-3-small
+      - text-embedding-3-large
+description: ID of the model to use.

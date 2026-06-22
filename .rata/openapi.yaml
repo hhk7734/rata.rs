@@ -53,6 +53,17 @@ paths:
       responses:
         "200":
           $ref: "./components/responses/CreateCompletionResponse.yaml"
+  /v1/embeddings:
+    post:
+      tags:
+        - embeddings
+      summary: Create embeddings
+      description: Creates an embedding vector representing the input text.
+      requestBody:
+        $ref: "./components/requestBodies/CreateEmbeddingRequest.yaml"
+      responses:
+        "200":
+          $ref: "./components/responses/CreateEmbeddingResponse.yaml"
   /v1/messages:
     post:
       tags:
@@ -138,6 +149,8 @@ tags:
     description: OpenAI-compatible Chat API.
   - name: completions
     description: OpenAI-compatible Completions API.
+  - name: embeddings
+    description: OpenAI-compatible Embeddings API.
   - name: responses
     description: OpenAI-compatible Responses API.
   - name: messages

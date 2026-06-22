@@ -1,0 +1,12 @@
+type: object
+properties:
+  prompt_tokens:
+    type: integer
+    description: The number of tokens used by the prompt.
+  total_tokens:
+    type: integer
+    description: The total number of tokens used by the request.
+required:
+  - prompt_tokens
+  - total_tokens
+description: The usage information for the request.
