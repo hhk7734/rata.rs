@@ -1,0 +1,43 @@
+# {
+#   "model": "<model>",
+#   "max_tokens": 1024,
+#   "messages": [
+#     { "role": "user", "content": "Extract the name and age: Alice is 30 years old." }
+#   ],
+#   "output_config": {
+#     "format": {
+#       "type": "json_schema",
+#       "name": "person",
+#       "schema": {
+#         "type": "object",
+#         "properties": {
+#           "name": { "type": "string" },
+#           "age": { "type": "integer" }
+#         },
+#         "required": ["name", "age"]
+#       }
+#     }
+#   }
+# }
+body:
+  model: "{{model}}"
+  max_tokens: 1024
+  messages:
+    - role: user
+      content: "Extract the name and age: Alice is 30 years old."
+  output_config:
+    format:
+      type: "json_schema"
+      name: "person"
+      strict: true
+      schema:
+        type: "object"
+        properties:
+          name:
+            type: "string"
+          age:
+            type: "integer"
+        required:
+          - "name"
+          - "age"
+        additionalProperties: false

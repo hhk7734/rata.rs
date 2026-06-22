@@ -1,0 +1,19 @@
+body:
+  model: "{{model}}"
+  input: "Extract the name and age: Alice is 30 years old."
+  text:
+    format:
+      type: "json_schema"
+      name: "person"
+      strict: true
+      schema:
+        type: "object"
+        properties:
+          name:
+            type: "string"
+          age:
+            type: "integer"
+        required:
+          - "name"
+          - "age"
+        additionalProperties: false
