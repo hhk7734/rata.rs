@@ -2,20 +2,21 @@ type: object
 properties:
   model:
     type: string
-    description: The moderation model used to generate the results.
+    description: M
   results:
     type: array
     items:
       type: object
-    description: A list of moderation results.
+    description: L
   type:
     type: string
     const: moderation_results
     enum:
       - moderation_results
-    description: The object type, which is always `moderation_results`.
+    description: O
 required:
   - model
   - results
   - type
-description: Successful moderation results for the request input or generated output.
+description: |
+  Successful moderation results for the request input or generated output.

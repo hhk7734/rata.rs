@@ -1,4 +1,6 @@
-description: "Per-choice logprobs payload. `content` carries assistant-content tokens;\n `refusal` carries refusal-content tokens (kept for spec parity)."
+description: |
+  Per-choice logprobs payload. `content` carries assistant-content tokens;
+   `refusal` carries refusal-content tokens (kept for spec parity).
 type: object
 properties:
   content:
@@ -7,10 +9,12 @@ properties:
         items:
           $ref: "../schemas/TokenLogprob.yaml"
       - type: "null"
+    description: Content.
   refusal:
     anyOf:
       - type: array
         items:
           $ref: "../schemas/TokenLogprob.yaml"
       - type: "null"
+    description: Refusal.
 additionalProperties: false

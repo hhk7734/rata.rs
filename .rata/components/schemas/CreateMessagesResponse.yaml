@@ -2,36 +2,50 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   type:
     type: string
+    description: Type.
   role:
     type: string
+    description: Role.
   model:
     type: string
+    description: Model.
   content:
     type: array
     items:
       $ref: "../schemas/AnthropicOutputBlock.yaml"
+    description: Content.
   stop_reason:
     anyOf:
       - $ref: "../schemas/AnthropicStopReason.yaml"
       - type: "null"
+    description: Stop reason.
   stop_sequence:
     anyOf:
       - type: string
       - type: "null"
+    description: Stop sequence.
   usage:
     $ref: "../schemas/AnthropicUsage.yaml"
+    description: Usage.
   anthropic_version:
     anyOf:
       - type: string
-        description: "Anthropic-version header echo. Populated when the proxy mirrors it\nonto the response body."
+        description: |
+          Anthropic-version header echo. Populated when the proxy mirrors it
+          onto the response body.
       - type: "null"
+    description: Anthropic version.
   container:
     anyOf:
       - type: string
-        description: "Container identifier echoed back when the request used a stateful\n sandbox session."
+        description: |
+          Container identifier echoed back when the request used a stateful
+           sandbox session.
       - type: "null"
+    description: Container.
 required:
   - id
   - type

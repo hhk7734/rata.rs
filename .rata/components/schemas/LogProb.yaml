@@ -1,11 +1,14 @@
-description: Per-token logprob entry on `InputOutputTextContent.logprobs`.
+description: |
+  Per-token logprob entry on `InputOutputTextContent.logprobs`.
 type: object
 properties:
   token:
     type: string
+    description: Token.
   logprob:
     type: number
     format: float
+    description: Logprob.
   bytes:
     anyOf:
       - type: array
@@ -15,10 +18,12 @@ properties:
           minimum: 0
           maximum: 255
       - type: "null"
+    description: Bytes.
   top_logprobs:
     type: array
     items:
       $ref: "../schemas/TopLogProb.yaml"
+    description: Top logprobs.
 required:
   - token
   - logprob

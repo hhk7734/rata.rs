@@ -4,18 +4,23 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Input tokens.
   input_tokens_details:
     $ref: "../schemas/ResponseInputTokensDetails.yaml"
+    description: Input tokens details.
   output_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Output tokens.
   output_tokens_details:
     $ref: "../schemas/ResponseOutputTokensDetails.yaml"
+    description: Output tokens details.
   total_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Total tokens.
 required:
   - input_tokens
   - input_tokens_details

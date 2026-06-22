@@ -1,12 +1,16 @@
-description: "`text` request parameter — output format pin (`response_format`\n equivalent for the Responses API)."
+description: |
+  `text` request parameter — output format pin (`response_format`
+   equivalent for the Responses API).
 type: object
 properties:
   format:
     anyOf:
       - $ref: "../schemas/TextResponseFormatConfiguration.yaml"
       - type: "null"
+    description: Format.
   verbosity:
     anyOf:
       - $ref: "../schemas/TextVerbosity.yaml"
       - type: "null"
+    description: Verbosity.
 additionalProperties: false

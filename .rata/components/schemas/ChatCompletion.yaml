@@ -2,44 +2,47 @@ type: object
 properties:
   id:
     type: string
-    description: A unique identifier for the chat completion.
+    description: U
   choices:
     type: array
     items:
       type: object
-    description: A list of chat completion choices. Can be more than one if `n` is greater than 1.
+    description: L
   created:
     type: number
-    description: The Unix timestamp (in seconds) of when the chat completion was created.
+    description: U
   model:
     type: string
-    description: The model used for the chat completion.
+    description: M
   object:
     type: string
     const: chat.completion
     enum:
       - chat.completion
-    description: The object type, which is always `chat.completion`.
+    description: O
   moderation:
     type: object
-    description: 'Moderation results for the request input and generated output, if moderated
-
-      completions were requested.'
+    description: |
+      Moderation results for the request input and generated output, if moderated
+      completions were requested.
   service_tier:
     anyOf:
       - type: string
         const: auto
+        description: Must be `auto`.
       - type: string
         const: default
+        description: Must be `default`.
       - type: string
         const: flex
+        description: Must be `flex`.
       - $ref: ../schemas/OpenAI2.yaml
     description: Specifies the processing type used for serving the request.
   system_fingerprint:
     type: string
-    description: 'This fingerprint represents the backend configuration that the model runs with.
-
-      Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.'
+    description: |
+      This fingerprint represents the backend configuration that the model runs with.
+      Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.
   usage:
     $ref: ../schemas/OpenAICompletionUsage.yaml
     description: Usage statistics for the completion request.
@@ -49,4 +52,5 @@ required:
   - created
   - model
   - object
-description: Represents a chat completion response returned by model, based on the provided input.
+description: |
+  Represents a chat completion response returned by model, based on the provided input.

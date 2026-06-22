@@ -2,15 +2,18 @@ type: object
 properties:
   role:
     type: string
+    description: Role.
   content:
     anyOf:
       - type: string
       - type: "null"
+    description: Content.
   refusal:
     anyOf:
       - type: string
         default:
       - type: "null"
+    description: Refusal.
   annotations:
     anyOf:
       - type: array
@@ -18,25 +21,30 @@ properties:
           $ref: "../schemas/ResponseMessageAnnotation.yaml"
         default:
       - type: "null"
+    description: Annotations.
   audio:
     anyOf:
       - $ref: "../schemas/ChatCompletionResponseMessageAudio.yaml"
       - type: "null"
     default:
+    description: Audio.
   function_call:
     anyOf:
       - $ref: "../schemas/ResponseMessageFunctionCall.yaml"
       - type: "null"
     default:
+    description: Function call.
   tool_calls:
     type: array
     items:
       $ref: "../schemas/ToolCall.yaml"
     default: []
+    description: Tool calls.
   reasoning_content:
     anyOf:
       - type: string
       - type: "null"
+    description: Reasoning content.
   provider_specific_fields:
     type: object
     description: "LiteLLM-specific extension"

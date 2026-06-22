@@ -4,16 +4,20 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Index.
   delta:
     $ref: "../schemas/Delta.yaml"
+    description: Delta.
   finish_reason:
     anyOf:
       - $ref: "../schemas/FinishReason.yaml"
       - type: "null"
+    description: Finish reason.
   logprobs:
     anyOf:
       - $ref: "../schemas/ChatChoiceLogprobs.yaml"
       - type: "null"
+    description: Logprobs.
 required:
   - index
   - delta

@@ -2,8 +2,10 @@ type: object
 properties:
   name:
     type: string
+    description: Name.
   server_label:
     type: string
+    description: Server label.
 required:
   - name
   - server_label

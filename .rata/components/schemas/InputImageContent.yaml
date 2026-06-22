@@ -1,15 +1,22 @@
-description: "`{\"type\":\"input_image\", ...}` — image input. Accepts a `file_id` (for\nan uploaded asset) or `image_url` (remote URL / data URI);\n`detail` defaults to `auto` so spec-compliant clients that omit it\nround-trip."
+description: |
+  `{"type":"input_image", ...}` — image input. Accepts a `file_id` (for
+  an uploaded asset) or `image_url` (remote URL / data URI);
+  `detail` defaults to `auto` so spec-compliant clients that omit it
+  round-trip.
 type: object
 properties:
   detail:
     $ref: "../schemas/ImageDetail.yaml"
     default: auto
+    description: Detail.
   file_id:
     anyOf:
       - type: string
       - type: "null"
+    description: File ID.
   image_url:
     anyOf:
       - type: string
         format: uri
       - type: "null"
+    description: Image URL.

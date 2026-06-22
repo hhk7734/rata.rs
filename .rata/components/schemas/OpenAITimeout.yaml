@@ -5,7 +5,8 @@ properties:
     const: timeout
     enum:
       - timeout
-    description: The outcome type. Always `timeout`.
+    description: O
 required:
   - type
-description: Indicates that the shell call exceeded its configured time limit.
+description: |
+  Indicates that the shell call exceeded its configured time limit.

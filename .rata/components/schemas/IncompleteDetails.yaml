@@ -2,6 +2,7 @@ type: object
 properties:
   reason:
     type: string
+    description: Reason.
 required:
   - reason
 additionalProperties: false

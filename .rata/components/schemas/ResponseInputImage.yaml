@@ -4,26 +4,30 @@ properties:
     anyOf:
       - type: string
         const: low
+        description: Must be `low`.
       - type: string
         const: high
+        description: Must be `high`.
       - type: string
         const: auto
+        description: Must be `auto`.
       - type: string
         const: original
-    description: The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
+        description: Must be `original`.
+    description: D
   type:
     type: string
     const: input_image
     enum:
       - input_image
-    description: The type of the input item. Always `input_image`.
+    description: T
   file_id:
     type: string
-    description: The ID of the file to be sent to the model.
+    description: I
   image_url:
     type: string
-    description: The URL of the image to be sent to the model. A fully qualified URL or base64 encoded image in a data URL.
+    description: U
 required:
   - detail
   - type
-description: An image input to the model. Learn about [image inputs](/docs/guides/vision).
+description: I

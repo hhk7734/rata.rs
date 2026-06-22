@@ -3,13 +3,18 @@ properties:
   type:
     type: string
     const: approximate
+    description: Must be `approximate`.
   city:
     type: string
+    description: City.
   country:
     type: string
+    description: Country.
   region:
     type: string
+    description: Region.
   timezone:
     type: string
+    description: Timezone.
 required:
   - type

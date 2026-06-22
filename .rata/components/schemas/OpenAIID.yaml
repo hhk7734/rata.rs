@@ -2,7 +2,7 @@ type: object
 properties:
   id:
     type: string
-    description: The custom voice ID, e.g. `voice_1234`.
+    description: C
 required:
   - id
 description: Custom voice reference.

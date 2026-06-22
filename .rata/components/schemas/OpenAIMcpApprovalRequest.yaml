@@ -2,26 +2,26 @@ type: object
 properties:
   id:
     type: string
-    description: The unique ID of the approval request.
+    description: U
   arguments:
     type: string
-    description: A JSON string of arguments for the tool.
+    description: J
   name:
     type: string
-    description: The name of the tool to run.
+    description: N
   server_label:
     type: string
-    description: The label of the MCP server making the request.
+    description: L
   type:
     type: string
     const: mcp_approval_request
     enum:
       - mcp_approval_request
-    description: The type of the item. Always `mcp_approval_request`.
+    description: T
 required:
   - name
   - server_label
   - id
   - arguments
   - type
-description: A request for human approval of a tool invocation.
+description: R

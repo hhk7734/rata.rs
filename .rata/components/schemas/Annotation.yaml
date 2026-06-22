@@ -4,19 +4,23 @@ anyOf:
     properties:
       file_id:
         type: string
+        description: File ID.
       index:
         anyOf:
           - type: integer
             format: uint32
             minimum: 0
           - type: "null"
+        description: Index.
       filename:
         anyOf:
           - type: string
           - type: "null"
+        description: Filename.
       type:
         type: string
         const: file_citation
+        description: Must be `file_citation`.
     required:
       - type
       - file_id
@@ -25,25 +29,30 @@ anyOf:
       url:
         type: string
         format: uri
+        description: Url.
       title:
         anyOf:
           - type: string
           - type: "null"
+        description: Title.
       start_index:
         anyOf:
           - type: integer
             format: uint32
             minimum: 0
           - type: "null"
+        description: Start index.
       end_index:
         anyOf:
           - type: integer
             format: uint32
             minimum: 0
           - type: "null"
+        description: End index.
       type:
         type: string
         const: url_citation
+        description: Must be `url_citation`.
     required:
       - type
       - url
@@ -51,15 +60,18 @@ anyOf:
     properties:
       file_id:
         type: string
+        description: File ID.
       index:
         anyOf:
           - type: integer
             format: uint32
             minimum: 0
           - type: "null"
+        description: Index.
       type:
         type: string
         const: file_path
+        description: Must be `file_path`.
     required:
       - type
       - file_id

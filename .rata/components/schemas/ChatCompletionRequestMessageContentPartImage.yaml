@@ -3,5 +3,6 @@ type: object
 properties:
   image_url:
     $ref: "../schemas/ImageUrl.yaml"
+    description: Image URL.
 required:
   - image_url

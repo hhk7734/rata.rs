@@ -5,12 +5,15 @@ properties:
     type: array
     items:
       $ref: "../schemas/InputContent.yaml"
+    description: Content.
   role:
     $ref: "../schemas/InputRole.yaml"
+    description: Role.
   status:
     anyOf:
       - $ref: "../schemas/OutputStatus.yaml"
       - type: "null"
+    description: Status.
 required:
   - content
   - role

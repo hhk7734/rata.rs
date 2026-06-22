@@ -1,7 +1,9 @@
-description: '`{"type":"audio_url","audio_url":{...}}` content part (vLLM extension).'
+description: |
+  `{"type":"audio_url","audio_url":{...}}` content part (vLLM extension).
 type: object
 properties:
   audio_url:
     $ref: "../schemas/AudioUrl.yaml"
+    description: Audio URL.
 required:
   - audio_url

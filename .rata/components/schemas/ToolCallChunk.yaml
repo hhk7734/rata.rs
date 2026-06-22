@@ -4,18 +4,22 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Index.
   id:
     anyOf:
       - type: string
       - type: "null"
+    description: Id.
   type:
     anyOf:
       - $ref: "../schemas/FunctionType.yaml"
       - type: "null"
+    description: Type.
   function:
     anyOf:
       - $ref: "../schemas/FunctionCallChunk.yaml"
       - type: "null"
+    description: Function.
 required:
   - index
 additionalProperties: false

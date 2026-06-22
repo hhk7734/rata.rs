@@ -2,11 +2,13 @@ type: object
 properties:
   data:
     type: string
+    description: Data.
   type:
     type: string
     const: redacted_thinking
     enum:
       - redacted_thinking
+    description: Must be `redacted_thinking`.
 required:
   - data
   - type

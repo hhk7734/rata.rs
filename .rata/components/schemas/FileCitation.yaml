@@ -2,12 +2,14 @@ type: object
 properties:
   file_id:
     type: string
+    description: File ID.
   index:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Index.
 required:
   - file_id
 additionalProperties: false

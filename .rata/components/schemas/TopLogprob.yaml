@@ -1,11 +1,13 @@
-description: One of the top-k alternative tokens at a generation step.
+description: 'Values: the top-k alternative tokens at a generation step.'
 type: object
 properties:
   token:
     type: string
+    description: Token.
   logprob:
     type: number
     format: float
+    description: Logprob.
   bytes:
     anyOf:
       - type: array
@@ -15,6 +17,7 @@ properties:
           minimum: 0
           maximum: 255
       - type: "null"
+    description: Bytes.
 required:
   - token
   - logprob

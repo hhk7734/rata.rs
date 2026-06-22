@@ -2,7 +2,7 @@ type: object
 properties:
   approval_request_id:
     type: string
-    description: The ID of the approval request being answered.
+    description: I
   approve:
     type: boolean
     description: Whether the request was approved.
@@ -11,16 +11,16 @@ properties:
     const: mcp_approval_response
     enum:
       - mcp_approval_response
-    description: The type of the item. Always `mcp_approval_response`.
+    description: T
   id:
     type: string
-    description: The unique ID of the approval response
+    description: U
   reason:
     type: string
-    description: Optional reason for the decision.
+    description: Reason for the decision.
 required:
   - id
   - type
   - approval_request_id
   - approve
-description: A response to an MCP approval request.
+description: R

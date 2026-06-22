@@ -2,14 +2,17 @@ type: object
 properties:
   name:
     type: string
+    description: Name.
   description:
     anyOf:
       - type: string
       - type: "null"
+    description: Description.
   parameters: {}
   strict:
     anyOf:
       - type: boolean
       - type: "null"
+    description: Strict.
 required:
   - name

@@ -4,3 +4,5 @@ enum:
   - unavailable
   - too_many_requests
   - execution_time_exceeded
+description: |
+  Values: invalid_tool_input, unavailable, too_many_requests, execution_time_exceeded.

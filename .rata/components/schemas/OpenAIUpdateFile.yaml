@@ -16,4 +16,5 @@ required:
   - path
   - diff
   - type
-description: Instruction for updating an existing file via the apply_patch tool.
+description: |
+  Instruction for updating an existing file via the apply_patch tool.

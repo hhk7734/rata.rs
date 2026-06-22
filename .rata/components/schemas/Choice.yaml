@@ -4,13 +4,16 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Index.
   message:
     $ref: "../schemas/ResponseMessage.yaml"
+    description: Message.
   logprobs:
     anyOf:
       - $ref: "../schemas/ChatChoiceLogprobs.yaml"
       - type: "null"
     default:
+    description: Logprobs.
   finish_reason:
     oneOf:
       - $ref: "../schemas/FinishReason.yaml"

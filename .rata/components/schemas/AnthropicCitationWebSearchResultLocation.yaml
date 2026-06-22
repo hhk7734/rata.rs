@@ -2,17 +2,22 @@ type: object
 properties:
   cited_text:
     type: string
+    description: Cited text.
   encrypted_index:
     type: string
+    description: Encrypted index.
   title:
     type: string
+    description: Title.
   type:
     type: string
     const: web_search_result_location
     enum:
       - web_search_result_location
+    description: Must be `web_search_result_location`.
   url:
     type: string
+    description: Url.
 required:
   - cited_text
   - encrypted_index

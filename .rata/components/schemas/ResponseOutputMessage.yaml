@@ -2,48 +2,54 @@ type: object
 properties:
   id:
     type: string
-    description: The unique ID of the output message.
+    description: U
   content:
     type: array
     items:
       anyOf:
         - $ref: ../schemas/ResponseOutputText.yaml
         - $ref: ../schemas/ResponseOutputRefusal.yaml
-    description: The content of the output message.
+    description: C
   role:
     type: string
     const: assistant
     enum:
       - assistant
-    description: The role of the output message. Always `assistant`.
+    description: R
   status:
     anyOf:
       - type: string
         const: in_progress
+        description: Must be `in_progress`.
       - type: string
         const: completed
+        description: Must be `completed`.
       - type: string
         const: incomplete
-    description: 'The status of the message input. One of `in_progress`, `completed`, or
-
-      `incomplete`. Populated when input items are returned via API.'
+        description: Must be `incomplete`.
+    description: 'S'
   type:
     type: string
     const: message
     enum:
       - message
-    description: The type of the output message. Always `message`.
+    description: T
   phase:
     anyOf:
       - type: string
         const: commentary
+        description: Must be `commentary`.
       - type: string
         const: final_answer
-    description: "Labels an `assistant` message as intermediate commentary (`commentary`) or the final answer (`final_answer`).\nFor models like `gpt-5.3-codex` and beyond, when sending follow-up requests, preserve and resend\nphase on all assistant messages — dropping it can degrade performance. Not used for user messages."
+        description: Must be `final_answer`.
+    description: |
+      Labels an `assistant` message as intermediate commentary (`commentary`) or the final answer (`final_answer`).
+      For models like `gpt-5.3-codex` and beyond, when sending follow-up requests, preserve and resend
+      phase on all assistant messages — dropping it can degrade performance. Not used for user messages.
 required:
   - content
   - role
   - status
   - id
   - type
-description: An output message from the model.
+description: O

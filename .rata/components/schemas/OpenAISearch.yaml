@@ -5,20 +5,20 @@ properties:
     const: search
     enum:
       - search
-    description: The action type.
+    description: A
   queries:
     type: array
     items:
       type: string
-    description: The search queries.
+    description: S
   query:
     type: string
-    description: The search query.
+    description: S
   sources:
     type: array
     items:
       type: object
-    description: The sources used in the search.
+    description: S
 required:
   - type
 description: Action type "search" - Performs a web search query.

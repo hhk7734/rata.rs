@@ -2,16 +2,16 @@ type: object
 properties:
   content:
     type: string
-    description: The contents of the function message.
+    description: C
   name:
     type: string
-    description: The name of the function to call.
+    description: N
   role:
     type: string
     const: function
     enum:
       - function
-    description: The role of the messages author, in this case `function`.
+    description: R
 required:
   - content
   - name

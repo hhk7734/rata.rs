@@ -2,16 +2,19 @@ type: object
 properties:
   data:
     type: string
+    description: Data.
   media_type:
     type: string
     const: text/plain
     enum:
       - text/plain
+    description: Must be `text/plain`.
   type:
     type: string
     const: text
     enum:
       - text
+    description: Must be `text`.
 required:
   - data
   - media_type

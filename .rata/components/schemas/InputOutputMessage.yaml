@@ -1,4 +1,7 @@
-description: "Echoed-back assistant message used as input on a subsequent turn.\n `id`, `status`, and `content` are all optional — relaxed vs the\ncanonical OutputMessage shape."
+description: |
+  Echoed-back assistant message used as input on a subsequent turn.
+   `id`, `status`, and `content` are all optional — relaxed vs the
+  canonical OutputMessage shape.
 type: object
 properties:
   content:
@@ -6,20 +9,25 @@ properties:
     items:
       $ref: "../schemas/InputOutputMessageContent.yaml"
     default: []
+    description: Content.
   id:
     anyOf:
       - type: string
       - type: "null"
+    description: Id.
   role:
     $ref: "../schemas/AssistantRole.yaml"
+    description: Role.
   phase:
     anyOf:
       - $ref: "../schemas/MessagePhase.yaml"
       - type: "null"
+    description: Phase.
   status:
     anyOf:
       - $ref: "../schemas/OutputStatus.yaml"
       - type: "null"
+    description: Status.
 required:
   - role
 additionalProperties: false

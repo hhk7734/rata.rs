@@ -8,8 +8,8 @@ properties:
     const: custom
     enum:
       - custom
-    description: The type of the custom tool. Always `custom`.
+    description: T
 required:
   - custom
   - type
-description: A custom tool that processes input using a specified format.
+description: C

@@ -1,7 +1,9 @@
-description: '`{"type":"video_url","video_url":{...}}` content part (vLLM extension).'
+description: |
+  `{"type":"video_url","video_url":{...}}` content part (vLLM extension).
 type: object
 properties:
   video_url:
     $ref: "../schemas/VideoUrl.yaml"
+    description: VIDeo URL.
 required:
   - video_url

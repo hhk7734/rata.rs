@@ -5,7 +5,8 @@ properties:
     const: shell
     enum:
       - shell
-    description: The tool to call. Always `shell`.
+    description: T
 required:
   - type
-description: Forces the model to call the shell tool when a tool call is required.
+description: |
+  Forces the model to call the shell tool when a tool call is required.

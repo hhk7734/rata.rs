@@ -2,11 +2,13 @@ type: object
 properties:
   file_id:
     type: string
+    description: File ID.
   type:
     type: string
     const: container_upload
     enum:
       - container_upload
+    description: Must be `container_upload`.
 required:
   - file_id
   - type

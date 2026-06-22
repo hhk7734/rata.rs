@@ -8,13 +8,16 @@ properties:
       - too_many_requests
       - execution_time_exceeded
       - file_not_found
+    description: Error code.
   error_message:
     type: string
+    description: Error message.
   type:
     type: string
     const: text_editor_code_execution_tool_result_error
     enum:
       - text_editor_code_execution_tool_result_error
+    description: Must be `text_editor_code_execution_tool_result_error`.
 required:
   - error_code
   - error_message

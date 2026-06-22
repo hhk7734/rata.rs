@@ -4,16 +4,21 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Prompt tokens.
   total_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Total tokens.
   completion_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Completion tokens.
   prompt_tokens_details:
-    description: "Always serialized (as `null` when absent) to mirror vLLM's wire\n shape, which clients pin against."
+    description: |
+      Always serialized (as `null` when absent) to mirror vLLM's wire
+       shape, which clients pin against.
     anyOf:
       - $ref: "../schemas/PromptTokensDetails.yaml"
       - type: "null"
@@ -22,6 +27,7 @@ properties:
     anyOf:
       - $ref: "../schemas/CompletionTokensDetails.yaml"
       - type: "null"
+    description: Completion tokens details.
 required:
   - prompt_tokens
   - total_tokens

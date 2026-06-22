@@ -2,42 +2,55 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   type:
     type: string
+    description: Type.
   role:
     anyOf:
       - type: string
-        description: Present on `message` items, absent on `reasoning` / tool-call items.
+        description: |
+          Present on `message` items, absent on `reasoning` / tool-call items.
       - type: "null"
+    description: Role.
   status:
     anyOf:
       - type: string
       - type: "null"
+    description: Status.
   phase: {}
   summary:
     anyOf:
       - type: array
-        description: "Present on `reasoning` items (public-facing summary list); absent on\n`message` items."
+        description: |
+          Present on `reasoning` items (public-facing summary list); absent on
+          `message` items.
         items:
           $ref: "../schemas/ContentBlock.yaml"
       - type: "null"
+    description: Summary.
   name:
     anyOf:
       - type: string
       - type: "null"
+    description: Name.
   call_id:
     anyOf:
       - type: string
-        description: Tool-call id clients use to thread the follow-up `tool` role response.
+        description: |
+          Tool-call id clients use to thread the follow-up `tool` role response.
       - type: "null"
+    description: Call ID.
   arguments:
     anyOf:
       - type: string
       - type: "null"
+    description: Arguments.
   content:
     type: array
     items:
       $ref: "../schemas/ContentBlock.yaml"
+    description: Content.
 required:
   - id
   - type

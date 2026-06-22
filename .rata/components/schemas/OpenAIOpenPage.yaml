@@ -5,10 +5,11 @@ properties:
     const: open_page
     enum:
       - open_page
-    description: The action type.
+    description: A
   url:
     type: string
-    description: The URL opened by the model.
+    description: U
 required:
   - type
-description: Action type "open_page" - Opens a specific URL from search results.
+description: |
+  Action type "open_page" - Opens a specific URL from search results.

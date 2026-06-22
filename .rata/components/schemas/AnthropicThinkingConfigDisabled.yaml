@@ -5,5 +5,6 @@ properties:
     const: disabled
     enum:
       - disabled
+    description: Must be `disabled`.
 required:
   - type

@@ -2,13 +2,13 @@ type: object
 properties:
   id:
     type: string
-    description: The ID of the item to reference.
+    description: I
   type:
     type: string
     const: item_reference
     enum:
       - item_reference
-    description: The type of item to reference. Always `item_reference`.
+    description: T
 required:
   - id
-description: An internal identifier for an item to reference.
+description: I

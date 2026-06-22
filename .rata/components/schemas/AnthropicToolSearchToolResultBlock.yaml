@@ -4,13 +4,16 @@ properties:
     anyOf:
       - $ref: ../schemas/AnthropicToolSearchToolResultError.yaml
       - $ref: ../schemas/AnthropicToolSearchToolSearchResultBlock.yaml
+    description: Content.
   tool_use_id:
     type: string
+    description: Tool use ID.
   type:
     type: string
     const: tool_search_tool_result
     enum:
       - tool_search_tool_result
+    description: Must be `tool_search_tool_result`.
 required:
   - content
   - tool_use_id

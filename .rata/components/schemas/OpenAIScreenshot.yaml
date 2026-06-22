@@ -5,7 +5,8 @@ properties:
     const: screenshot
     enum:
       - screenshot
-    description: Specifies the event type. For a screenshot action, this property is always set to `screenshot`.
+    description: |
+      Specifies the event type. For a screenshot action, this property is always set to `screenshot`.
 required:
   - type
-description: A screenshot action.
+description: S

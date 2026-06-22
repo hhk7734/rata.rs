@@ -3,9 +3,11 @@ anyOf:
     properties:
       text:
         type: string
+        description: Text.
       type:
         type: string
         const: summary_text
+        description: Must be `summary_text`.
     required:
       - type
       - text

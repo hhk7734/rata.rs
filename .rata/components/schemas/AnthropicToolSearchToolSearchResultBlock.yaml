@@ -4,11 +4,13 @@ properties:
     type: array
     items:
       $ref: ../schemas/AnthropicToolReferenceBlock.yaml
+    description: Tool references.
   type:
     type: string
     const: tool_search_tool_search_result
     enum:
       - tool_search_tool_search_result
+    description: Must be `tool_search_tool_search_result`.
 required:
   - tool_references
   - type

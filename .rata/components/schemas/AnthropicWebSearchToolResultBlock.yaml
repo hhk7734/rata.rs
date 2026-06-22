@@ -8,13 +8,16 @@ properties:
     description: Tool invocation directly from the model.
   content:
     $ref: ../schemas/AnthropicWebSearchToolResultBlockContent.yaml
+    description: Content.
   tool_use_id:
     type: string
+    description: Tool use ID.
   type:
     type: string
     const: web_search_tool_result
     enum:
       - web_search_tool_result
+    description: Must be `web_search_tool_result`.
 required:
   - caller
   - content

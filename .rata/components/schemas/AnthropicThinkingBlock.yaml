@@ -2,13 +2,16 @@ type: object
 properties:
   signature:
     type: string
+    description: Signature.
   thinking:
     type: string
+    description: Thinking.
   type:
     type: string
     const: thinking
     enum:
       - thinking
+    description: Must be `thinking`.
 required:
   - signature
   - thinking

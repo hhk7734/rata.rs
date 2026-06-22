@@ -1,11 +1,14 @@
-description: Single-token logprob entry within a choice's logprobs payload.
+description: |
+  Single-token logprob entry within a choice's logprobs payload.
 type: object
 properties:
   token:
     type: string
+    description: Token.
   logprob:
     type: number
     format: float
+    description: Logprob.
   bytes:
     anyOf:
       - type: array
@@ -15,11 +18,13 @@ properties:
           minimum: 0
           maximum: 255
       - type: "null"
+    description: Bytes.
   top_logprobs:
     type: array
     items:
       $ref: "../schemas/TopLogprob.yaml"
     default: []
+    description: Top logprobs.
 required:
   - token
   - logprob

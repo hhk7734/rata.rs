@@ -2,14 +2,14 @@ type: object
 properties:
   logs:
     type: string
-    description: The logs output from the code interpreter.
+    description: L
   type:
     type: string
     const: logs
     enum:
       - logs
-    description: The type of the output. Always `logs`.
+    description: T
 required:
   - logs
   - type
-description: The logs output from the code interpreter.
+description: L

@@ -2,8 +2,10 @@ type: object
 properties:
   type:
     type: string
+    description: Type.
   message:
     type: string
+    description: Message.
 required:
   - type
   - message

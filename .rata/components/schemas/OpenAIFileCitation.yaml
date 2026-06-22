@@ -2,22 +2,22 @@ type: object
 properties:
   file_id:
     type: string
-    description: The ID of the file.
+    description: I
   filename:
     type: string
-    description: The filename of the file cited.
+    description: F
   index:
     type: number
-    description: The index of the file in the list of files.
+    description: I
   type:
     type: string
     const: file_citation
     enum:
       - file_citation
-    description: The type of the file citation. Always `file_citation`.
+    description: T
 required:
   - index
   - filename
   - type
   - file_id
-description: A citation to a file.
+description: C

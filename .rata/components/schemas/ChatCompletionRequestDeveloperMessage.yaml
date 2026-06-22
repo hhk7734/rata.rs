@@ -2,9 +2,11 @@ type: object
 properties:
   content:
     $ref: "../schemas/ChatCompletionRequestDeveloperMessageContent.yaml"
+    description: Content.
   name:
     anyOf:
       - type: string
       - type: "null"
+    description: Name.
 required:
   - content

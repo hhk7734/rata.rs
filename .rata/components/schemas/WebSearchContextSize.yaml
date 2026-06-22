@@ -3,3 +3,4 @@ enum:
   - low
   - medium
   - high
+description: 'Values: low, medium, high.'

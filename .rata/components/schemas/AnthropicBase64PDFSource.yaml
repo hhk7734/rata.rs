@@ -2,16 +2,19 @@ type: object
 properties:
   data:
     type: string
+    description: Data.
   media_type:
     type: string
     const: application/pdf
     enum:
       - application/pdf
+    description: Must be `application/pdf`.
   type:
     type: string
     const: base64
     enum:
       - base64
+    description: Must be `base64`.
 required:
   - data
   - media_type

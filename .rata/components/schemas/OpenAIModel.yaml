@@ -2,20 +2,25 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   object:
     type: string
+    description: Object.
   created:
     type: integer
     format: uint64
     minimum: 0
+    description: Created.
   owned_by:
     type: string
+    description: Owned by.
   max_model_len:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Max model len.
 required:
   - id
   - object

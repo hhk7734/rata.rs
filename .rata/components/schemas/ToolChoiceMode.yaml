@@ -3,3 +3,4 @@ enum:
   - none
   - auto
   - required
+description: 'Values: none, auto, required.'

@@ -4,32 +4,42 @@ properties:
     anyOf:
       - type: string
         const: web_search_preview
+        description: Must be `web_search_preview`.
       - type: string
         const: web_search_preview_2025_03_11
-    description: The type of the web search tool. One of `web_search_preview` or `web_search_preview_2025_03_11`.
+        description: Must be `web_search_preview_2025_03_11`.
+    description: T
   search_content_types:
     type: array
     items:
       anyOf:
         - type: string
           const: text
+          description: Must be `text`.
         - type: string
           const: image
+          description: Must be `image`.
     enum:
       - text
       - image
+    description: Search content types.
   search_context_size:
     anyOf:
       - type: string
         const: low
+        description: Must be `low`.
       - type: string
         const: medium
+        description: Must be `medium`.
       - type: string
         const: high
-    description: High level guidance for the amount of context window space to use for the search. One of `low`, `medium`, or `high`. `medium` is the default.
+        description: Must be `high`.
+    description: |
+      High level guidance for the amount of context window space to use for the search. Values: `low`, `medium`, or `high`. `medium` is the default.
   user_location:
     type: object
-    description: The user's location.
+    description: U
 required:
   - type
-description: This tool searches the web for relevant results to use in a response. Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+description: |
+  This tool searches the web for relevant results to use in a response.

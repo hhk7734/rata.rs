@@ -1,4 +1,6 @@
-description: "Content of a simplified `EasyInputMessage` — flat string or content\nlist."
+description: |
+  Content of a simplified `EasyInputMessage` — flat string or content
+  list.
 anyOf:
   - type: string
   - type: array

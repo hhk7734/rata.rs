@@ -1,8 +1,7 @@
-description: 'Message item inside `Item::Message`. Untagged; discriminated by `role`:
-
+description: |
+  Message item inside `Item::Message`. Untagged; discriminated by `role`:
   `Output` requires `"assistant"`, `Input` accepts `"user"`/`"system"`/
-
-  `"developer"`.'
+  `"developer"`.
 anyOf:
   - $ref: "../schemas/InputOutputMessage.yaml"
   - $ref: "../schemas/InputMessage.yaml"

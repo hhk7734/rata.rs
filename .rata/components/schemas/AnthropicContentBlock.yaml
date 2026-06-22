@@ -1,21 +1,25 @@
-description: "A single content block within a message.\n\nModels the well-known Anthropic block types explicitly and captures\nunknown / forward-compatible block types as `Other(Value)` so the proxy\ncan round-trip Claude features the gateway does not handle yet."
+description: "S"
 anyOf:
   - type: object
     properties:
       text:
         type: string
+        description: Text.
       citations:
         anyOf:
           - type: array
             items: {}
           - type: "null"
+        description: Citations.
       cache_control:
         anyOf:
           - $ref: "../schemas/AnthropicCacheControl.yaml"
           - type: "null"
+        description: Cache control.
       type:
         type: string
         const: text
+        description: Must be `text`.
     required:
       - type
       - text
@@ -23,13 +27,16 @@ anyOf:
     properties:
       source:
         $ref: "../schemas/AnthropicImageSource.yaml"
+        description: Source.
       cache_control:
         anyOf:
           - $ref: "../schemas/AnthropicCacheControl.yaml"
           - type: "null"
+        description: Cache control.
       type:
         type: string
         const: image
+        description: Must be `image`.
     required:
       - type
       - source
@@ -40,18 +47,22 @@ anyOf:
         anyOf:
           - type: string
           - type: "null"
+        description: Title.
       context:
         anyOf:
           - type: string
           - type: "null"
+        description: Context.
       citations: {}
       cache_control:
         anyOf:
           - $ref: "../schemas/AnthropicCacheControl.yaml"
           - type: "null"
+        description: Cache control.
       type:
         type: string
         const: document
+        description: Must be `document`.
     required:
       - type
       - source
@@ -59,16 +70,20 @@ anyOf:
     properties:
       id:
         type: string
+        description: Id.
       name:
         type: string
+        description: Name.
       input: {}
       cache_control:
         anyOf:
           - $ref: "../schemas/AnthropicCacheControl.yaml"
           - type: "null"
+        description: Cache control.
       type:
         type: string
         const: tool_use
+        description: Must be `tool_use`.
     required:
       - type
       - id
@@ -78,18 +93,23 @@ anyOf:
     properties:
       tool_use_id:
         type: string
+        description: Tool use ID.
       content:
         $ref: "../schemas/AnthropicToolResultContent.yaml"
+        description: Content.
       is_error:
         type: boolean
         default: false
+        description: Is error.
       cache_control:
         anyOf:
           - $ref: "../schemas/AnthropicCacheControl.yaml"
           - type: "null"
+        description: Cache control.
       type:
         type: string
         const: tool_result
+        description: Must be `tool_result`.
     required:
       - type
       - tool_use_id
@@ -98,15 +118,19 @@ anyOf:
     properties:
       thinking:
         type: string
+        description: Thinking.
       signature:
         type: string
+        description: Signature.
       cache_control:
         anyOf:
           - $ref: "../schemas/AnthropicCacheControl.yaml"
           - type: "null"
+        description: Cache control.
       type:
         type: string
         const: thinking
+        description: Must be `thinking`.
     required:
       - type
       - thinking
@@ -115,24 +139,32 @@ anyOf:
     properties:
       data:
         type: string
+        description: Data.
       type:
         type: string
         const: redacted_thinking
+        description: Must be `redacted_thinking`.
     required:
       - type
       - data
-  - description: "Server-initiated tool use (e.g. web search). The model issues the\n tool call and the server executes it; the result returns as a\n`web_search_tool_result` (or sibling) block."
+  - description: |
+      Server-initiated tool use (e.g. web search). The model issues the
+       tool call and the server executes it; the result returns as a
+      `web_search_tool_result` (or sibling) block.
     type: object
     properties:
       id:
         type: string
+        description: Id.
       name:
         type: string
+        description: Name.
       input:
         default:
       type:
         type: string
         const: server_tool_use
+        description: Must be `server_tool_use`.
     required:
       - type
       - id
@@ -142,11 +174,13 @@ anyOf:
     properties:
       tool_use_id:
         type: string
+        description: Tool use ID.
       content:
         default:
       type:
         type: string
         const: web_search_tool_result
+        description: Must be `web_search_tool_result`.
     required:
       - type
       - tool_use_id

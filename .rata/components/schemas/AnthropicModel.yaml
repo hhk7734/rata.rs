@@ -8,16 +8,21 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   type:
     type: string
+    description: Type.
   display_name:
     type: string
+    description: Display name.
   created_at:
     type: string
+    description: Created at.
   max_input_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Max input tokens.
 additionalProperties: false

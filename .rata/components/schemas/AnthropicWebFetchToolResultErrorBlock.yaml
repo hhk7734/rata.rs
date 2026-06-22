@@ -12,11 +12,13 @@ properties:
       - too_many_requests
       - max_uses_exceeded
       - unavailable
+    description: Error code.
   type:
     type: string
     const: web_fetch_tool_result_error
     enum:
       - web_fetch_tool_result_error
+    description: Must be `web_fetch_tool_result_error`.
 required:
   - error_code
   - type

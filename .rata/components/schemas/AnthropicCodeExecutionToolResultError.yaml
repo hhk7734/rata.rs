@@ -7,11 +7,13 @@ properties:
       - unavailable
       - too_many_requests
       - execution_time_exceeded
+    description: Error code.
   type:
     type: string
     const: code_execution_tool_result_error
     enum:
       - code_execution_tool_result_error
+    description: Must be `code_execution_tool_result_error`.
 required:
   - error_code
   - type

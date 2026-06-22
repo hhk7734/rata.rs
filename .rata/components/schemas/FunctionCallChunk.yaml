@@ -4,8 +4,10 @@ properties:
     anyOf:
       - type: string
       - type: "null"
+    description: Name.
   arguments:
     anyOf:
       - type: string
       - type: "null"
+    description: Arguments.
 additionalProperties: false

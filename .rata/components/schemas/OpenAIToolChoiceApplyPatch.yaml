@@ -5,7 +5,8 @@ properties:
     const: apply_patch
     enum:
       - apply_patch
-    description: The tool to call. Always `apply_patch`.
+    description: T
 required:
   - type
-description: Forces the model to call the apply_patch tool when executing a tool call.
+description: |
+  Forces the model to call the apply_patch tool when executing a tool call.

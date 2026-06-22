@@ -1,18 +1,22 @@
-description: "`video_url` payload (vLLM extension). Mirrors `ImageUrl` field-for-field."
+description: |
+  `video_url` payload (vLLM extension). Mirrors `ImageUrl` field-for-field.
 type: object
 properties:
   url:
     type: string
     format: uri
+    description: Url.
   detail:
     anyOf:
       - $ref: "../schemas/ImageDetail.yaml"
       - type: "null"
+    description: Detail.
   uuid:
     anyOf:
       - type: string
         format: uuid
       - type: "null"
+    description: UuID.
 required:
   - url
 additionalProperties: false

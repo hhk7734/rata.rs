@@ -4,6 +4,7 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Reasoning tokens.
 required:
   - reasoning_tokens
 additionalProperties: false

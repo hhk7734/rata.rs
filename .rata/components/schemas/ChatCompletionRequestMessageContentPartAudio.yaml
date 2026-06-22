@@ -3,5 +3,6 @@ type: object
 properties:
   input_audio:
     $ref: "../schemas/InputAudio.yaml"
+    description: Input audio.
 required:
   - input_audio

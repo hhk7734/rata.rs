@@ -6,10 +6,12 @@ properties:
         format: uint32
         minimum: 0
       - type: "null"
+    description: Cached tokens.
   audio_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Audio tokens.
 additionalProperties: false

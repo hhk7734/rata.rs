@@ -2,15 +2,18 @@ type: object
 properties:
   tool_name:
     type: string
+    description: Tool name.
   type:
     type: string
     const: tool_reference
     enum:
       - tool_reference
+    description: Must be `tool_reference`.
   cache_control:
     $ref: ../schemas/AnthropicCacheControl.yaml
     description: Create a cache control breakpoint at this content block.
 required:
   - tool_name
   - type
-description: Tool reference block that can be included in tool_result content.
+description: |
+  Tool reference block that can be included in tool_result content.

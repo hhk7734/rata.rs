@@ -4,6 +4,7 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Cached tokens.
 required:
   - cached_tokens
 additionalProperties: false

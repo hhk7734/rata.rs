@@ -4,18 +4,14 @@ properties:
     anyOf:
       - type: string
       - type: object
-    description: 'The code interpreter container. Can be a container ID or an object that
-
-      specifies uploaded file IDs to make available to your code, along with an
-
-      optional `memory_limit` setting.'
+    description: 'C'
   type:
     type: string
     const: code_interpreter
     enum:
       - code_interpreter
-    description: The type of the code interpreter tool. Always `code_interpreter`.
+    description: T
 required:
   - container
   - type
-description: A tool that runs Python code to help generate a response to a prompt.
+description: T

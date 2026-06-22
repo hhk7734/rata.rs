@@ -2,23 +2,23 @@ type: object
 properties:
   description:
     type: string
-    description: A description of the namespace shown to the model.
+    description: D
   name:
     type: string
-    description: The namespace name used in tool calls (for example, `crm`).
+    description: N
   tools:
     type: array
     items:
       anyOf:
         - type: object
         - type: object
-    description: The function/custom tools available inside this namespace.
+    description: F
   type:
     type: string
     const: namespace
     enum:
       - namespace
-    description: The type of the tool. Always `namespace`.
+    description: T
 required:
   - tools
   - description

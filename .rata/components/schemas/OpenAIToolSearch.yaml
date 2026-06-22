@@ -5,17 +5,21 @@ properties:
     const: tool_search
     enum:
       - tool_search
-    description: The type of the tool. Always `tool_search`.
+    description: T
   description:
     type: string
-    description: Description shown to the model for a client-executed tool search tool.
+    description: |
+      Description shown to the model for a client-executed tool search tool.
   execution:
     anyOf:
       - type: string
         const: server
+        description: Must be `server`.
       - type: string
         const: client
-    description: Whether tool search is executed by the server or by the client.
+        description: Must be `client`.
+    description: |
+      Whether tool search is executed by the server or by the client.
   parameters:
     $ref: ../schemas/OpenAIunknown.yaml
     description: Parameter schema for a client-executed tool search tool.

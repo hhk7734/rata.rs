@@ -5,7 +5,7 @@ properties:
     const: computer
     enum:
       - computer
-    description: The type of the computer tool. Always `computer`.
+    description: T
 required:
   - type
-description: A tool that controls a virtual computer. Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+description: T

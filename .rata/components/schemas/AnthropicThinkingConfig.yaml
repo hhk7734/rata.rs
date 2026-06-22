@@ -2,12 +2,14 @@ type: object
 properties:
   type:
     type: string
+    description: Type.
   budget_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Budget tokens.
 required:
   - type
 additionalProperties: false

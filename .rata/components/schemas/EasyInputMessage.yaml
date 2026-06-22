@@ -1,17 +1,23 @@
-description: "Simplified message input — the spec-default shape when a client omits\n the `type` discriminator."
+description: |
+  Simplified message input — the spec-default shape when a client omits
+   the `type` discriminator.
 type: object
 properties:
   type:
     $ref: "../schemas/MessageType.yaml"
     default: message
+    description: Type.
   role:
     $ref: "../schemas/EasyRole.yaml"
+    description: Role.
   content:
     $ref: "../schemas/EasyInputContent.yaml"
+    description: Content.
   phase:
     anyOf:
       - $ref: "../schemas/MessagePhase.yaml"
       - type: "null"
+    description: Phase.
 required:
   - role
   - content

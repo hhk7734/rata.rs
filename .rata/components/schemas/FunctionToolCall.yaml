@@ -2,18 +2,23 @@ type: object
 properties:
   call_id:
     type: string
+    description: Call ID.
   name:
     type: string
+    description: Name.
   arguments:
     type: string
+    description: Arguments.
   id:
     anyOf:
       - type: string
       - type: "null"
+    description: Id.
   status:
     anyOf:
       - $ref: "../schemas/OutputStatus.yaml"
       - type: "null"
+    description: Status.
 required:
   - call_id
   - name

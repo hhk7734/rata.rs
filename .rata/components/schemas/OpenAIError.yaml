@@ -2,18 +2,18 @@ type: object
 properties:
   code:
     type: string
-    description: The error code.
+    description: E
   message:
     type: string
-    description: The error message.
+    description: E
   type:
     type: string
     const: error
     enum:
       - error
-    description: The object type, which was always `error` for moderation failures.
+    description: O
 required:
   - code
   - message
   - type
-description: An error produced while attempting moderation.
+description: E

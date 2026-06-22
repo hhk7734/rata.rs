@@ -1,4 +1,5 @@
-description: Tool-type discriminator. OpenAI currently defines only `function`.
+description: |
+  Tool-type discriminator. OpenAI currently defines only `function`.
 type: string
 enum:
   - function

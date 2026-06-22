@@ -6,13 +6,13 @@ properties:
       - type: array
         items:
           $ref: ../schemas/ChatCompletionContentPartText.yaml
-    description: The contents of the tool message.
+    description: C
   role:
     type: string
     const: tool
     enum:
       - tool
-    description: The role of the messages author, in this case `tool`.
+    description: R
   tool_call_id:
     type: string
     description: Tool call that this message is responding to.

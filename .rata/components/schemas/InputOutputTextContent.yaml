@@ -1,17 +1,23 @@
-description: "`{\"type\":\"output_text\", ...}` — text content part on an echoed\n assistant message. `annotations` defaults to empty so clients that omit\n it round-trip."
+description: |
+  `{"type":"output_text", ...}` — text content part on an echoed
+   assistant message. `annotations` defaults to empty so clients that omit
+   it round-trip.
 type: object
 properties:
   text:
     type: string
+    description: Text.
   annotations:
     type: array
     items:
       $ref: "../schemas/Annotation.yaml"
+    description: Annotations.
   logprobs:
     anyOf:
       - type: array
         items:
           $ref: "../schemas/LogProb.yaml"
       - type: "null"
+    description: Logprobs.
 required:
   - text

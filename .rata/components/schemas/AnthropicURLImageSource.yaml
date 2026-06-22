@@ -5,8 +5,10 @@ properties:
     const: url
     enum:
       - url
+    description: Must be `url`.
   url:
     type: string
+    description: Url.
 required:
   - type
   - url

@@ -2,12 +2,13 @@ type: object
 properties:
   container_id:
     type: string
+    description: Container ID.
   type:
     type: string
     const: container_reference
     enum:
       - container_reference
-    description: The environment type. Always `container_reference`.
+    description: E
 required:
   - container_id
   - type

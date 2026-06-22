@@ -5,7 +5,7 @@ properties:
     const: text
     enum:
       - text
-    description: The type of response format being defined. Always `text`.
+    description: T
 required:
   - type
 description: Default response format. Used to generate text responses.

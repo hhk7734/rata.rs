@@ -4,16 +4,18 @@ properties:
     type: array
     items:
       $ref: ../schemas/AnthropicTextCitation.yaml
-    description: 'Citations supporting the text block.
-
-      The type of citation returned will depend on the type of document being cited. Citing a PDF results in `page_location`, plain text results in `char_location`, and content document results in `content_block_location`.'
+    description: |
+      Citations supporting the text block.
+      The type of citation returned will depend on the type of document being cited. Citing a PDF results in `page_location`, plain text results in `char_location`, and content document results in `content_block_location`.
   text:
     type: string
+    description: Text.
   type:
     type: string
     const: text
     enum:
       - text
+    description: Must be `text`.
 required:
   - citations
   - text

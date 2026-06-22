@@ -4,9 +4,11 @@ properties:
     anyOf:
       - type: string
         const: web_search
+        description: Must be `web_search`.
       - type: string
         const: web_search_2025_08_26
-    description: The type of the web search tool. One of `web_search` or `web_search_2025_08_26`.
+        description: Must be `web_search_2025_08_26`.
+    description: T
   filters:
     type: object
     description: Filters for the search.
@@ -14,16 +16,20 @@ properties:
     anyOf:
       - type: string
         const: low
+        description: Must be `low`.
       - type: string
         const: medium
+        description: Must be `medium`.
       - type: string
         const: high
-    description: High level guidance for the amount of context window space to use for the search. One of `low`, `medium`, or `high`. `medium` is the default.
+        description: Must be `high`.
+    description: |
+      High level guidance for the amount of context window space to use for the search. Values: `low`, `medium`, or `high`. `medium` is the default.
   user_location:
     type: object
-    description: The approximate location of the user.
+    description: A
 required:
   - type
-description: 'Search the Internet for sources related to the prompt. Learn more about the
-
-  [web search tool](/docs/guides/tools-web-search).'
+description: |
+  Search the Internet for sources related to the prompt. Learn more about the
+  [web search tool](/docs/guides/tools-web-search).

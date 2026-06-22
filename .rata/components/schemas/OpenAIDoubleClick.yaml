@@ -4,22 +4,23 @@ properties:
     type: array
     items:
       type: string
-    description: The keys being held while double-clicking.
+    description: K
   type:
     type: string
     const: double_click
     enum:
       - double_click
-    description: Specifies the event type. For a double click action, this property is always set to `double_click`.
+    description: |
+      Specifies the event type. For a double click action, this property is always set to `double_click`.
   x:
     type: number
-    description: The x-coordinate where the double click occurred.
+    description: X
   y:
     type: number
-    description: The y-coordinate where the double click occurred.
+    description: Y
 required:
   - y
   - type
   - x
   - keys
-description: A double click action.
+description: D

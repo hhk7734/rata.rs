@@ -2,8 +2,10 @@ type: object
 properties:
   type:
     $ref: "../schemas/WebSearchUserLocationType.yaml"
+    description: Type.
   approximate:
     $ref: "../schemas/WebSearchLocation.yaml"
+    description: Approximate.
 required:
   - type
   - approximate

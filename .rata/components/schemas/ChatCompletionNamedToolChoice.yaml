@@ -2,8 +2,10 @@ type: object
 properties:
   type:
     $ref: "../schemas/ChatCompletionToolType.yaml"
+    description: Type.
   function:
     $ref: "../schemas/FunctionName.yaml"
+    description: Function.
 required:
   - type
   - function

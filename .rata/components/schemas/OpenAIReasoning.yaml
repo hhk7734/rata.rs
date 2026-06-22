@@ -2,7 +2,7 @@ type: object
 properties:
   id:
     type: string
-    description: The unique identifier of the reasoning content.
+    description: U
   summary:
     type: array
     items:
@@ -13,7 +13,7 @@ properties:
     const: reasoning
     enum:
       - reasoning
-    description: The type of the object. Always `reasoning`.
+    description: T
   content:
     type: array
     items:
@@ -21,28 +21,21 @@ properties:
     description: Reasoning text content.
   encrypted_content:
     type: string
-    description: 'The encrypted content of the reasoning item - populated when a response is
-
-      generated with `reasoning.encrypted_content` in the `include` parameter.'
+    description: 'E'
   status:
     anyOf:
       - type: string
         const: in_progress
+        description: Must be `in_progress`.
       - type: string
         const: completed
+        description: Must be `completed`.
       - type: string
         const: incomplete
-    description: 'The status of the item. One of `in_progress`, `completed`, or
-
-      `incomplete`. Populated when items are returned via API.'
+        description: Must be `incomplete`.
+    description: 'S'
 required:
   - id
   - type
   - summary
-description: 'A description of the chain of thought used by a reasoning model while generating
-
-  a response. Be sure to include these items in your `input` to the Responses API
-
-  for subsequent turns of a conversation if you are manually
-
-  [managing context](/docs/guides/conversation-state).'
+description: 'D'

@@ -8,8 +8,9 @@ properties:
     const: exit
     enum:
       - exit
-    description: The outcome type. Always `exit`.
+    description: O
 required:
   - exit_code
   - type
-description: Indicates that the shell commands finished and returned an exit code.
+description: |
+  Indicates that the shell commands finished and returned an exit code.

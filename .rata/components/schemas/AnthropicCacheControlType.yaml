@@ -2,3 +2,4 @@ type: string
 enum:
   - ephemeral
   - unknown
+description: 'Values: ephemeral, unknown.'

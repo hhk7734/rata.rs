@@ -2,7 +2,7 @@ type: object
 properties:
   name:
     type: string
-    description: The name of the custom tool to call.
+    description: N
   type:
     type: string
     const: custom
@@ -12,4 +12,5 @@ properties:
 required:
   - name
   - type
-description: Use this option to force the model to call a specific custom tool.
+description: |
+  Use this option to force the model to call a specific custom tool.

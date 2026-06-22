@@ -6,3 +6,5 @@ enum:
   - too_many_requests
   - query_too_long
   - request_too_large
+description: |
+  Values: invalid_tool_input, unavailable, max_uses_exceeded, too_many_requests, query_too_long, request_too_large.

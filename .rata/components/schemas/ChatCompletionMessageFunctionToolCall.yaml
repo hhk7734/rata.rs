@@ -2,18 +2,18 @@ type: object
 properties:
   id:
     type: string
-    description: The ID of the tool call.
+    description: I
   function:
     type: object
-    description: The function that the model called.
+    description: F
   type:
     type: string
     const: function
     enum:
       - function
-    description: The type of the tool. Currently, only `function` is supported.
+    description: T
 required:
   - function
   - id
   - type
-description: A call to a function tool created by the model.
+description: C

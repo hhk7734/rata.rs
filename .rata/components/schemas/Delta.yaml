@@ -4,26 +4,32 @@ properties:
     anyOf:
       - type: string
       - type: "null"
+    description: Role.
   content:
     anyOf:
       - type: string
       - type: "null"
+    description: Content.
   reasoning_content:
     anyOf:
       - type: string
       - type: "null"
+    description: Reasoning content.
   refusal:
     anyOf:
       - type: string
       - type: "null"
+    description: Refusal.
   function_call:
     anyOf:
       - $ref: "../schemas/DeltaFunctionCall.yaml"
       - type: "null"
+    description: Function call.
   tool_calls:
     anyOf:
       - type: array
         items:
           $ref: "../schemas/ToolCallChunk.yaml"
       - type: "null"
+    description: Tool calls.
 additionalProperties: false

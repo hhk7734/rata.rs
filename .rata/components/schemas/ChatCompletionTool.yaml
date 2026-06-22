@@ -4,8 +4,10 @@ properties:
   type:
     $ref: "../schemas/ChatCompletionToolType.yaml"
     default: function
+    description: Type.
   function:
     $ref: "../schemas/FunctionObject.yaml"
+    description: Function.
 required:
   - function
 additionalProperties: false

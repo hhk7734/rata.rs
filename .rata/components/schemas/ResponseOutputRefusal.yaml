@@ -2,14 +2,14 @@ type: object
 properties:
   refusal:
     type: string
-    description: The refusal explanation from the model.
+    description: R
   type:
     type: string
     const: refusal
     enum:
       - refusal
-    description: The type of the refusal. Always `refusal`.
+    description: T
 required:
   - refusal
   - type
-description: A refusal from the model.
+description: R

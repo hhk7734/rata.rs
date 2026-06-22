@@ -2,13 +2,13 @@ type: object
 properties:
   server_label:
     type: string
-    description: A label for this MCP server, used to identify it in tool calls.
+    description: L
   type:
     type: string
     const: mcp
     enum:
       - mcp
-    description: The type of the MCP tool. Always `mcp`.
+    description: T
   allowed_tools:
     type: array
     items:
@@ -18,60 +18,56 @@ properties:
     description: List of allowed tool names or a filter object.
   authorization:
     type: string
-    description: 'An OAuth access token that can be used with a remote MCP server, either
-
-      with a custom MCP server URL or a service connector. Your application
-
-      must handle the OAuth authorization flow and provide the token here.'
+    description: 'O'
   connector_id:
     anyOf:
       - type: string
         const: connector_dropbox
+        description: Must be `connector_dropbox`.
       - type: string
         const: connector_gmail
+        description: Must be `connector_gmail`.
       - type: string
         const: connector_googlecalendar
+        description: Must be `connector_googlecalendar`.
       - $ref: ../schemas/OpenAI5.yaml
-    description: 'Identifier for service connectors, like those available in ChatGPT. One of
-
+    description: |
+      Identifier for service connectors, like those available in ChatGPT. One of
       `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
-
       about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
-
-      Currently supported `connector_id` values are:'
+      Currently supported `connector_id` values are:
   defer_loading:
     type: boolean
-    description: Whether this MCP tool is deferred and discovered via tool search.
+    description: |
+      Whether this MCP tool is deferred and discovered via tool search.
   headers:
     type: object
     additionalProperties: true
-    description: 'Optional HTTP headers to send to the MCP server. Use for authentication
-
-      or other purposes.'
+    description: |
+      HTTP headers to send to the MCP server. Use for authentication
+      or other purposes.
   require_approval:
     anyOf:
       - type: object
       - type: string
         const: always
+        description: Must be `always`.
       - type: string
         const: never
+        description: Must be `never`.
     description: Specify which of the MCP server's tools require approval.
   server_description:
     type: string
-    description: Optional description of the MCP server, used to provide more context.
+    description: Description of the MCP server, used to provide more context.
   server_url:
     type: string
-    description: 'The URL for the MCP server. One of `server_url`, `connector_id`, or
-
-      `tunnel_id` must be provided.'
+    description: 'U'
   tunnel_id:
     type: string
-    description: 'The Secure MCP Tunnel ID to use instead of a direct server URL. One of
-
-      `server_url`, `connector_id`, or `tunnel_id` must be provided.'
+    description: 'S'
 required:
   - server_label
   - type
-description: 'Give the model access to additional tools via remote Model Context Protocol
-
-  (MCP) servers. [Learn more about MCP](/docs/guides/tools-remote-mcp).'
+description: |
+  Give the model access to additional tools via remote Model Context Protocol
+  (MCP) servers. [

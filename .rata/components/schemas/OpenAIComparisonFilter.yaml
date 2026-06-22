@@ -2,17 +2,21 @@ type: object
 properties:
   key:
     type: string
-    description: The key to compare against the value.
+    description: K
   type:
     anyOf:
       - type: string
         const: eq
+        description: Must be `eq`.
       - type: string
         const: ne
+        description: Must be `ne`.
       - type: string
         const: gt
+        description: Must be `gt`.
       - $ref: ../schemas/OpenAI5.yaml
-    description: 'Specifies the comparison operator: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`, `nin`.'
+    description: |
+      Specifies the comparison operator: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`, `nin`.
   value:
     anyOf:
       - type: string
@@ -22,9 +26,9 @@ properties:
         items:
           type: string
       - type: number
-    description: The value to compare against the attribute key; supports string, number, or boolean types.
+    description: V
 required:
   - value
   - key
   - type
-description: A filter used to compare a specified attribute key to a given value using a defined comparison operation.
+description: F

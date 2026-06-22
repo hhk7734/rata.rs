@@ -1,20 +1,26 @@
-description: "`{\"type\":\"input_file\", ...}` — file input. Either `file_id`,\n `file_url`, or inline `(file_data, filename)` is required."
+description: |
+  `{"type":"input_file", ...}` — file input. Either `file_id`,
+   `file_url`, or inline `(file_data, filename)` is required.
 type: object
 properties:
   file_id:
     anyOf:
       - type: string
       - type: "null"
+    description: File ID.
   file_url:
     anyOf:
       - type: string
         format: uri
       - type: "null"
+    description: File URL.
   file_data:
     anyOf:
       - type: string
       - type: "null"
+    description: File data.
   filename:
     anyOf:
       - type: string
       - type: "null"
+    description: Filename.

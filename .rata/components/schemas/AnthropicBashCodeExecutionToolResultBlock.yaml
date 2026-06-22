@@ -4,13 +4,16 @@ properties:
     anyOf:
       - $ref: ../schemas/AnthropicBashCodeExecutionToolResultError.yaml
       - $ref: ../schemas/AnthropicBashCodeExecutionResultBlock.yaml
+    description: Content.
   tool_use_id:
     type: string
+    description: Tool use ID.
   type:
     type: string
     const: bash_code_execution_tool_result
     enum:
       - bash_code_execution_tool_result
+    description: Must be `bash_code_execution_tool_result`.
 required:
   - content
   - tool_use_id

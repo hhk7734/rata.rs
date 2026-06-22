@@ -2,17 +2,21 @@ type: object
 properties:
   type:
     type: string
+    description: Type.
   text:
     type: string
+    description: Text.
   cache_control:
     anyOf:
       - $ref: "../schemas/AnthropicCacheControl.yaml"
       - type: "null"
+    description: Cache control.
   citations:
     anyOf:
       - type: array
         items: {}
       - type: "null"
+    description: Citations.
 required:
   - type
   - text

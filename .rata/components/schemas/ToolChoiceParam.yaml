@@ -41,6 +41,7 @@ anyOf:
       type:
         type: string
         const: apply_patch
+        description: Must be `apply_patch`.
     required:
       - type
   - type: object
@@ -48,6 +49,7 @@ anyOf:
       type:
         type: string
         const: shell
+        description: Must be `shell`.
     required:
       - type
   - $ref: "../schemas/HostedToolType.yaml"

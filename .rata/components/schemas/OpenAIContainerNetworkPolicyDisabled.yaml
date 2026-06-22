@@ -5,6 +5,6 @@ properties:
     const: disabled
     enum:
       - disabled
-    description: Disable outbound network access. Always `disabled`.
+    description: Disable outbound network access. Must be `disabled`.
 required:
   - type

@@ -1,4 +1,8 @@
-description: "Tool-call `type` discriminator. OpenAI currently defines only `function`;\n kept as an enum for forward compatibility and to match Dynamo's\n `FunctionType`. Derives `Default` so struct fields that use\n`#[serde(default)]` with this type do not need a named default function."
+description: |
+  Tool-call `type` discriminator. OpenAI currently defines only `function`;
+   kept as an enum for forward compatibility and to match Dynamo's
+   `FunctionType`. Derives `Default` so struct fields that use
+  `#[serde(default)]` with this type do not need a named default function.
 type: string
 enum:
   - function

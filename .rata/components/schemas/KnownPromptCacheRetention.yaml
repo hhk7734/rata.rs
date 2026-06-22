@@ -2,3 +2,4 @@ type: string
 enum:
   - 5m
   - 1h
+description: 'Values: 5m, 1h.'

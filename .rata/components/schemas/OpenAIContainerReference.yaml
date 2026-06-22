@@ -2,13 +2,14 @@ type: object
 properties:
   container_id:
     type: string
-    description: The ID of the referenced container.
+    description: I
   type:
     type: string
     const: container_reference
     enum:
       - container_reference
-    description: References a container created with the /v1/containers endpoint
+    description: |
+      References a container created with the /v1/containers endpoint
 required:
   - container_id
   - type

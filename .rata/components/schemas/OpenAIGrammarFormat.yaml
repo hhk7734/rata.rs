@@ -8,8 +8,8 @@ properties:
     const: grammar
     enum:
       - grammar
-    description: Grammar format. Always `grammar`.
+    description: Grammar format. Must be `grammar`.
 required:
   - grammar
   - type
-description: A grammar defined by the user.
+description: G

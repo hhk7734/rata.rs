@@ -2,47 +2,50 @@ type: object
 properties:
   id:
     type: string
-    description: The unique ID of the tool call.
+    description: U
   arguments:
     type: string
-    description: A JSON string of the arguments passed to the tool.
+    description: J
   name:
     type: string
-    description: The name of the tool that was run.
+    description: N
   server_label:
     type: string
-    description: The label of the MCP server running the tool.
+    description: L
   type:
     type: string
     const: mcp_call
     enum:
       - mcp_call
-    description: The type of the item. Always `mcp_call`.
+    description: T
   approval_request_id:
     type: string
-    description: 'Unique identifier for the MCP tool call approval request.
-
-      Include this value in a subsequent `mcp_approval_response` input to approve or reject the corresponding tool call.'
+    description: |
+      Unique identifier for the MCP tool call approval request.
+      Include this value in a subsequent `mcp_approval_response` input to approve or reject the corresponding tool call.
   error:
     type: string
-    description: The error from the tool call, if any.
+    description: E
   output:
     type: string
-    description: The output from the tool call.
+    description: O
   status:
     anyOf:
       - type: string
         const: in_progress
+        description: Must be `in_progress`.
       - type: string
         const: completed
+        description: Must be `completed`.
       - type: string
         const: incomplete
+        description: Must be `incomplete`.
       - $ref: ../schemas/OpenAI2.yaml
-    description: The status of the tool call. One of `in_progress`, `completed`, `incomplete`, `calling`, or `failed`.
+    description: S
 required:
   - name
   - server_label
   - id
   - arguments
   - type
-description: An invocation of a tool on an MCP server.
+description: I

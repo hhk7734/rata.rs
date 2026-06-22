@@ -6,6 +6,7 @@ properties:
       type: integer
       format: uint32
       minimum: 0
+    description: Text offset.
   token_logprobs:
     type: array
     items:
@@ -13,10 +14,12 @@ properties:
         - type: number
           format: float
         - type: "null"
+    description: Token logprobs.
   tokens:
     type: array
     items:
       type: string
+    description: Tokens.
   top_logprobs:
     type: array
     items:
@@ -24,6 +27,7 @@ properties:
         - type: object
           additionalProperties: true
         - type: "null"
+    description: Top logprobs.
 required:
   - text_offset
   - token_logprobs

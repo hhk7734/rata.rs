@@ -2,10 +2,10 @@ type: object
 properties:
   description:
     type: string
-    description: The description of the skill.
+    description: D
   name:
     type: string
-    description: The name of the skill.
+    description: N
   source:
     $ref: ../schemas/OpenAIInlineSkillSource.yaml
     description: Inline skill payload

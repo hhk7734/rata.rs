@@ -2,6 +2,7 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   caller:
     anyOf:
       - $ref: ../schemas/AnthropicDirectCaller.yaml
@@ -11,13 +12,16 @@ properties:
   input:
     type: object
     additionalProperties: true
+    description: Input.
   name:
     type: string
+    description: Name.
   type:
     type: string
     const: tool_use
     enum:
       - tool_use
+    description: Must be `tool_use`.
 required:
   - id
   - caller

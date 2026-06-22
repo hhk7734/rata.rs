@@ -6,13 +6,16 @@ properties:
       anyOf:
         - $ref: ../schemas/OpenAIComparisonFilter.yaml
         - $ref: ../schemas/OpenAIunknown.yaml
-    description: Array of filters to combine. Items can be `ComparisonFilter` or `CompoundFilter`.
+    description: |
+      Array of filters to combine. Items can be `ComparisonFilter` or `CompoundFilter`.
   type:
     anyOf:
       - type: string
         const: and
+        description: Must be `and`.
       - type: string
         const: or
+        description: Must be `or`.
     description: 'Type of operation: `and` or `or`.'
 required:
   - filters

@@ -4,22 +4,27 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Prompt tokens.
   completion_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Completion tokens.
   total_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Total tokens.
   prompt_tokens_details:
     anyOf:
       - $ref: "../schemas/PromptTokensDetails.yaml"
       - type: "null"
+    description: Prompt tokens details.
   completion_tokens_details:
     anyOf:
       - $ref: "../schemas/CompletionTokensDetails.yaml"
       - type: "null"
+    description: Completion tokens details.
 required:
   - prompt_tokens
   - completion_tokens

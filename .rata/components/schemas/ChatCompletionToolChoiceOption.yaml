@@ -1,8 +1,12 @@
-description: "Tool-choice policy. The lowercase string variants (`none` / `auto` /\n `required`) match OpenAI's spec; a specific named tool deserializes\nfrom the struct form `{ \"type\": \"function\", \"function\": { \"name\": \"…\" } }`."
+description: |
+  Tool-choice policy. The lowercase string variants (`none` / `auto` /
+   `required`) match OpenAI's spec; a specific named tool deserializes
+  from the struct form `{ "type": "function", "function": { "name": "…" } }`.
 anyOf:
   - type: string
     enum:
       - none
       - auto
       - required
+    description: 'Values: none, auto, required.'
   - $ref: "../schemas/ChatCompletionNamedToolChoice.yaml"

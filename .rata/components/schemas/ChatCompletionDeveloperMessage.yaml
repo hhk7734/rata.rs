@@ -6,21 +6,20 @@ properties:
       - type: array
         items:
           $ref: ../schemas/ChatCompletionContentPartText.yaml
-    description: The contents of the developer message.
+    description: C
   role:
     type: string
     const: developer
     enum:
       - developer
-    description: The role of the messages author, in this case `developer`.
+    description: R
   name:
     type: string
-    description: An optional name for the participant. Provides the model information to differentiate between participants of the same role.
+    description: O
 required:
   - content
   - role
-description: 'Developer-provided instructions that the model should follow, regardless of
-
+description: |
+  Developer-provided instructions that the model should follow, regardless of
   messages sent by the user. With o1 models and newer, `developer` messages
-
-  replace the previous `system` messages.'
+  replace the previous `system` messages.

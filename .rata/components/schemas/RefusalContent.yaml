@@ -1,7 +1,10 @@
-description: "`{\"type\":\"refusal\",\"refusal\":\"…\"}` — refusal content part on an\nassistant message."
+description: |
+  `{"type":"refusal","refusal":"…"}` — refusal content part on an
+  assistant message.
 type: object
 properties:
   refusal:
     type: string
+    description: Refusal.
 required:
   - refusal

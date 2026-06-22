@@ -2,6 +2,7 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   caller:
     anyOf:
       - $ref: ../schemas/AnthropicDirectCaller.yaml
@@ -11,20 +12,26 @@ properties:
   input:
     type: object
     additionalProperties: true
+    description: Input.
   name:
     anyOf:
       - type: string
         const: web_search
+        description: Must be `web_search`.
       - type: string
         const: web_fetch
+        description: Must be `web_fetch`.
       - type: string
         const: code_execution
+        description: Must be `code_execution`.
       - $ref: ../schemas/AnthropicServerToolCaller.yaml
+    description: Name.
   type:
     type: string
     const: server_tool_use
     enum:
       - server_tool_use
+    description: Must be `server_tool_use`.
 required:
   - id
   - caller

@@ -4,19 +4,25 @@ properties:
     type: array
     items:
       type: string
+    description: Lines.
   new_lines:
     type: number
+    description: New lines.
   new_start:
     type: number
+    description: New start.
   old_lines:
     type: number
+    description: Old lines.
   old_start:
     type: number
+    description: Old start.
   type:
     type: string
     const: text_editor_code_execution_str_replace_result
     enum:
       - text_editor_code_execution_str_replace_result
+    description: Must be `text_editor_code_execution_str_replace_result`.
 required:
   - lines
   - new_lines

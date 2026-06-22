@@ -3,10 +3,12 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   version:
     anyOf:
       - type: string
       - type: "null"
+    description: Version.
   variables: {}
 required:
   - id

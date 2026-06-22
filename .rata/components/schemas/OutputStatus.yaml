@@ -1,4 +1,6 @@
-description: "Lifecycle status echoed back on output items and accepted on relaxed\n input messages."
+description: |
+  Lifecycle status echoed back on output items and accepted on relaxed
+   input messages.
 type: string
 enum:
   - in_progress

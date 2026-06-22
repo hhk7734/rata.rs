@@ -1,4 +1,5 @@
-description: Image-URL detail hint mirrored from the Chat-Completions content part.
+description: |
+  Image-URL detail hint mirrored from the Chat-Completions content part.
 type: string
 enum:
   - auto

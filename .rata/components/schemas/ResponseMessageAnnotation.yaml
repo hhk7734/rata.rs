@@ -1,12 +1,16 @@
-description: "Annotation attached to assistant output — citation references for\n web-search / file-search results."
+description: |
+  Annotation attached to assistant output — citation references for
+   web-search / file-search results.
 anyOf:
   - type: object
     properties:
       url_citation:
         $ref: "../schemas/UrlCitation.yaml"
+        description: Url citation.
       type:
         type: string
         const: url_citation
+        description: Must be `url_citation`.
     required:
       - type
       - url_citation
@@ -14,9 +18,11 @@ anyOf:
     properties:
       file_citation:
         $ref: "../schemas/FileCitation.yaml"
+        description: File citation.
       type:
         type: string
         const: file_citation
+        description: Must be `file_citation`.
     required:
       - type
       - file_citation

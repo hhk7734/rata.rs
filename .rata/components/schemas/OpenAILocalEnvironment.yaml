@@ -10,6 +10,6 @@ properties:
     type: array
     items:
       $ref: ../schemas/OpenAILocalSkill.yaml
-    description: An optional list of skills.
+    description: O
 required:
   - type

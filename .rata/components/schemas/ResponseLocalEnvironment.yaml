@@ -5,7 +5,8 @@ properties:
     const: local
     enum:
       - local
-    description: The environment type. Always `local`.
+    description: E
 required:
   - type
-description: Represents the use of a local environment to perform shell actions.
+description: |
+  Represents the use of a local environment to perform shell actions.

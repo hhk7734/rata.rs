@@ -1,17 +1,17 @@
-description: 'Anthropic-style cache control hint for prefix pinning with TTL.
-
-
+description: |
+  Anthropic-style cache control hint for prefix pinning with TTL.
   `type` is currently always `"ephemeral"`; `ttl` accepts integer seconds
-
-  (`"600"`) or shorthand (`"5m"`, `"1h"`).'
+  (`"600"`) or shorthand (`"5m"`, `"1h"`).
 type: object
 properties:
   type:
     $ref: "../schemas/AnthropicCacheControlType.yaml"
+    description: Type.
   ttl:
     anyOf:
       - type: string
       - type: "null"
+    description: Ttl.
 required:
   - type
 additionalProperties: false

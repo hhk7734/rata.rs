@@ -6,11 +6,13 @@ properties:
       - type: array
         items:
           $ref: ../schemas/AnthropicContentBlockSourceContent.yaml
+    description: Content.
   type:
     type: string
     const: content
     enum:
       - content
+    description: Must be `content`.
 required:
   - content
   - type

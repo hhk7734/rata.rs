@@ -1,17 +1,22 @@
-description: "Output content block for the non-streaming response. The streaming\n `content_block_start` event reuses the same enum."
+description: |
+  Output content block for the non-streaming response. The streaming
+   `content_block_start` event reuses the same enum.
 anyOf:
   - type: object
     properties:
       text:
         type: string
+        description: Text.
       citations:
         anyOf:
           - type: array
             items: {}
           - type: "null"
+        description: Citations.
       type:
         type: string
         const: text
+        description: Must be `text`.
     required:
       - type
       - text
@@ -19,12 +24,15 @@ anyOf:
     properties:
       id:
         type: string
+        description: Id.
       name:
         type: string
+        description: Name.
       input: {}
       type:
         type: string
         const: tool_use
+        description: Must be `tool_use`.
     required:
       - type
       - id
@@ -34,11 +42,14 @@ anyOf:
     properties:
       thinking:
         type: string
+        description: Thinking.
       signature:
         type: string
+        description: Signature.
       type:
         type: string
         const: thinking
+        description: Must be `thinking`.
     required:
       - type
       - thinking
@@ -47,24 +58,31 @@ anyOf:
     properties:
       data:
         type: string
+        description: Data.
       type:
         type: string
         const: redacted_thinking
+        description: Must be `redacted_thinking`.
     required:
       - type
       - data
-  - description: "Server-initiated tool call (e.g. web_search). The matching result\n arrives as `web_search_tool_result` or a sibling block."
+  - description: |
+      Server-initiated tool call (e.g. web_search). The matching result
+       arrives as `web_search_tool_result` or a sibling block.
     type: object
     properties:
       id:
         type: string
+        description: Id.
       name:
         type: string
+        description: Name.
       input:
         default:
       type:
         type: string
         const: server_tool_use
+        description: Must be `server_tool_use`.
     required:
       - type
       - id
@@ -74,11 +92,13 @@ anyOf:
     properties:
       tool_use_id:
         type: string
+        description: Tool use ID.
       content:
         default:
       type:
         type: string
         const: web_search_tool_result
+        description: Must be `web_search_tool_result`.
     required:
       - type
       - tool_use_id

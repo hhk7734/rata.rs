@@ -2,21 +2,28 @@ type: object
 properties:
   data:
     type: string
+    description: Data.
   media_type:
     anyOf:
       - type: string
         const: image/jpeg
+        description: Must be `image/jpeg`.
       - type: string
         const: image/png
+        description: Must be `image/png`.
       - type: string
         const: image/gif
+        description: Must be `image/gif`.
       - type: string
         const: image/webp
+        description: Must be `image/webp`.
+    description: Media type.
   type:
     type: string
     const: base64
     enum:
       - base64
+    description: Must be `base64`.
 required:
   - data
   - media_type

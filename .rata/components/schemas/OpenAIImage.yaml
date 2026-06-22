@@ -5,11 +5,11 @@ properties:
     const: image
     enum:
       - image
-    description: The type of the output. Always `image`.
+    description: T
   url:
     type: string
-    description: The URL of the image output from the code interpreter.
+    description: U
 required:
   - url
   - type
-description: The image output from the code interpreter.
+description: I

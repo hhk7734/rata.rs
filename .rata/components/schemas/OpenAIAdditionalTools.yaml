@@ -4,12 +4,15 @@ properties:
     anyOf:
       - type: string
         const: unknown
+        description: Must be `unknown`.
       - type: string
         const: user
+        description: Must be `user`.
       - type: string
         const: assistant
+        description: Must be `assistant`.
       - $ref: ../schemas/OpenAI5.yaml
-    description: The role that provided the additional tools.
+    description: R
   tools:
     type: array
     items:
@@ -18,16 +21,16 @@ properties:
         - type: object
         - type: object
         - $ref: ../schemas/OpenAI12.yaml
-    description: The additional tool definitions made available at this item.
+    description: A
   type:
     type: string
     const: additional_tools
     enum:
       - additional_tools
-    description: The type of the item. Always `additional_tools`.
+    description: T
   id:
     type: string
-    description: The unique ID of the additional tools item.
+    description: U
 required:
   - tools
   - id

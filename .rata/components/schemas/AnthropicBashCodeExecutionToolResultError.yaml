@@ -8,11 +8,13 @@ properties:
       - too_many_requests
       - execution_time_exceeded
       - output_file_too_large
+    description: Error code.
   type:
     type: string
     const: bash_code_execution_tool_result_error
     enum:
       - bash_code_execution_tool_result_error
+    description: Must be `bash_code_execution_tool_result_error`.
 required:
   - error_code
   - type

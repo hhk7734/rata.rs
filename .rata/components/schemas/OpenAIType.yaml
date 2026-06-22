@@ -2,14 +2,15 @@ type: object
 properties:
   text:
     type: string
-    description: The text to type.
+    description: T
   type:
     type: string
     const: type
     enum:
       - type
-    description: Specifies the event type. For a type action, this property is always set to `type`.
+    description: |
+      Specifies the event type. For a type action, this property is always set to `type`.
 required:
   - text
   - type
-description: An action to type in text.
+description: A

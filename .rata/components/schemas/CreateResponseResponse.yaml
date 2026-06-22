@@ -2,64 +2,81 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   object:
     type: string
+    description: Object.
   created_at:
     type: integer
     format: uint64
     minimum: 0
+    description: Created at.
   model:
     type: string
+    description: Model.
   instructions:
     anyOf:
       - type: string
       - type: "null"
+    description: Instructions.
   max_output_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Max output tokens.
   max_tool_calls:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Max tool calls.
   previous_response_id:
     anyOf:
       - type: string
       - type: "null"
+    description: Previous response ID.
   temperature:
     anyOf:
       - type: number
         format: float
       - type: "null"
+    description: Temperature.
   top_p:
     anyOf:
       - type: number
         format: float
       - type: "null"
+    description: Top p.
   top_logprobs:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Top logprobs.
   tools:
     type: array
     items:
       $ref: "../schemas/Tool.yaml"
+    description: Tools.
   tool_choice:
     $ref: "../schemas/ToolChoiceParam.yaml"
+    description: Tool choice.
   parallel_tool_calls:
     type: boolean
+    description: Parallel tool calls.
   background:
     type: boolean
+    description: Background.
   truncation:
     type: string
+    description: Truncation.
   service_tier:
     type: string
+    description: Service tier.
   metadata: {}
   prompt: {}
   reasoning: {}
@@ -68,18 +85,23 @@ properties:
     anyOf:
       - type: string
       - type: "null"
+    description: User.
   status:
     type: string
+    description: Status.
   incomplete_details:
     anyOf:
       - $ref: "../schemas/IncompleteDetails.yaml"
       - type: "null"
+    description: Incomplete details.
   output:
     type: array
     items:
       $ref: "../schemas/OutputItem.yaml"
+    description: Output.
   usage:
     $ref: "../schemas/ResponseUsage.yaml"
+    description: Usage.
   billing:
     description: "Billing breakdown for the response. Always serialized; absent\n fields render as `null`."
     default:
@@ -91,6 +113,7 @@ properties:
         minimum: 0
         default:
       - type: "null"
+    description: Completed at.
   conversation:
     description: "Conversation id, when the response is bound to a stored\nconversation."
     default:
@@ -103,25 +126,30 @@ properties:
         description: Echo of the `prompt_cache_key` request hint.
         default:
       - type: "null"
+    description: Prompt cache key.
   prompt_cache_retention:
     anyOf:
       - type: string
         description: Echo of the `prompt_cache_retention` request hint.
         default:
       - type: "null"
+    description: Prompt cache retention.
   safety_identifier:
     anyOf:
       - type: string
         description: Echo of the `safety_identifier` request hint.
         default:
       - type: "null"
+    description: Safety IDentifier.
   include:
     anyOf:
       - type: array
-        description: Echo of the request's `include` opt-in flags (see [`IncludeEnum`]).
+        description: |
+          Echo of the request's `include` opt-in flags (see [`IncludeEnum`]).
         items:
           $ref: "../schemas/IncludeEnum.yaml"
       - type: "null"
+    description: Include.
 required:
   - id
   - object

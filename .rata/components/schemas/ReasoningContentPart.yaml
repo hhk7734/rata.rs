@@ -3,9 +3,11 @@ anyOf:
     properties:
       text:
         type: string
+        description: Text.
       type:
         type: string
         const: reasoning_text
+        description: Must be `reasoning_text`.
     required:
       - type
       - text

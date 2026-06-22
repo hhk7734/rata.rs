@@ -1,14 +1,18 @@
-description: "`audio_url` payload (vLLM extension). Distinct from OpenAI's base64\n `input_audio` shape."
+description: |
+  `audio_url` payload (vLLM extension). Distinct from OpenAI's base64
+   `input_audio` shape.
 type: object
 properties:
   url:
     type: string
     format: uri
+    description: Url.
   uuid:
     anyOf:
       - type: string
         format: uuid
       - type: "null"
+    description: UuID.
 required:
   - url
 additionalProperties: false

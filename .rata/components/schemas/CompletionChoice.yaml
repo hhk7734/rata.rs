@@ -2,18 +2,22 @@ type: object
 properties:
   text:
     type: string
+    description: Text.
   index:
     type: integer
     format: uint32
     minimum: 0
+    description: Index.
   logprobs:
     anyOf:
       - $ref: "../schemas/Logprobs.yaml"
       - type: "null"
+    description: Logprobs.
   finish_reason:
     anyOf:
       - type: string
       - type: "null"
+    description: Finish reason.
 required:
   - text
   - index

@@ -1,12 +1,16 @@
-description: "`reasoning` request parameter — full Dynamo shape with `effort`,\n `summary`, and `generate_summary` accepted as a serde alias."
+description: |
+  `reasoning` request parameter — full Dynamo shape with `effort`,
+   `summary`, and `generate_summary` accepted as a serde alias.
 type: object
 properties:
   effort:
     anyOf:
       - $ref: "../schemas/ReasoningEffort.yaml"
       - type: "null"
+    description: Effort.
   summary:
     anyOf:
       - $ref: "../schemas/ReasoningSummary.yaml"
       - type: "null"
+    description: Summary.
 additionalProperties: false

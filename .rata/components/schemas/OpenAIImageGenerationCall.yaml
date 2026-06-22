@@ -2,30 +2,34 @@ type: object
 properties:
   id:
     type: string
-    description: The unique ID of the image generation call.
+    description: U
   result:
     type: string
-    description: The generated image encoded in base64.
+    description: G
   status:
     anyOf:
       - type: string
         const: in_progress
+        description: Must be `in_progress`.
       - type: string
         const: completed
+        description: Must be `completed`.
       - type: string
         const: generating
+        description: Must be `generating`.
       - type: string
         const: failed
-    description: The status of the image generation call.
+        description: Must be `failed`.
+    description: S
   type:
     type: string
     const: image_generation_call
     enum:
       - image_generation_call
-    description: The type of the image generation call. Always `image_generation_call`.
+    description: T
 required:
   - status
   - id
   - result
   - type
-description: An image generation request made by the model.
+description: I

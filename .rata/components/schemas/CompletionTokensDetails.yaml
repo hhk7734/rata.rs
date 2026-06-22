@@ -6,22 +6,26 @@ properties:
         format: uint32
         minimum: 0
       - type: "null"
+    description: Reasoning tokens.
   audio_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Audio tokens.
   accepted_prediction_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Accepted prediction tokens.
   rejected_prediction_tokens:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Rejected prediction tokens.
 additionalProperties: false

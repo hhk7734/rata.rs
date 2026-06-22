@@ -4,19 +4,24 @@ properties:
     type: array
     items:
       $ref: "../schemas/ReasoningSummaryContent.yaml"
+    description: Summary.
   content:
     type: array
     items:
       $ref: "../schemas/ReasoningContentPart.yaml"
+    description: Content.
   id:
     anyOf:
       - type: string
       - type: "null"
+    description: Id.
   status:
     anyOf:
       - $ref: "../schemas/OutputStatus.yaml"
       - type: "null"
+    description: Status.
   encrypted_content:
     anyOf:
       - type: string
       - type: "null"
+    description: Encrypted content.

@@ -4,21 +4,27 @@ properties:
     type: array
     items:
       $ref: ../schemas/AnthropicCodeExecutionOutputBlock.yaml
+    description: Content.
   encrypted_stdout:
     type: string
+    description: Encrypted stdout.
   return_code:
     type: number
+    description: Return code.
   stderr:
     type: string
+    description: Stderr.
   type:
     type: string
     const: encrypted_code_execution_result
     enum:
       - encrypted_code_execution_result
+    description: Must be `encrypted_code_execution_result`.
 required:
   - content
   - encrypted_stdout
   - return_code
   - stderr
   - type
-description: Code execution result with encrypted stdout for PFC + web_search results.
+description: |
+  Code execution result with encrypted stdout for PFC + web_search results.

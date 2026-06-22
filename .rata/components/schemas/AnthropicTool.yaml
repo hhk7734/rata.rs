@@ -1,21 +1,29 @@
-description: "Tool declaration. Client tools require `name` + `input_schema`; server\n tools (web_search, code_execution, ...) are discriminated by `type` and\nmay omit `input_schema`. All non-`name` fields stay optional so both\n kinds deserialize."
+description: |
+  Tool declaration. Client tools require `name` + `input_schema`; server
+   tools (web_search, code_execution, ...) are discriminated by `type` and
+  may omit `input_schema`. All non-`name` fields stay optional so both
+   kinds deserialize.
 type: object
 properties:
   name:
     type: string
+    description: Name.
   type:
     anyOf:
       - type: string
       - type: "null"
+    description: Type.
   description:
     anyOf:
       - type: string
       - type: "null"
+    description: Description.
   input_schema: {}
   cache_control:
     anyOf:
       - $ref: "../schemas/AnthropicCacheControl.yaml"
       - type: "null"
+    description: Cache control.
 required:
   - name
 additionalProperties: false

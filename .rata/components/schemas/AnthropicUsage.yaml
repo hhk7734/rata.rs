@@ -4,14 +4,17 @@ properties:
     type: integer
     format: uint32
     minimum: 0
+    description: Input tokens.
   output_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Output tokens.
   total_tokens:
     type: integer
     format: uint32
     minimum: 0
+    description: Total tokens.
   cache_creation_input_tokens:
     anyOf:
       - type: integer
@@ -19,22 +22,26 @@ properties:
         format: uint32
         minimum: 0
       - type: "null"
+    description: Cache creation input tokens.
   cache_read_input_tokens:
     anyOf:
       - type: integer
-        description: Number of input tokens read from the prompt cache (prefix cache hits).
+        description: |
+          Number of input tokens read from the prompt cache (prefix cache hits).
         format: uint32
         minimum: 0
       - type: "null"
+    description: Cache read input tokens.
   cache_creation:
     description: Breakdown of `cache_creation_input_tokens` by cache TTL bucket.
   service_tier:
     anyOf:
       - type: string
-        description: 'Service tier that actually served the request (`"standard"` /
-
-          `"priority"` / `"batch"`).'
+        description: |
+          Service tier that actually served the request (`"standard"` /
+          `"priority"` / `"batch"`).
       - type: "null"
+    description: Service tier.
   server_tool_use:
     description: Per-server-tool token counts (e.g. web_search requests).
 required:

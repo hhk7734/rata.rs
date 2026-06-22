@@ -3,3 +3,5 @@ enum:
   - invalid_tool_input
   - unavailable
   - execution_time_exceeded
+description: |
+  Values: invalid_tool_input, unavailable, execution_time_exceeded.

@@ -4,25 +4,31 @@ properties:
     anyOf:
       - $ref: "../schemas/ChatCompletionRequestAssistantMessageContent.yaml"
       - type: "null"
+    description: Content.
   reasoning_content:
     anyOf:
       - $ref: "../schemas/ReasoningContent.yaml"
       - type: "null"
+    description: Reasoning content.
   refusal:
     anyOf:
       - type: string
       - type: "null"
+    description: Refusal.
   name:
     anyOf:
       - type: string
       - type: "null"
+    description: Name.
   audio:
     anyOf:
       - $ref: "../schemas/ChatCompletionRequestAssistantMessageAudio.yaml"
       - type: "null"
+    description: Audio.
   tool_calls:
     anyOf:
       - type: array
         items:
           $ref: "../schemas/ToolCall.yaml"
       - type: "null"
+    description: Tool calls.

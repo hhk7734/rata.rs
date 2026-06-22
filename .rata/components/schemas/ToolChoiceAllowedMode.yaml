@@ -2,3 +2,4 @@ type: string
 enum:
   - auto
   - required
+description: 'Values: auto, required.'

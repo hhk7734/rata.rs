@@ -2,46 +2,46 @@ type: object
 properties:
   call_id:
     type: string
-    description: The ID of the computer tool call that produced the output.
+    description: I
   output:
     $ref: ../schemas/ResponseComputerToolCallOutputScreenshot.yaml
-    description: A computer screenshot image used with the computer use tool.
+    description: C
   type:
     type: string
     const: computer_call_output
     enum:
       - computer_call_output
-    description: The type of the computer tool call output. Always `computer_call_output`.
+    description: T
   id:
     type: string
-    description: The unique ID of the computer call tool output.
+    description: U
   acknowledged_safety_checks:
     type: array
     items:
       type: object
-    description: 'The safety checks reported by the API that have been acknowledged by the
-
-      developer.'
+    description: 'S'
   status:
     anyOf:
       - type: string
         const: completed
+        description: Must be `completed`.
       - type: string
         const: incomplete
+        description: Must be `incomplete`.
       - type: string
         const: failed
+        description: Must be `failed`.
       - type: string
         const: in_progress
-    description: 'The status of the message input. One of `in_progress`, `completed`, or
-
-      `incomplete`. Populated when input items are returned via API.'
+        description: Must be `in_progress`.
+    description: 'S'
   created_by:
     type: string
-    description: The identifier of the actor that created the item.
+    description: I
 required:
   - call_id
   - output
   - status
   - id
   - type
-description: The output of a computer tool call.
+description: O

@@ -3,5 +3,6 @@ type: object
 properties:
   text:
     type: string
+    description: Text.
 required:
   - text

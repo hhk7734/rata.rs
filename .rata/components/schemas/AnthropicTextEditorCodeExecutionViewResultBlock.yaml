@@ -2,25 +2,34 @@ type: object
 properties:
   content:
     type: string
+    description: Content.
   file_type:
     anyOf:
       - type: string
         const: text
+        description: Must be `text`.
       - type: string
         const: image
+        description: Must be `image`.
       - type: string
         const: pdf
+        description: Must be `pdf`.
+    description: File type.
   num_lines:
     type: number
+    description: Num lines.
   start_line:
     type: number
+    description: Start line.
   total_lines:
     type: number
+    description: Total lines.
   type:
     type: string
     const: text_editor_code_execution_view_result
     enum:
       - text_editor_code_execution_view_result
+    description: Must be `text_editor_code_execution_view_result`.
 required:
   - content
   - file_type

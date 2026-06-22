@@ -2,10 +2,13 @@ type: object
 properties:
   id:
     type: string
+    description: Id.
   type:
     $ref: "../schemas/FunctionType.yaml"
+    description: Type.
   function:
     $ref: "../schemas/FunctionCall.yaml"
+    description: Function.
 required:
   - id
   - type

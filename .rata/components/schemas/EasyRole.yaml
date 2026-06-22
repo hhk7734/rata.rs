@@ -1,4 +1,5 @@
-description: "Role on an `EasyInputMessage` — any of user/system/developer/assistant."
+description: |
+  Role on an `EasyInputMessage` — any of user/system/developer/assistant.
 type: string
 enum:
   - user

@@ -4,16 +4,20 @@ properties:
     anyOf:
       - type: string
       - type: "null"
+    description: City.
   country:
     anyOf:
       - type: string
       - type: "null"
+    description: Country.
   region:
     anyOf:
       - type: string
       - type: "null"
+    description: Region.
   timezone:
     anyOf:
       - type: string
       - type: "null"
+    description: Timezone.
 additionalProperties: false

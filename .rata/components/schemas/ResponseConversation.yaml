@@ -2,7 +2,7 @@ type: object
 properties:
   id:
     type: string
-    description: The unique ID of the conversation.
+    description: U
 required:
   - id
-description: The conversation that this response belongs to.
+description: C

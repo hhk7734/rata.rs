@@ -6,3 +6,4 @@ enum:
   - flac
   - opus
   - pcm16
+description: 'Values: wav, aac, mp3, flac, opus, pcm16.'

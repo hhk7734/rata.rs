@@ -2,7 +2,7 @@ type: object
 properties:
   skill_id:
     type: string
-    description: The ID of the referenced skill.
+    description: I
   type:
     type: string
     const: skill_reference
@@ -11,7 +11,8 @@ properties:
     description: References a skill created with the /v1/skills endpoint.
   version:
     type: string
-    description: Optional skill version. Use a positive integer or 'latest'. Omit for default.
+    description: |
+      Skill version. Use a positive integer or 'latest'. Omit for default.
 required:
   - skill_id
   - type

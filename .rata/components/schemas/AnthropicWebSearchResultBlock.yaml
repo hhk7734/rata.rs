@@ -3,14 +3,19 @@ properties:
   type:
     type: string
     const: web_search_result
+    description: Must be `web_search_result`.
   encrypted_content:
     type: string
+    description: Encrypted content.
   page_age:
     type: string
+    description: Page age.
   title:
     type: string
+    description: Title.
   url:
     type: string
+    description: Url.
 required:
   - type
   - url

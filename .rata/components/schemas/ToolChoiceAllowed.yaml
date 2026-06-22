@@ -2,9 +2,11 @@ type: object
 properties:
   mode:
     $ref: "../schemas/ToolChoiceAllowedMode.yaml"
+    description: Mode.
   tools:
     type: array
     items: {}
+    description: Tools.
 required:
   - mode
   - tools

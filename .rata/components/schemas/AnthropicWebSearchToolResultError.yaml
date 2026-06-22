@@ -9,11 +9,13 @@ properties:
       - too_many_requests
       - query_too_long
       - request_too_large
+    description: Error code.
   type:
     type: string
     const: web_search_tool_result_error
     enum:
       - web_search_tool_result_error
+    description: Must be `web_search_tool_result_error`.
 required:
   - error_code
   - type

@@ -2,16 +2,16 @@ type: object
 properties:
   json_schema:
     type: object
-    description: Structured Outputs configuration options, including a JSON Schema.
+    description: |
+      Structured Outputs configuration options, including a JSON Schema.
   type:
     type: string
     const: json_schema
     enum:
       - json_schema
-    description: The type of response format being defined. Always `json_schema`.
+    description: T
 required:
   - json_schema
   - type
-description: 'JSON Schema response format. Used to generate structured JSON responses.
-
-  Learn more about [Structured Outputs](/docs/guides/structured-outputs).'
+description: |
+  JSON Schema response format. Used to generate structured JSON responses.

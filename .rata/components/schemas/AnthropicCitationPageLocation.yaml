@@ -2,21 +2,28 @@ type: object
 properties:
   cited_text:
     type: string
+    description: Cited text.
   document_index:
     type: number
+    description: Document index.
   document_title:
     type: string
+    description: Document title.
   end_page_number:
     type: number
+    description: End page number.
   file_id:
     type: string
+    description: File ID.
   start_page_number:
     type: number
+    description: Start page number.
   type:
     type: string
     const: page_location
     enum:
       - page_location
+    description: Must be `page_location`.
 required:
   - cited_text
   - document_index

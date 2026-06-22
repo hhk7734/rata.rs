@@ -3,3 +3,4 @@ enum:
   - auto
   - concise
   - detailed
+description: 'Values: auto, concise, detailed.'

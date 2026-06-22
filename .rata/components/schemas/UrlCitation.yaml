@@ -3,22 +3,26 @@ properties:
   url:
     type: string
     format: uri
+    description: Url.
   title:
     anyOf:
       - type: string
       - type: "null"
+    description: Title.
   start_index:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: Start index.
   end_index:
     anyOf:
       - type: integer
         format: uint32
         minimum: 0
       - type: "null"
+    description: End index.
 required:
   - url
 additionalProperties: false

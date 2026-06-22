@@ -8,7 +8,8 @@ properties:
     description: Number of tokens in the prompt.
   total_tokens:
     type: number
-    description: Total number of tokens used in the request (prompt + completion).
+    description: |
+      Total number of tokens used in the request (prompt + completion).
   completion_tokens_details:
     type: object
     description: Breakdown of tokens used in a completion.

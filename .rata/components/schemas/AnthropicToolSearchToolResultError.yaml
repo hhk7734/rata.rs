@@ -7,13 +7,16 @@ properties:
       - unavailable
       - too_many_requests
       - execution_time_exceeded
+    description: Error code.
   error_message:
     type: string
+    description: Error message.
   type:
     type: string
     const: tool_search_tool_result_error
     enum:
       - tool_search_tool_result_error
+    description: Must be `tool_search_tool_result_error`.
 required:
   - error_code
   - error_message

@@ -2,21 +2,28 @@ type: object
 properties:
   cited_text:
     type: string
+    description: Cited text.
   document_index:
     type: number
+    description: Document index.
   document_title:
     type: string
+    description: Document title.
   end_char_index:
     type: number
+    description: End char index.
   file_id:
     type: string
+    description: File ID.
   start_char_index:
     type: number
+    description: Start char index.
   type:
     type: string
     const: char_location
     enum:
       - char_location
+    description: Must be `char_location`.
 required:
   - cited_text
   - document_index

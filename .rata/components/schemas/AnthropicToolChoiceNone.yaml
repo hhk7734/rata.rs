@@ -5,6 +5,7 @@ properties:
     const: none
     enum:
       - none
+    description: Must be `none`.
 required:
   - type
-description: The model will not be allowed to use tools.
+description: M

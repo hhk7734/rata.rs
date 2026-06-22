@@ -5,8 +5,10 @@ properties:
     anyOf:
       - $ref: "../schemas/WebSearchContextSize.yaml"
       - type: "null"
+    description: Search context size.
   user_location:
     anyOf:
       - $ref: "../schemas/WebSearchUserLocation.yaml"
       - type: "null"
+    description: User location.
 additionalProperties: false

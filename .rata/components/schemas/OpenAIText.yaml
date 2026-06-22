@@ -5,7 +5,7 @@ properties:
     const: text
     enum:
       - text
-    description: Unconstrained text format. Always `text`.
+    description: Unconstrained text format. Must be `text`.
 required:
   - type
 description: Unconstrained free-form text.

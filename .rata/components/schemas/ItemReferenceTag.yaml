@@ -1,3 +1,4 @@
 type: string
 enum:
   - item_reference
+description: 'Values: item_reference.'
