@@ -1,0 +1,19 @@
+type: object
+properties:
+  id:
+    type: string
+    description: The ID of the tool call.
+  custom:
+    type: object
+    description: The custom tool that the model called.
+  type:
+    type: string
+    const: custom
+    enum:
+    - custom
+    description: The type of the tool. Always `custom`.
+required:
+- id
+- type
+- custom
+description: A call to a custom tool created by the model.

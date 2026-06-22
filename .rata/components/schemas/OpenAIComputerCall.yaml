@@ -1,0 +1,48 @@
+type: object
+properties:
+  id:
+    type: string
+    description: The unique ID of the computer call.
+  call_id:
+    type: string
+    description: An identifier used when responding to the tool call with output.
+  pending_safety_checks:
+    type: array
+    items:
+      type: object
+    description: The pending safety checks for the computer call.
+  status:
+    anyOf:
+    - type: string
+      const: in_progress
+    - type: string
+      const: completed
+    - type: string
+      const: incomplete
+    description: 'The status of the item. One of `in_progress`, `completed`, or
+
+      `incomplete`. Populated when items are returned via API.'
+  type:
+    type: string
+    const: computer_call
+    enum:
+    - computer_call
+    description: The type of the computer call. Always `computer_call`.
+  action:
+    $ref: ../schemas/OpenAIComputerAction.yaml
+    description: A click action.
+  actions:
+    $ref: ../schemas/OpenAIComputerActionList.yaml
+    description: 'Flattened batched actions for `computer_use`. Each action includes
+      an
+
+      `type` discriminator and action-specific fields.'
+required:
+- call_id
+- status
+- id
+- pending_safety_checks
+- type
+description: 'A tool call to a computer use tool. See the
+
+  [computer use guide](/docs/guides/tools-computer-use) for more information.'

@@ -1,0 +1,26 @@
+type: object
+properties:
+  name:
+    type: string
+  parameters:
+    $ref: ../schemas/OpenAIunknown.yaml
+  strict:
+    type: boolean
+  type:
+    type: string
+    const: function
+    enum:
+    - function
+  defer_loading:
+    type: boolean
+    description: Whether this function should be deferred and discovered via tool
+      search.
+  description:
+    type: string
+required:
+- parameters
+- name
+- strict
+- type
+description: Defines a function in your own code the model can choose to call. Learn
+  more about [function calling](https://platform.openai.com/docs/guides/function-calling).

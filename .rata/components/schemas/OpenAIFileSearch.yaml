@@ -1,0 +1,30 @@
+type: object
+properties:
+  type:
+    type: string
+    const: file_search
+    enum:
+    - file_search
+    description: The type of the file search tool. Always `file_search`.
+  vector_store_ids:
+    type: array
+    items:
+      type: string
+    description: The IDs of the vector stores to search.
+  filters:
+    anyOf:
+    - $ref: ../schemas/OpenAIComparisonFilter.yaml
+    - $ref: ../schemas/OpenAICompoundFilter.yaml
+    description: A filter to apply.
+  max_num_results:
+    type: number
+    description: The maximum number of results to return. This number should be between
+      1 and 50 inclusive.
+  ranking_options:
+    type: object
+    description: Ranking options for search.
+required:
+- vector_store_ids
+- type
+description: A tool that searches for relevant content from uploaded files. Learn
+  more about the [file search tool](https://platform.openai.com/docs/guides/tools-file-search).

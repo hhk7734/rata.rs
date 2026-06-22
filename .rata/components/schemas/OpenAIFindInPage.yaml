@@ -1,0 +1,19 @@
+type: object
+properties:
+  pattern:
+    type: string
+    description: The pattern or text to search for within the page.
+  type:
+    type: string
+    const: find_in_page
+    enum:
+    - find_in_page
+    description: The action type.
+  url:
+    type: string
+    description: The URL of the page searched for the pattern.
+required:
+- pattern
+- url
+- type
+description: 'Action type "find_in_page": Searches for a pattern within a loaded page.'

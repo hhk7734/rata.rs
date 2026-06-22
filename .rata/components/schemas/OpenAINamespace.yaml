@@ -1,0 +1,27 @@
+type: object
+properties:
+  description:
+    type: string
+    description: A description of the namespace shown to the model.
+  name:
+    type: string
+    description: The namespace name used in tool calls (for example, `crm`).
+  tools:
+    type: array
+    items:
+      anyOf:
+      - type: object
+      - type: object
+    description: The function/custom tools available inside this namespace.
+  type:
+    type: string
+    const: namespace
+    enum:
+    - namespace
+    description: The type of the tool. Always `namespace`.
+required:
+- tools
+- description
+- name
+- type
+description: Groups function/custom tools under a shared namespace.

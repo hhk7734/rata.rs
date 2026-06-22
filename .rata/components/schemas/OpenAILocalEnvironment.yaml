@@ -1,0 +1,15 @@
+type: object
+properties:
+  type:
+    type: string
+    const: local
+    enum:
+    - local
+    description: Use a local computer environment.
+  skills:
+    type: array
+    items:
+      $ref: ../schemas/OpenAILocalSkill.yaml
+    description: An optional list of skills.
+required:
+- type

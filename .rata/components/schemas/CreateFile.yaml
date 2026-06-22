@@ -1,0 +1,19 @@
+type: object
+properties:
+  diff:
+    type: string
+    description: Diff to apply.
+  path:
+    type: string
+    description: Path of the file to create.
+  type:
+    type: string
+    const: create_file
+    enum:
+    - create_file
+    description: Create a new file with the provided diff.
+required:
+- path
+- diff
+- type
+description: Instruction for creating a new file via the apply_patch tool.

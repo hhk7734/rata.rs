@@ -1,0 +1,19 @@
+type: object
+properties:
+  code:
+    type: string
+    description: The error code.
+  message:
+    type: string
+    description: The error message.
+  type:
+    type: string
+    const: error
+    enum:
+    - error
+    description: The object type, which was always `error` for moderation failures.
+required:
+- code
+- message
+- type
+description: An error produced while attempting moderation.

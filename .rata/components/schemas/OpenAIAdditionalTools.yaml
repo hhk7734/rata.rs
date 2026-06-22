@@ -1,0 +1,35 @@
+type: object
+properties:
+  role:
+    anyOf:
+    - type: string
+      const: unknown
+    - type: string
+      const: user
+    - type: string
+      const: assistant
+    - $ref: ../schemas/OpenAI5.yaml
+    description: The role that provided the additional tools.
+  tools:
+    type: array
+    items:
+      anyOf:
+      - type: object
+      - type: object
+      - type: object
+      - $ref: ../schemas/OpenAI12.yaml
+    description: The additional tool definitions made available at this item.
+  type:
+    type: string
+    const: additional_tools
+    enum:
+    - additional_tools
+    description: The type of the item. Always `additional_tools`.
+  id:
+    type: string
+    description: The unique ID of the additional tools item.
+required:
+- tools
+- id
+- role
+- type

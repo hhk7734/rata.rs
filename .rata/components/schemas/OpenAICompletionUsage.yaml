@@ -1,0 +1,22 @@
+type: object
+properties:
+  completion_tokens:
+    type: number
+    description: Number of tokens in the generated completion.
+  prompt_tokens:
+    type: number
+    description: Number of tokens in the prompt.
+  total_tokens:
+    type: number
+    description: Total number of tokens used in the request (prompt + completion).
+  completion_tokens_details:
+    type: object
+    description: Breakdown of tokens used in a completion.
+  prompt_tokens_details:
+    type: object
+    description: Breakdown of tokens used in the prompt.
+required:
+- completion_tokens
+- prompt_tokens
+- total_tokens
+description: Usage statistics for the completion request.

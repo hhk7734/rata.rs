@@ -1,0 +1,37 @@
+type: object
+properties:
+  type:
+    anyOf:
+    - type: string
+      const: web_search_preview
+    - type: string
+      const: web_search_preview_2025_03_11
+    description: The type of the web search tool. One of `web_search_preview` or `web_search_preview_2025_03_11`.
+  search_content_types:
+    type: array
+    items:
+      anyOf:
+      - type: string
+        const: text
+      - type: string
+        const: image
+    enum:
+    - text
+    - image
+  search_context_size:
+    anyOf:
+    - type: string
+      const: low
+    - type: string
+      const: medium
+    - type: string
+      const: high
+    description: High level guidance for the amount of context window space to use
+      for the search. One of `low`, `medium`, or `high`. `medium` is the default.
+  user_location:
+    type: object
+    description: The user's location.
+required:
+- type
+description: This tool searches the web for relevant results to use in a response.
+  Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).

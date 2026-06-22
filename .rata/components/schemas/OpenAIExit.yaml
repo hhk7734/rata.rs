@@ -1,0 +1,15 @@
+type: object
+properties:
+  exit_code:
+    type: number
+    description: Exit code from the shell process.
+  type:
+    type: string
+    const: exit
+    enum:
+    - exit
+    description: The outcome type. Always `exit`.
+required:
+- exit_code
+- type
+description: Indicates that the shell commands finished and returned an exit code.

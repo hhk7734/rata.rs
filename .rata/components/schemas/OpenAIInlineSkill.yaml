@@ -1,0 +1,22 @@
+type: object
+properties:
+  description:
+    type: string
+    description: The description of the skill.
+  name:
+    type: string
+    description: The name of the skill.
+  source:
+    $ref: ../schemas/OpenAIInlineSkillSource.yaml
+    description: Inline skill payload
+  type:
+    type: string
+    const: inline
+    enum:
+    - inline
+    description: Defines an inline skill for this request.
+required:
+- name
+- source
+- description
+- type

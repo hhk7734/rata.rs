@@ -1,0 +1,41 @@
+type: object
+properties:
+  id:
+    type: string
+    description: A unique identifier for the completion.
+  choices:
+    type: array
+    items:
+      $ref: ../schemas/OpenAICompletionChoice.yaml
+    description: The list of completion choices the model generated for the input
+      prompt.
+  created:
+    type: number
+    description: The Unix timestamp (in seconds) of when the completion was created.
+  model:
+    type: string
+    description: The model used for completion.
+  object:
+    type: string
+    const: text_completion
+    enum:
+    - text_completion
+    description: The object type, which is always "text_completion"
+  system_fingerprint:
+    type: string
+    description: 'This fingerprint represents the backend configuration that the model
+      runs with.
+
+      Can be used in conjunction with the `seed` request parameter to understand when
+      backend changes have been made that might impact determinism.'
+  usage:
+    $ref: ../schemas/OpenAICompletionUsage.yaml
+    description: Usage statistics for the completion request.
+required:
+- object
+- model
+- choices
+- created
+- id
+description: 'Represents a completion response from the API. Note: both the streamed
+  and non-streamed response objects share the same shape (unlike the chat endpoint).'

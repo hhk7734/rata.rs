@@ -1,0 +1,11 @@
+type: object
+properties:
+  type:
+    type: string
+    const: text
+    enum:
+    - text
+    description: Unconstrained text format. Always `text`.
+required:
+- type
+description: Unconstrained free-form text.

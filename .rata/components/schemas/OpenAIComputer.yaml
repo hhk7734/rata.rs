@@ -1,0 +1,12 @@
+type: object
+properties:
+  type:
+    type: string
+    const: computer
+    enum:
+    - computer
+    description: The type of the computer tool. Always `computer`.
+required:
+- type
+description: A tool that controls a virtual computer. Learn more about the [computer
+  tool](https://platform.openai.com/docs/guides/tools-computer-use).

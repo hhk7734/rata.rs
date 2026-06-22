@@ -1,0 +1,14 @@
+type: object
+properties:
+  type:
+    type: string
+    const: open_page
+    enum:
+    - open_page
+    description: The action type.
+  url:
+    type: string
+    description: The URL opened by the model.
+required:
+- type
+description: Action type "open_page" - Opens a specific URL from search results.

@@ -1,0 +1,19 @@
+type: object
+properties:
+  file_id:
+    type: string
+    description: The ID of the file.
+  index:
+    type: number
+    description: The index of the file in the list of files.
+  type:
+    type: string
+    const: file_path
+    enum:
+    - file_path
+    description: The type of the file path. Always `file_path`.
+required:
+- index
+- type
+- file_id
+description: A path to a file.

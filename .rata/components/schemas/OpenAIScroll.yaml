@@ -1,0 +1,33 @@
+type: object
+properties:
+  scroll_x:
+    type: number
+    description: The horizontal scroll distance.
+  scroll_y:
+    type: number
+    description: The vertical scroll distance.
+  type:
+    type: string
+    const: scroll
+    enum:
+    - scroll
+    description: Specifies the event type. For a scroll action, this property is always
+      set to `scroll`.
+  x:
+    type: number
+    description: The x-coordinate where the scroll occurred.
+  y:
+    type: number
+    description: The y-coordinate where the scroll occurred.
+  keys:
+    type: array
+    items:
+      type: string
+    description: The keys being held while scrolling.
+required:
+- scroll_x
+- x
+- scroll_y
+- y
+- type
+description: A scroll action.

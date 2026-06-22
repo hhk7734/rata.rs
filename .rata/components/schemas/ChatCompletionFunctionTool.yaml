@@ -1,0 +1,14 @@
+type: object
+properties:
+  function:
+    $ref: ../schemas/OpenAIFunctionDefinition.yaml
+  type:
+    type: string
+    const: function
+    enum:
+    - function
+    description: The type of the tool. Currently, only `function` is supported.
+required:
+- function
+- type
+description: A function tool that can be used to generate a response.

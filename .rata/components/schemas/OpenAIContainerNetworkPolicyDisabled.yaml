@@ -1,0 +1,10 @@
+type: object
+properties:
+  type:
+    type: string
+    const: disabled
+    enum:
+    - disabled
+    description: Disable outbound network access. Always `disabled`.
+required:
+- type

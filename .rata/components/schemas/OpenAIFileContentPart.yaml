@@ -1,0 +1,14 @@
+type: object
+properties:
+  file:
+    type: object
+  type:
+    type: string
+    const: file
+    enum:
+    - file
+    description: The type of the content part. Always `file`.
+required:
+- file
+- type
+description: Learn about [file inputs](/docs/guides/text) for text generation.

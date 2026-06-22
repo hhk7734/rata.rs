@@ -1,0 +1,11 @@
+type: object
+properties:
+  type:
+    type: string
+    const: timeout
+    enum:
+    - timeout
+    description: The outcome type. Always `timeout`.
+required:
+- type
+description: Indicates that the shell call exceeded its configured time limit.

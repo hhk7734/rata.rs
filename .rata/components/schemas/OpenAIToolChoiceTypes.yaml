@@ -1,0 +1,21 @@
+type: object
+properties:
+  type:
+    anyOf:
+    - type: string
+      const: file_search
+    - type: string
+      const: web_search_preview
+    - type: string
+      const: computer
+    - $ref: ../schemas/OpenAI5.yaml
+    description: 'The type of hosted tool the model should to use. Learn more about
+
+      [built-in tools](/docs/guides/tools).
+
+      Allowed values are:'
+required:
+- type
+description: 'Indicates that the model should use a built-in tool to generate a response.
+
+  [Learn more about built-in tools](/docs/guides/tools).'

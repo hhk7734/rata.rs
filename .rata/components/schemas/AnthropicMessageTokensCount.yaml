@@ -1,0 +1,96 @@
+type: object
+properties:
+  input_tokens:
+    type: number
+    description: 'The total number of tokens across the provided list of messages,
+      system prompt, and tools.
+
+      ```http
+
+      curl https://api.anthropic.com/v1/messages/count_tokens \
+
+      -H ''Content-Type: application/json'' \
+
+      -H ''anthropic-version: 2023-06-01'' \
+
+      -H "X-Api-Key: $ANTHROPIC_API_KEY" \
+
+      -d "{
+
+      \"messages\": [
+
+      {
+
+      \"content\": \"Hello, world\",
+
+      \"role\": \"user\"
+
+      }
+
+      ],
+
+      \"model\": \"claude-opus-4-6\",
+
+      \"system\": [
+
+      {
+
+      \"text\": \"Today''s date is 2024-06-01.\",
+
+      \"type\": \"text\"
+
+      }
+
+      ],
+
+      \"thinking\": {
+
+      \"type\": \"adaptive\"
+
+      },
+
+      \"tools\": [
+
+      {
+
+      \"input_schema\": {
+
+      \"type\": \"object\",
+
+      \"properties\": {
+
+      \"location\": \"bar\",
+
+      \"unit\": \"bar\"
+
+      },
+
+      \"required\": [
+
+      \"location\"
+
+      ]
+
+      },
+
+      \"name\": \"name\"
+
+      }
+
+      ]
+
+      }"
+
+      ```
+
+      ```json
+
+      {
+
+      "input_tokens": 2095
+
+      }
+
+      ```'
+required:
+- input_tokens

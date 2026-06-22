@@ -1,0 +1,23 @@
+type: object
+properties:
+  definition:
+    type: string
+    description: The grammar definition.
+  syntax:
+    anyOf:
+    - type: string
+      const: lark
+    - type: string
+      const: regex
+    description: The syntax of the grammar definition. One of `lark` or `regex`.
+  type:
+    type: string
+    const: grammar
+    enum:
+    - grammar
+    description: Grammar format. Always `grammar`.
+required:
+- definition
+- syntax
+- type
+description: A grammar defined by the user.

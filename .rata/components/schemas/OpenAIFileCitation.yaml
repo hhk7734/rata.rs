@@ -1,0 +1,23 @@
+type: object
+properties:
+  file_id:
+    type: string
+    description: The ID of the file.
+  filename:
+    type: string
+    description: The filename of the file cited.
+  index:
+    type: number
+    description: The index of the file in the list of files.
+  type:
+    type: string
+    const: file_citation
+    enum:
+    - file_citation
+    description: The type of the file citation. Always `file_citation`.
+required:
+- index
+- filename
+- type
+- file_id
+description: A citation to a file.

@@ -1,0 +1,37 @@
+type: object
+properties:
+  button:
+    anyOf:
+    - type: string
+      const: left
+    - type: string
+      const: right
+    - type: string
+      const: wheel
+    - $ref: ../schemas/OpenAI2.yaml
+    description: Indicates which mouse button was pressed during the click. One of
+      `left`, `right`, `wheel`, `back`, or `forward`.
+  type:
+    type: string
+    const: click
+    enum:
+    - click
+    description: Specifies the event type. For a click action, this property is always
+      `click`.
+  x:
+    type: number
+    description: The x-coordinate where the click occurred.
+  y:
+    type: number
+    description: The y-coordinate where the click occurred.
+  keys:
+    type: array
+    items:
+      type: string
+    description: The keys being held while clicking.
+required:
+- x
+- y
+- button
+- type
+description: A click action.

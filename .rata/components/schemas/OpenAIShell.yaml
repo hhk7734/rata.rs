@@ -1,0 +1,16 @@
+type: object
+properties:
+  type:
+    type: string
+    const: shell
+    enum:
+    - shell
+    description: The type of the shell tool. Always `shell`.
+  environment:
+    anyOf:
+    - $ref: ../schemas/OpenAIContainerAuto.yaml
+    - $ref: ../schemas/OpenAILocalEnvironment.yaml
+    - $ref: ../schemas/OpenAIContainerReference.yaml
+required:
+- type
+description: A tool that allows the model to execute shell commands.

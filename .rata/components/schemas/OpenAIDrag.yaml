@@ -1,0 +1,36 @@
+type: object
+properties:
+  path:
+    type: array
+    items:
+      type: object
+    description: 'An array of coordinates representing the path of the drag action.
+      Coordinates will appear as an array of objects, eg
+
+      ```
+
+      [
+
+      { x: 100, y: 200 },
+
+      { x: 200, y: 300 }
+
+      ]
+
+      ```'
+  type:
+    type: string
+    const: drag
+    enum:
+    - drag
+    description: Specifies the event type. For a drag action, this property is always
+      set to `drag`.
+  keys:
+    type: array
+    items:
+      type: string
+    description: The keys being held while dragging the mouse.
+required:
+- path
+- type
+description: A drag action.

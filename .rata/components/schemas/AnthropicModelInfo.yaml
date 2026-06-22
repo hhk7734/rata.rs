@@ -1,0 +1,37 @@
+type: object
+properties:
+  id:
+    type: string
+    description: Unique model identifier.
+  capabilities:
+    $ref: ../schemas/AnthropicModelCapabilities.yaml
+    description: Model capability information.
+  created_at:
+    type: string
+    description: RFC 3339 datetime string representing the time at which the model
+      was released. May be set to an epoch value if the release date is unknown.
+  display_name:
+    type: string
+    description: A human-readable name for the model.
+  max_input_tokens:
+    type: number
+    description: Maximum input context window size in tokens for this model.
+  max_tokens:
+    type: number
+    description: Maximum value for the `max_tokens` parameter when using this model.
+  type:
+    type: string
+    const: model
+    enum:
+    - model
+    description: 'Object type.
+
+      For Models, this is always `"model"`.'
+required:
+- id
+- capabilities
+- created_at
+- display_name
+- max_input_tokens
+- max_tokens
+- type

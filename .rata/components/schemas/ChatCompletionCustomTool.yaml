@@ -1,0 +1,15 @@
+type: object
+properties:
+  custom:
+    type: object
+    description: Properties of the custom tool.
+  type:
+    type: string
+    const: custom
+    enum:
+    - custom
+    description: The type of the custom tool. Always `custom`.
+required:
+- custom
+- type
+description: A custom tool that processes input using a specified format.

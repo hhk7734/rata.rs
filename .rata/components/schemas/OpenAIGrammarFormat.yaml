@@ -1,0 +1,15 @@
+type: object
+properties:
+  grammar:
+    type: object
+    description: Your chosen grammar.
+  type:
+    type: string
+    const: grammar
+    enum:
+    - grammar
+    description: Grammar format. Always `grammar`.
+required:
+- grammar
+- type
+description: A grammar defined by the user.

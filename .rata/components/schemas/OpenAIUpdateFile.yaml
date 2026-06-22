@@ -1,0 +1,19 @@
+type: object
+properties:
+  diff:
+    type: string
+    description: Diff to apply.
+  path:
+    type: string
+    description: Path of the file to update.
+  type:
+    type: string
+    const: update_file
+    enum:
+    - update_file
+    description: Update an existing file with the provided diff.
+required:
+- path
+- diff
+- type
+description: Instruction for updating an existing file via the apply_patch tool.

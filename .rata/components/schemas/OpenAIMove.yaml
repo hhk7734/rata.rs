@@ -1,0 +1,25 @@
+type: object
+properties:
+  type:
+    type: string
+    const: move
+    enum:
+    - move
+    description: Specifies the event type. For a move action, this property is always
+      set to `move`.
+  x:
+    type: number
+    description: The x-coordinate to move to.
+  y:
+    type: number
+    description: The y-coordinate to move to.
+  keys:
+    type: array
+    items:
+      type: string
+    description: The keys being held while moving the mouse.
+required:
+- y
+- x
+- type
+description: A mouse move action.

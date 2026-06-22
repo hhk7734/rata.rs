@@ -1,0 +1,21 @@
+type: object
+properties:
+  allowed_domains:
+    type: array
+    items:
+      type: string
+    description: A list of allowed domains when type is `allowlist`.
+  type:
+    type: string
+    const: allowlist
+    enum:
+    - allowlist
+    description: Allow outbound network access only to specified domains. Always `allowlist`.
+  domain_secrets:
+    type: array
+    items:
+      $ref: ../schemas/OpenAIContainerNetworkPolicyDomainSecret.yaml
+    description: Optional domain-scoped secrets for allowlisted domains.
+required:
+- allowed_domains
+- type

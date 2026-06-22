@@ -1,0 +1,15 @@
+type: object
+properties:
+  allowed_tools:
+    $ref: ../schemas/ChatCompletionAllowedTools.yaml
+    description: Constrains the tools available to the model to a pre-defined set.
+  type:
+    type: string
+    const: allowed_tools
+    enum:
+    - allowed_tools
+    description: Allowed tool configuration type. Always `allowed_tools`.
+required:
+- allowed_tools
+- type
+description: Constrains the tools available to the model to a pre-defined set.
