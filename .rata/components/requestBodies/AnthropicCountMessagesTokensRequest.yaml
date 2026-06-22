@@ -46,6 +46,9 @@ content:
             - $ref: "../schemas/AnthropicCacheControl.yaml"
             - type: "null"
         output_config:
+          anyOf:
+            - $ref: "../schemas/AnthropicOutputConfig.yaml"
+            - type: "null"
           description: "Configuration options for the model's output, such as the output format."
           default:
       additionalProperties: false

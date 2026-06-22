@@ -1,0 +1,31 @@
+type: object
+description: Configuration options for the model's output, such as the output format.
+properties:
+  effort:
+    anyOf:
+      - type: string
+        enum:
+          - low
+          - medium
+          - high
+          - xhigh
+          - max
+      - type: "null"
+    description: All possible effort levels.
+  format:
+    anyOf:
+      - type: object
+        description: A schema to specify Claude's output format in responses.
+        properties:
+          type:
+            type: string
+            const: json_schema
+          schema:
+            type: object
+            additionalProperties: true
+            description: The JSON schema of the format
+        required:
+          - type
+          - schema
+      - type: "null"
+additionalProperties: false
