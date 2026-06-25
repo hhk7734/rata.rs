@@ -18,8 +18,7 @@ pub fn render_body_with_scrollbar<'a>(
     selection: Option<Selection>,
     cursor: Option<usize>,
 ) {
-    let display_text = pretty_body(raw_text);
-    let mut text = highlight_json(&display_text);
+    let mut text = highlight_json(raw_text);
 
     text = apply_selection(text, selection);
     if let Some(c) = cursor {
@@ -41,9 +40,9 @@ pub fn render_body_with_scrollbar<'a>(
 
     let inner_width = area.width.saturating_sub(2) as usize;
     let lines = if wrap && inner_width > 0 {
-        count_visual_lines(&display_text, inner_width, wrap)
+        count_visual_lines(raw_text, inner_width, wrap)
     } else {
-        display_text.lines().count()
+        raw_text.lines().count()
     };
 
     let view_height = area.height.saturating_sub(2) as usize;
