@@ -35,6 +35,12 @@ content:
           anyOf:
             - type: string
             - type: "null"
+        prompt_token_ids:
+          anyOf:
+            - type: array
+              items:
+                type: integer
+            - type: "null"
         usage:
           $ref: "../schemas/Usage.yaml"
       additionalProperties: false

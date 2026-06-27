@@ -118,4 +118,8 @@ content:
             - type: integer
               format: int32
             - type: "null"
+        return_token_ids:
+          anyOf:
+            - type: boolean
+            - type: "null"
       additionalProperties: false

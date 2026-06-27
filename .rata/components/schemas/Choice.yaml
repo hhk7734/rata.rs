@@ -18,6 +18,12 @@ properties:
     oneOf:
       - $ref: "../schemas/FinishReason.yaml"
       - type: "null"
+  token_ids:
+    anyOf:
+      - type: array
+        items:
+          type: integer
+      - type: "null"
   provider_specific_fields:
     type: object
     description: "LiteLLM-specific extension"

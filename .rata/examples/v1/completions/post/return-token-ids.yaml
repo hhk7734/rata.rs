@@ -1,0 +1,7 @@
+headers:
+  content-type: application/json
+body:
+  model: "{{model}}"
+  prompt: "Say hi"
+  max_tokens: 10
+  return_token_ids: true

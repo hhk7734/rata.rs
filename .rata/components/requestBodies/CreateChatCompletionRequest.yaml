@@ -242,6 +242,10 @@ content:
           anyOf:
             - type: string
             - type: "null"
+        return_token_ids:
+          anyOf:
+            - type: boolean
+            - type: "null"
         chat_template_kwargs:
           anyOf:
             - type: object

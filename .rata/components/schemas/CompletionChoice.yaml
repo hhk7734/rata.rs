@@ -18,6 +18,18 @@ properties:
       - type: string
       - type: "null"
     description: Finish reason.
+  token_ids:
+    anyOf:
+      - type: array
+        items:
+          type: integer
+      - type: "null"
+  prompt_token_ids:
+    anyOf:
+      - type: array
+        items:
+          type: integer
+      - type: "null"
 required:
   - text
   - index

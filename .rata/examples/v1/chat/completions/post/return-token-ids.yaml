@@ -1,0 +1,8 @@
+headers:
+  content-type: application/json
+body:
+  model: "{{model}}"
+  messages:
+    - role: user
+      content: "Say hi"
+  return_token_ids: true
