@@ -28,7 +28,7 @@ content:
             $ref: "../schemas/Choice.yaml"
         service_tier:
           anyOf:
-            - $ref: "../schemas/ServiceTierResponse.yaml"
+            - $ref: "../schemas/ServiceTier.yaml"
             - type: "null"
           default:
         system_fingerprint:
