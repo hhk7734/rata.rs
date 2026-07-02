@@ -1,0 +1,23 @@
+headers:
+  content-type: application/json
+body:
+  model: "{{model}}"
+  messages:
+    - role: user
+      content: "Weather in Tokyo as JSON."
+  response_format:
+    type: json_schema
+    json_schema:
+      name: wx
+      schema:
+        type: object
+        properties:
+          city:
+            type: string
+          temp:
+            type: number
+        required:
+          - city
+          - temp
+        additionalProperties: false
+  max_completion_tokens: 2048

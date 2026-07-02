@@ -1,0 +1,10 @@
+headers:
+  content-type: application/json
+body:
+  model: "{{model}}"
+  messages:
+    - role: system
+      content: "You are a helpful assistant."
+    - role: user
+      content: "Hello!"
+  n: 3
