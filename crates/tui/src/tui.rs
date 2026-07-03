@@ -423,7 +423,7 @@ impl TuiApp {
             collections_width: 34,
             request_height: 3,
             response_height_percent: 66,
-            examples_height: 4,
+            examples_height: 7,
             wrap_body: false,
             drag_target: DragTarget::None,
             selected_request_row: 0,
