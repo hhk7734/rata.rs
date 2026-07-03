@@ -10,6 +10,11 @@ properties:
     format: uint32
     minimum: 0
     description: Output tokens.
+  reasoning_tokens:
+    type: integer
+    format: uint32
+    minimum: 0
+    description: Reasoning tokens.
   total_tokens:
     type: integer
     format: uint32
