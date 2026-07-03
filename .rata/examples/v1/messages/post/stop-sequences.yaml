@@ -1,0 +1,8 @@
+body:
+  model: "Qwen/Qwen3.6-27B"
+  max_tokens: 64
+  stop_sequences:
+    - "fox"
+  messages:
+    - role: user
+      content: "Repeat exactly this sentence and nothing else: The quick brown fox jumps over the lazy dog."
